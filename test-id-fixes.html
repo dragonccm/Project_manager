@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test ID Type Fixes</title>
+</head>
+<body>
+    <h1>Database ID Type Compatibility Tests</h1>
+    <div id="results"></div>
+    
+    <script>
+        // Test ID comparison scenarios that we fixed
+        function testIDComparisons() {
+            const results = [];
+            
+            // Test cases that simulate our fixes
+            const numberID = 1;
+            const stringID = "1";
+            
+            // Strict comparison (old way - would fail)
+            const strictTest = numberID === stringID;
+            results.push(`Strict comparison (${numberID} === "${stringID}"): ${strictTest}`);
+            
+            // Loose comparison (our fix - should work)
+            const looseTest = numberID == stringID;
+            results.push(`Loose comparison (${numberID} == "${stringID}"): ${looseTest}`);
+            
+            // Project filtering scenarios
+            const projects = [
+                { id: 1, name: "Project 1" },
+                { id: "2", name: "Project 2" },
+                { id: 3, name: "Project 3" }
+            ];
+            
+            const accounts = [
+                { id: 1, projectId: "1", name: "Account 1" },
+                { id: 2, projectId: 2, name: "Account 2" },
+                { id: 3, projectId: "3", name: "Account 3" }
+            ];
+            
+            // Test our fixed filtering
+            results.push('\nProject filtering tests:');
+            accounts.forEach(account => {
+                const projectStrict = projects.find(p => p.id === account.projectId);
+                const projectLoose = projects.find(p => p.id == account.projectId);
+                results.push(`Account "${account.name}" -> Strict: ${projectStrict?.name || 'NOT FOUND'}, Loose: ${projectLoose?.name || 'NOT FOUND'}`);
+            });
+            
+            return results;
+        }
+        
+        // Run tests and display results
+        const testResults = testIDComparisons();
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = '<pre>' + testResults.join('\n') + '</pre>';
+        
+        console.log('ID Type Compatibility Test Results:');
+        testResults.forEach(result => console.log(result));
+    </script>
+</body>
+</html>
