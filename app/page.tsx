@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Bell, Settings, BarChart3, Users, FolderOpen, CheckSquare, Mail, Database } from "lucide-react"
@@ -14,14 +14,39 @@ import { useLanguage } from "@/hooks/use-language"
 import { useTheme } from "@/hooks/use-theme"
 import { DashboardOverview } from "@/components/dashboard-overview"
 import { EmailComposer } from "@/components/email-composer"
+import { EmailSettings } from "@/components/email-settings"
 import { DatabaseStatus } from "@/components/database-status"
 import { useDatabase } from "@/hooks/use-database"
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("dashboard")
   const [showDatabaseStatus, setShowDatabaseStatus] = useState(false)
+  const [emailNotificationSettings, setEmailNotificationSettings] = useState({
+    enabled: false,
+    recipients: []
+  })
   const { t } = useLanguage()
   const { theme } = useTheme()
+
+  // Load email notification settings on mount
+  useEffect(() => {
+    const savedSettings = localStorage.getItem("emailNotificationSettings")
+    if (savedSettings) {
+      const parsed = JSON.parse(savedSettings)
+      setEmailNotificationSettings({
+        enabled: parsed.enabled,
+        recipients: parsed.recipients
+      })
+    }
+  }, [])
+
+  // Handle email settings changes
+  const handleEmailSettingsChange = useCallback((settings: any) => {
+    setEmailNotificationSettings({
+      enabled: settings.enabled,
+      recipients: settings.recipients
+    })
+  }, [])
 
   // Replace projects state with database hook
   const {
@@ -62,6 +87,7 @@ export default function Dashboard() {
     { id: "reports", label: t("reports"), icon: BarChart3 },
     { id: "settings", label: t("settings"), icon: Settings },
     { id: "email", label: t("emailComposer"), icon: Mail },
+    { id: "emailSettings", label: "Email Settings", icon: Settings },
   ]
 
   const renderContent = () => {
@@ -93,6 +119,7 @@ export default function Dashboard() {
             onEditTask={editTask}
             onDeleteTask={removeTask}
             onToggleTask={toggleTask}
+            emailNotifications={emailNotificationSettings}
           />
         )
       case "feedback":
@@ -117,17 +144,47 @@ export default function Dashboard() {
           />
         )
       case "settings":
-        return <SettingsPanel settings={settings} onUpdateSettings={updateUserSettings} />
+        return (
+          <SettingsPanel
+            projects={projects}
+            accounts={accounts}
+            tasks={tasks}
+            feedbacks={feedbacks}
+            onImportData={async (data) => {
+              // Handle import by calling individual add functions
+              if (data.projects) {
+                for (const project of data.projects) {
+                  await addProject(project)
+                }
+              }
+              if (data.accounts) {
+                for (const account of data.accounts) {
+                  await addAccount(account)
+                }
+              }
+              if (data.tasks) {
+                for (const task of data.tasks) {
+                  await addTask(task)
+                }
+              }
+              if (data.feedbacks) {
+                for (const feedback of data.feedbacks) {
+                  await addFeedback(feedback)
+                }
+              }
+            }}
+          />
+        )
       case "email":
         return (
           <EmailComposer
             projects={projects}
+            tasks={tasks}
             accounts={accounts}
-            templates={emailTemplates}
-            onAddTemplate={addEmailTemplate}
-            onDeleteTemplate={removeEmailTemplate}
           />
         )
+      case "emailSettings":
+        return <EmailSettings onSettingsChange={handleEmailSettingsChange} />
       default:
         return (
           <DashboardOverview

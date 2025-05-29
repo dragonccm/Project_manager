@@ -15,6 +15,12 @@ import { generateWordReport, generateExcelReport, generatePDFReport } from "@/li
 
 interface ReportGeneratorProps {
   projects: any[]
+  tasks: any[]
+  feedbacks: any[]
+  accounts: any[]
+  templates: any[]
+  onAddTemplate: (templateData: any) => Promise<any>
+  onDeleteTemplate: (id: number) => Promise<any>
 }
 
 interface Template {
@@ -25,7 +31,15 @@ interface Template {
   createdAt: string
 }
 
-export function ReportGenerator({ projects }: ReportGeneratorProps) {
+export function ReportGenerator({ 
+  projects, 
+  tasks, 
+  feedbacks, 
+  accounts, 
+  templates: reportTemplates, 
+  onAddTemplate, 
+  onDeleteTemplate 
+}: ReportGeneratorProps) {
   const [reportType, setReportType] = useState("daily")
   const [selectedProject, setSelectedProject] = useState("all")
   const [dateRange, setDateRange] = useState({
@@ -36,24 +50,25 @@ export function ReportGenerator({ projects }: ReportGeneratorProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null)
   const [templateEditor, setTemplateEditor] = useState({
     name: "",
-    type: "word" as const,
+    type: "word" as 'word' | 'excel' | 'pdf',
     content: "",
   })
   const [activeTab, setActiveTab] = useState("generate")
   const { t } = useLanguage()
 
   useEffect(() => {
-    const savedTemplates = localStorage.getItem("reportTemplates")
-    if (savedTemplates) {
-      setTemplates(JSON.parse(savedTemplates))
-    }
-  }, [])
+    // Use templates from props instead of localStorage
+    setTemplates(reportTemplates.map(template => ({
+      id: template.id.toString(),
+      name: template.name,
+      type: template.type,
+      content: template.content,
+      createdAt: template.createdAt
+    })))
+  }, [reportTemplates])
 
   const generateReport = async (format: 'csv' | 'word' | 'excel' | 'pdf') => {
-    const tasks = JSON.parse(localStorage.getItem("tasks") || "[]")
-    const feedbacks = JSON.parse(localStorage.getItem("feedbacks") || "[]")
-    const accounts = JSON.parse(localStorage.getItem("accounts") || "[]")
-
+    // Use passed-in data instead of localStorage
     const reportData = {
       type: reportType,
       project: selectedProject !== "all" ? projects.find((p) => p.id === selectedProject) : null,
@@ -154,30 +169,36 @@ export function ReportGenerator({ projects }: ReportGeneratorProps) {
     return csv
   }
 
-  const saveTemplate = () => {
+  const saveTemplate = async () => {
     if (!templateEditor.name || !templateEditor.content) {
       alert("Please fill in template name and content")
       return
     }
 
-    const newTemplate: Template = {
-      id: Date.now().toString(),
-      ...templateEditor,
+    const newTemplateData = {
+      name: templateEditor.name,
+      type: templateEditor.type,
+      content: templateEditor.content,
       createdAt: new Date().toISOString(),
     }
 
-    const updatedTemplates = [...templates, newTemplate]
-    setTemplates(updatedTemplates)
-    localStorage.setItem("reportTemplates", JSON.stringify(updatedTemplates))
-
-    setTemplateEditor({ name: "", type: "word", content: "" })
-    alert("Template saved successfully!")
+    try {
+      await onAddTemplate(newTemplateData)
+      setTemplateEditor({ name: "", type: "word", content: "" })
+      alert("Template saved successfully!")
+    } catch (error) {
+      console.error("Error saving template:", error)
+      alert("Error saving template. Please try again.")
+    }
   }
 
-  const deleteTemplate = (templateId: string) => {
-    const updatedTemplates = templates.filter(t => t.id !== templateId)
-    setTemplates(updatedTemplates)
-    localStorage.setItem("reportTemplates", JSON.stringify(updatedTemplates))
+  const deleteTemplateHandler = async (templateId: string) => {
+    try {
+      await onDeleteTemplate(parseInt(templateId))
+    } catch (error) {
+      console.error("Error deleting template:", error)
+      alert("Error deleting template. Please try again.")
+    }
   }
 
   const loadTemplate = (template: Template) => {
@@ -261,7 +282,7 @@ FEEDBACK SUMMARY
     return templates[type as keyof typeof templates] || ""
   }
 
-  const reportTemplates = [
+  const reportTypeOptions = [
     {
       id: "daily",
       name: t("dailyReport"),
@@ -313,7 +334,7 @@ FEEDBACK SUMMARY
                 <div className="space-y-2">
                   <Label>{t("reportType")}</Label>
                   <div className="grid grid-cols-2 gap-2">
-                    {reportTemplates.map((template) => (
+                    {reportTypeOptions.map((template) => (
                       <Button
                         key={template.id}
                         variant={reportType === template.id ? "default" : "outline"}
@@ -489,7 +510,7 @@ FEEDBACK SUMMARY
                         <Button 
                           size="sm" 
                           variant="destructive"
-                          onClick={() => deleteTemplate(template.id)}
+                          onClick={() => deleteTemplateHandler(template.id)}
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>

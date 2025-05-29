@@ -24,24 +24,37 @@ import { useLanguage } from "@/hooks/use-language"
 
 interface DashboardOverviewProps {
   projects: any[]
+  tasks: any[]
+  accounts: any[]
+  feedbacks: any[]
+  onToggleTask: (id: number, completed: boolean) => Promise<any>
 }
 
-export function DashboardOverview({ projects }: DashboardOverviewProps) {
-  const [tasks, setTasks] = useState<any[]>([])
-  const [accounts, setAccounts] = useState<any[]>([])
-  const [feedbacks, setFeedbacks] = useState([])
+export function DashboardOverview({ 
+  projects, 
+  tasks, 
+  accounts, 
+  feedbacks, 
+  onToggleTask 
+}: DashboardOverviewProps) {
   const { t } = useLanguage()
 
-  useEffect(() => {
-    // Load data from localStorage
-    const savedTasks = localStorage.getItem("tasks")
-    const savedAccounts = localStorage.getItem("accounts")
-    const savedFeedbacks = localStorage.getItem("feedbacks")
+  // Remove local state since we're receiving data via props
+  // const [tasks, setTasks] = useState<any[]>([])
+  // const [accounts, setAccounts] = useState<any[]>([])
+  // const [feedbacks, setFeedbacks] = useState([])
 
-    if (savedTasks) setTasks(JSON.parse(savedTasks))
-    if (savedAccounts) setAccounts(JSON.parse(savedAccounts))
-    if (savedFeedbacks) setFeedbacks(JSON.parse(savedFeedbacks))
-  }, [])
+  // Remove useEffect since data comes from props
+  // useEffect(() => {
+  //   // Load data from localStorage
+  //   const savedTasks = localStorage.getItem("tasks")
+  //   const savedAccounts = localStorage.getItem("accounts")
+  //   const savedFeedbacks = localStorage.getItem("feedbacks")
+
+  //   if (savedTasks) setTasks(JSON.parse(savedTasks))
+  //   if (savedAccounts) setAccounts(JSON.parse(savedAccounts))
+  //   if (savedFeedbacks) setFeedbacks(JSON.parse(savedFeedbacks))
+  // }, [])
 
   const today = new Date().toISOString().split("T")[0]
   const todayTasks = tasks.filter((task: any) => task.date === today)
@@ -65,7 +78,7 @@ export function DashboardOverview({ projects }: DashboardOverviewProps) {
       .map((task: any) => ({
         type: "task",
         title: task.title,
-        date: task.date,
+        date: typeof task.date === 'string' ? task.date : new Date(task.date).toISOString().split("T")[0],
         status: task.completed ? "completed" : "pending",
         priority: task.priority,
       })),
@@ -74,7 +87,9 @@ export function DashboardOverview({ projects }: DashboardOverviewProps) {
       .map((feedback: any) => ({
         type: "feedback",
         title: feedback.subject,
-        date: feedback.createdAt.split("T")[0],
+        date: typeof feedback.createdAt === 'string' 
+          ? feedback.createdAt.split("T")[0] 
+          : new Date(feedback.createdAt).toISOString().split("T")[0],
         status: feedback.status,
         rating: feedback.rating,
       })),
@@ -82,10 +97,11 @@ export function DashboardOverview({ projects }: DashboardOverviewProps) {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 10)
 
-  const toggleTask = (taskId: string) => {
-    const updatedTasks = tasks.map((task: any) => (task.id == taskId ? { ...task, completed: !task.completed } : task))
-    setTasks(updatedTasks)
-    localStorage.setItem("tasks", JSON.stringify(updatedTasks))
+  const toggleTask = async (taskId: string) => {
+    const task = tasks.find((t: any) => t.id == taskId)
+    if (task && onToggleTask) {
+      await onToggleTask(task.id, task.completed)
+    }
   }
 
   const getProjectProgress = (projectId: string) => {

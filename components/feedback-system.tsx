@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,26 +13,19 @@ import { Badge } from "@/components/ui/badge"
 import { Bell, MessageSquare, Star, Clock, User } from "lucide-react"
 import { useLanguage } from "@/hooks/use-language"
 
-interface Feedback {
-  id: string
-  projectId: string
-  clientName: string
-  clientEmail: string
-  subject: string
-  message: string
-  rating: number
-  status: "new" | "in-progress" | "resolved"
-  priority: "low" | "medium" | "high"
-  createdAt: string
-  updatedAt: string
-}
-
 interface FeedbackSystemProps {
   projects: any[]
+  feedbacks: any[]
+  onAddFeedback: (feedbackData: any) => Promise<any>
+  onEditFeedback: (id: number, updatedData: any) => Promise<any>
 }
 
-export function FeedbackSystem({ projects }: FeedbackSystemProps) {
-  const [feedbacks, setFeedbacks] = useState<Feedback[]>([])
+export function FeedbackSystem({ 
+  projects, 
+  feedbacks, 
+  onAddFeedback,
+  onEditFeedback
+}: FeedbackSystemProps) {
   const [formData, setFormData] = useState({
     projectId: "",
     clientName: "",
@@ -45,48 +38,41 @@ export function FeedbackSystem({ projects }: FeedbackSystemProps) {
   const [filter, setFilter] = useState("all")
   const { t } = useLanguage()
 
-  useEffect(() => {
-    const savedFeedbacks = localStorage.getItem("feedbacks")
-    if (savedFeedbacks) {
-      setFeedbacks(JSON.parse(savedFeedbacks))
-    }
-  }, [])
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const newFeedback: Feedback = {
-      id: Date.now().toString(),
+    const newFeedback = {
       ...formData,
       status: "new",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
 
-    const updatedFeedbacks = [...feedbacks, newFeedback]
-    setFeedbacks(updatedFeedbacks)
-    localStorage.setItem("feedbacks", JSON.stringify(updatedFeedbacks))
-
-    setFormData({
-      projectId: "",
-      clientName: "",
-      clientEmail: "",
-      subject: "",
-      message: "",
-      rating: 5,
-      priority: "medium",
-    })
+    try {
+      await onAddFeedback(newFeedback)
+      setFormData({
+        projectId: "",
+        clientName: "",
+        clientEmail: "",
+        subject: "",
+        message: "",
+        rating: 5,
+        priority: "medium",
+      })
+    } catch (error) {
+      console.error("Error adding feedback:", error)
+    }
   }
 
-  const updateFeedbackStatus = (feedbackId: string, status: Feedback["status"]) => {
-    const updatedFeedbacks = feedbacks.map((feedback) =>
-      feedback.id === feedbackId ? { ...feedback, status, updatedAt: new Date().toISOString() } : feedback,
-    )
-    setFeedbacks(updatedFeedbacks)
-    localStorage.setItem("feedbacks", JSON.stringify(updatedFeedbacks))
+  const updateFeedbackStatus = async (feedbackId: string, status: "new" | "in-progress" | "resolved") => {
+    try {
+      await onEditFeedback(Number(feedbackId), { status })
+    } catch (error) {
+      console.error("Error updating feedback status:", error)
+    }
   }
 
-  const filteredFeedbacks = feedbacks.filter((feedback) => {
+  const filteredFeedbacks = feedbacks.filter((feedback: any) => {
     if (filter === "all") return true
     return feedback.status === filter
   })
@@ -130,7 +116,7 @@ export function FeedbackSystem({ projects }: FeedbackSystemProps) {
         <div className="flex items-center gap-2">
           <Bell className="h-5 w-5" />
           <Badge variant="destructive">
-            {feedbacks.filter((f) => f.status === "new").length} {t("new")}
+            {feedbacks.filter((f: any) => f.status === "new").length} {t("new")}
           </Badge>
         </div>
       </div>
@@ -150,7 +136,7 @@ export function FeedbackSystem({ projects }: FeedbackSystemProps) {
             <CardTitle className="text-sm font-medium">{t("newFeedback")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{feedbacks.filter((f) => f.status === "new").length}</div>
+            <div className="text-2xl font-bold text-red-600">{feedbacks.filter((f: any) => f.status === "new").length}</div>
           </CardContent>
         </Card>
 
@@ -160,7 +146,7 @@ export function FeedbackSystem({ projects }: FeedbackSystemProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">
-              {feedbacks.filter((f) => f.status === "in-progress").length}
+              {feedbacks.filter((f: any) => f.status === "in-progress").length}
             </div>
           </CardContent>
         </Card>
@@ -171,7 +157,7 @@ export function FeedbackSystem({ projects }: FeedbackSystemProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {feedbacks.filter((f) => f.status === "resolved").length}
+              {feedbacks.filter((f: any) => f.status === "resolved").length}
             </div>
           </CardContent>
         </Card>
@@ -197,7 +183,7 @@ export function FeedbackSystem({ projects }: FeedbackSystemProps) {
                   </SelectTrigger>
                   <SelectContent>
                     {projects.map((project) => (
-                      <SelectItem key={project.id} value={project.id}>
+                      <SelectItem key={project.id} value={project.id.toString()}>
                         {project.name}
                       </SelectItem>
                     ))}
@@ -330,8 +316,8 @@ export function FeedbackSystem({ projects }: FeedbackSystemProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-4 max-h-96 overflow-y-auto">
-              {filteredFeedbacks.map((feedback) => {
-                const project = projects.find((p) => p.id === feedback.projectId)
+              {filteredFeedbacks.map((feedback: any) => {
+                const project = projects.find((p) => p.id == feedback.projectId || p.id == feedback.project_id)
                 return (
                   <div key={feedback.id} className="border rounded-lg p-4">
                     <div className="flex items-start justify-between mb-2">
@@ -352,11 +338,12 @@ export function FeedbackSystem({ projects }: FeedbackSystemProps) {
                       <div className="flex items-center gap-4">
                         <span className="flex items-center gap-1">
                           <User className="h-3 w-3" />
-                          {feedback.clientName}
+                          {feedback.clientName || feedback.client_name}
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          {new Date(feedback.createdAt).toLocaleDateString()}
+                          {feedback.createdAt ? new Date(feedback.createdAt).toLocaleDateString() : 
+                           feedback.created_at ? new Date(feedback.created_at).toLocaleDateString() : 'N/A'}
                         </span>
                       </div>
 

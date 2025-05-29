@@ -28,10 +28,18 @@ interface Account {
 interface AccountManagerProps {
   projects: any[]
   accounts: any[]
+  onAddAccount: (accountData: any) => Promise<any>
+  onDeleteAccount: (id: number) => Promise<any>
 }
 
-export function AccountManager({ projects, accounts }: AccountManagerProps) {
-  const { addAccount, removeAccount } = useDatabase()
+export function AccountManager({ 
+  projects, 
+  accounts, 
+  onAddAccount, 
+  onDeleteAccount 
+}: AccountManagerProps) {
+  // Remove useDatabase since functions are passed via props
+  // const { addAccount, removeAccount } = useDatabase()
   const [showPasswords, setShowPasswords] = useState<{ [key: string]: boolean }>({})
   const [formData, setFormData] = useState({
     projectId: "",
@@ -47,7 +55,7 @@ export function AccountManager({ projects, accounts }: AccountManagerProps) {
     e.preventDefault()
 
     try {
-      await addAccount({
+      await onAddAccount({
         project_id: Number.parseInt(formData.projectId),
         username: formData.username,
         password: formData.password,

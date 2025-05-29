@@ -10,9 +10,9 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Clock, Circle } from "lucide-react"
+import { Plus, Clock, Circle, Mail } from "lucide-react"
 import { useLanguage } from "@/hooks/use-language"
-import { useDatabase } from "@/hooks/use-database"
+import { useEmail } from "@/hooks/use-email"
 
 interface Task {
   id: string
@@ -29,26 +29,59 @@ interface Task {
 interface DailyTasksProps {
   projects: any[]
   tasks: any[]
+  onAddTask?: (taskData: any) => Promise<any>
+  onEditTask?: (id: number, taskData: any) => Promise<any>
+  onDeleteTask?: (id: number) => Promise<void>
+  onToggleTask?: (id: number, completed: boolean) => Promise<any>
+  emailNotifications?: {
+    enabled: boolean
+    recipients: string[]
+  }
 }
 
-export function DailyTasks({ projects, tasks }: DailyTasksProps) {
+export function DailyTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTask, onToggleTask, emailNotifications }: DailyTasksProps) {
+  const { t } = useLanguage()
+  const { sendTaskCreatedEmail, sendTaskCompletedEmail } = useEmail()
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    projectId: "",
+    projectId: "none",
     priority: "medium" as const,
     estimatedTime: 60,
   })
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0])
-  const { t } = useLanguage()
-  const { addTask, toggleTask } = useDatabase()
+  const [selectedDate, setSelectedDate] = useState(() => {
+    // Smart default: use date with existing tasks if today has no tasks
+    if (!tasks || tasks.length === 0) {
+      return new Date().toISOString().split("T")[0]
+    }
+    
+    const today = new Date().toISOString().split("T")[0]
+    const todayTasks = tasks.filter((task: any) => {
+      const taskDate = task.date ? new Date(task.date).toISOString().split("T")[0] : null
+      return taskDate === today
+    })
+    
+    if (todayTasks.length > 0) {
+      return today
+    }
+    
+    // Find the most recent task date
+    const sortedTasks = [...tasks].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    return sortedTasks[0]?.date ? new Date(sortedTasks[0].date).toISOString().split("T")[0] : today
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (!onAddTask) {
+      alert("Chức năng thêm task chưa được kết nối!")
+      return
+    }
+
     try {
-      await addTask({
-        project_id: formData.projectId ? Number.parseInt(formData.projectId) : undefined,
+      const newTask = await onAddTask({
+        project_id: formData.projectId && formData.projectId !== "" && formData.projectId !== "none" ? Number.parseInt(formData.projectId) : null,
         title: formData.title,
         description: formData.description,
         priority: formData.priority,
@@ -56,29 +89,82 @@ export function DailyTasks({ projects, tasks }: DailyTasksProps) {
         estimated_time: formData.estimatedTime,
       })
 
+      // Send email notification if enabled
+      if (emailNotifications?.enabled && emailNotifications.recipients.length > 0) {
+        try {
+          const project = projects.find(p => p.id === Number.parseInt(formData.projectId))
+          await sendTaskCreatedEmail({
+            taskTitle: formData.title,
+            taskDescription: formData.description,
+            projectName: project?.name || "Chưa chọn project",
+            priority: formData.priority,
+            dueDate: selectedDate,
+            assignedTo: "Chưa phân công"
+          }, emailNotifications.recipients)
+        } catch (emailError) {
+          console.error("Error sending task created email:", emailError)
+          // Don't show email error to user, just log it
+        }
+      }
+
       setFormData({
         title: "",
         description: "",
-        projectId: "",
+        projectId: "none",
         priority: "medium",
         estimatedTime: 60,
       })
+      
+      alert("Task đã được tạo thành công!")
     } catch (error) {
       console.error("Error saving task:", error)
-      alert("Error saving task. Please try again.")
+      alert("Lỗi khi lưu task. Vui lòng thử lại.")
     }
   }
 
   const handleToggleTask = async (taskId: string, completed: boolean) => {
+    if (!onToggleTask) {
+      alert("Chức năng cập nhật task chưa được kết nối!")
+      return
+    }
+
     try {
-      await toggleTask(Number.parseInt(taskId), !completed)
+      await onToggleTask(Number.parseInt(taskId), !completed)
+      
+      // Send email notification when task is completed
+      if (!completed && emailNotifications?.enabled && emailNotifications.recipients.length > 0) {
+        try {
+          const task = tasks.find(t => t.id === Number.parseInt(taskId))
+          if (task) {
+            const project = projects.find(p => p.id === task.project_id)
+            await sendTaskCompletedEmail({
+              taskTitle: task.title,
+              taskDescription: task.description,
+              projectName: project?.name || "Chưa chọn project",
+              priority: task.priority,
+              dueDate: task.date
+            }, emailNotifications.recipients)
+          }
+        } catch (emailError) {
+          console.error("Error sending task completed email:", emailError)
+          // Don't show email error to user, just log it
+        }
+      }
     } catch (error) {
       console.error("Error updating task:", error)
-      alert("Error updating task. Please try again.")
+      alert("Lỗi khi cập nhật task. Vui lòng thử lại.")
     }
   }
 
-  const todayTasks = tasks.filter((task: any) => task.date === selectedDate)
+  // Use database data only
+  const displayProjects = projects || []
+  const displayTasks = tasks || []
+  
+  const todayTasks = displayTasks.filter((task: any) => {
+    // Handle both ISO date strings and simple date strings
+    const taskDate = task.date ? new Date(task.date).toISOString().split("T")[0] : null
+    return taskDate === selectedDate
+  })
   const completedTasks = todayTasks.filter((task: any) => task.completed)
   const pendingTasks = todayTasks.filter((task: any) => !task.completed)
 
@@ -108,6 +194,18 @@ export function DailyTasks({ projects, tasks }: DailyTasksProps) {
           />
         </div>
       </div>
+
+      {/* Show connection status */}
+      {(!projects || projects.length === 0) && (!tasks || tasks.length === 0) ? (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
+          ⚠️ Không thể kết nối đến database hoặc chưa có dữ liệu. Vui lòng kiểm tra kết nối database.
+        </div>
+      ) : (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800">
+          ✅ Đã kết nối database thành công - {projects?.length || 0} project(s), {tasks?.length || 0} task(s) tổng cộng.
+          {todayTasks.length > 0 ? ` Hôm nay có ${todayTasks.length} task(s).` : " Hôm nay chưa có task nào."}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
@@ -178,7 +276,8 @@ export function DailyTasks({ projects, tasks }: DailyTasksProps) {
                     <SelectValue placeholder={t("selectProject")} />
                   </SelectTrigger>
                   <SelectContent>
-                    {projects.map((project) => (
+                    <SelectItem value="none">{t("noProject")}</SelectItem>
+                    {displayProjects.map((project) => (
                       <SelectItem key={project.id} value={project.id}>
                         {project.name}
                       </SelectItem>
@@ -239,7 +338,10 @@ export function DailyTasks({ projects, tasks }: DailyTasksProps) {
           <CardContent>
             <div className="space-y-4 max-h-96 overflow-y-auto">
               {todayTasks.map((task: any) => {
-                const project = projects.find((p) => p.id == task.projectId)
+                // Handle both projectId formats from database (project_id) and UI (projectId)
+                const taskProjectId = task.projectId || task.project_id?.toString()
+                const project = displayProjects.find((p) => p.id == taskProjectId || p.id === taskProjectId)
+                
                 return (
                   <div key={task.id} className={`border rounded-lg p-4 ${task.completed ? "opacity-60" : ""}`}>
                     <div className="flex items-start gap-3">
@@ -263,7 +365,7 @@ export function DailyTasks({ projects, tasks }: DailyTasksProps) {
                           )}
                           <span className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
-                            {task.estimated_time}min
+                            {task.estimated_time || task.estimatedTime}min
                           </span>
                         </div>
                       </div>
@@ -272,7 +374,13 @@ export function DailyTasks({ projects, tasks }: DailyTasksProps) {
                 )
               })}
               {todayTasks.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">{t("noTasksForThisDay")}</div>
+                <div className="text-center py-8 text-muted-foreground">
+                  {selectedDate === new Date().toISOString().split("T")[0] 
+                    ? t("noTasksForThisDay") 
+                    : `Không có task nào cho ngày ${selectedDate}`}
+                  <br />
+                  <span className="text-sm">Hãy thêm task mới hoặc chọn ngày khác.</span>
+                </div>
               )}
             </div>
           </CardContent>

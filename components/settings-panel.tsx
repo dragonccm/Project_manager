@@ -13,7 +13,21 @@ import { Palette, Globe, Bell, Download, Upload } from "lucide-react"
 import { useLanguage } from "@/hooks/use-language"
 import { useTheme } from "@/hooks/use-theme"
 
-export function SettingsPanel() {
+interface SettingsPanelProps {
+  projects: any[]
+  accounts: any[]
+  tasks: any[]
+  feedbacks: any[]
+  onImportData: (data: any) => Promise<void>
+}
+
+export function SettingsPanel({ 
+  projects, 
+  accounts, 
+  tasks, 
+  feedbacks, 
+  onImportData 
+}: SettingsPanelProps) {
   const { language, setLanguage, t } = useLanguage()
   const { theme, setTheme } = useTheme()
   const [notifications, setNotifications] = useState({
@@ -31,10 +45,10 @@ export function SettingsPanel() {
 
   const exportData = () => {
     const data = {
-      projects: JSON.parse(localStorage.getItem("projects") || "[]"),
-      accounts: JSON.parse(localStorage.getItem("accounts") || "[]"),
-      tasks: JSON.parse(localStorage.getItem("tasks") || "[]"),
-      feedbacks: JSON.parse(localStorage.getItem("feedbacks") || "[]"),
+      projects,
+      accounts,
+      tasks,
+      feedbacks,
       settings: {
         language,
         theme,
@@ -52,19 +66,17 @@ export function SettingsPanel() {
     URL.revokeObjectURL(url)
   }
 
-  const importData = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const importData = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
 
     const reader = new FileReader()
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const data = JSON.parse(e.target?.result as string)
 
-        if (data.projects) localStorage.setItem("projects", JSON.stringify(data.projects))
-        if (data.accounts) localStorage.setItem("accounts", JSON.stringify(data.accounts))
-        if (data.tasks) localStorage.setItem("tasks", JSON.stringify(data.tasks))
-        if (data.feedbacks) localStorage.setItem("feedbacks", JSON.stringify(data.feedbacks))
+        // Use the prop function to handle data import
+        await onImportData(data)
 
         if (data.settings) {
           if (data.settings.language) setLanguage(data.settings.language)

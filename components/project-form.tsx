@@ -27,9 +27,17 @@ interface Project {
 
 interface ProjectFormProps {
   projects: any[]
+  onAddProject: (projectData: any) => Promise<any>
+  onEditProject: (id: number, projectData: any) => Promise<any>
+  onDeleteProject: (id: number) => Promise<any>
 }
 
-export function ProjectForm({ projects }: ProjectFormProps) {
+export function ProjectForm({ 
+  projects, 
+  onAddProject, 
+  onEditProject, 
+  onDeleteProject 
+}: ProjectFormProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | null>(null)
   const [formData, setFormData] = useState({
@@ -40,16 +48,17 @@ export function ProjectForm({ projects }: ProjectFormProps) {
     status: "active",
   })
   const { t } = useLanguage()
-  const { addProject, editProject, removeProject } = useDatabase()
+  // Remove useDatabase since functions are passed via props
+  // const { addProject, editProject, removeProject } = useDatabase()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     try {
       if (isEditing && editingProject) {
-        await editProject(editingProject.id, formData)
+        await onEditProject(Number(editingProject.id), formData)
       } else {
-        await addProject(formData)
+        await onAddProject(formData)
       }
 
       setFormData({ name: "", domain: "", figmaLink: "", description: "", status: "active" })
@@ -76,7 +85,7 @@ export function ProjectForm({ projects }: ProjectFormProps) {
   const handleDelete = async (projectId: number) => {
     if (confirm("Are you sure you want to delete this project?")) {
       try {
-        await removeProject(projectId)
+        await onDeleteProject(projectId)
       } catch (error) {
         console.error("Error deleting project:", error)
         alert("Error deleting project. Please try again.")
