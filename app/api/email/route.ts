@@ -22,13 +22,7 @@ export async function POST(request: NextRequest) {
         await emailService.sendTaskNotification('completed', data, recipients)
         break
       
-      case 'project_update':
-        await emailService.sendProjectUpdate(data, recipients)
-        break
-      
-      case 'daily_report':
-        const { tasks = [], projects = [] } = data
-        await emailService.sendDailyReport(tasks, projects, recipients)
+      case 'project_update':        await emailService.sendProjectUpdate(data, recipients)
         break
       
       case 'custom':

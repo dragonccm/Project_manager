@@ -1,6 +1,6 @@
 # Project Manager
 
-A comprehensive project management application built with Next.js, featuring project tracking, account management, task management, feedback systems, and advanced reporting capabilities.
+A comprehensive project management application built with Next.js, featuring project tracking, account management, task management, feedback systems, and email communication capabilities.
 
 ## ✨ Features
 
@@ -28,17 +28,10 @@ A comprehensive project management application built with Next.js, featuring pro
 - Priority categorization
 - Email notifications for new feedback
 
-### 📊 Advanced Reporting
-- Customizable report templates
-- PDF and Excel export capabilities
-- Multiple report types (daily, weekly, project-specific)
-- Template designer with variable support
-
 ### 📧 Email Composer
 - Professional email templates
 - Variable substitution system
 - Account credential sharing
-- Report attachment capabilities
 
 ### ⚙️ Settings & Customization
 - Multi-language support (English/Vietnamese)

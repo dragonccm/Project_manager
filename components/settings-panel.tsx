@@ -17,7 +17,6 @@ interface SettingsPanelProps {
   projects: any[]
   accounts: any[]
   tasks: any[]
-  feedbacks: any[]
   onImportData: (data: any) => Promise<void>
 }
 
@@ -25,7 +24,6 @@ export function SettingsPanel({
   projects, 
   accounts, 
   tasks, 
-  feedbacks, 
   onImportData 
 }: SettingsPanelProps) {
   const { language, setLanguage, t } = useLanguage()
@@ -33,7 +31,6 @@ export function SettingsPanel({
   const [notifications, setNotifications] = useState({
     email: true,
     desktop: false,
-    feedback: true,
     tasks: true,
   })
   const [customColors, setCustomColors] = useState({
@@ -48,7 +45,6 @@ export function SettingsPanel({
       projects,
       accounts,
       tasks,
-      feedbacks,
       settings: {
         language,
         theme,
@@ -233,18 +229,6 @@ export function SettingsPanel({
                 id="desktop-notifications"
                 checked={notifications.desktop}
                 onCheckedChange={(checked) => setNotifications({ ...notifications, desktop: checked })}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <Label htmlFor="feedback-notifications">{t("feedbackNotifications")}</Label>
-                <p className="text-sm text-muted-foreground">{t("notifyNewFeedback")}</p>
-              </div>
-              <Switch
-                id="feedback-notifications"
-                checked={notifications.feedback}
-                onCheckedChange={(checked) => setNotifications({ ...notifications, feedback: checked })}
               />
             </div>
 

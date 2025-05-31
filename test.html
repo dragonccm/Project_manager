@@ -1,0 +1,165 @@
+<style>
+ /* === TIN TỨC === */
+.post_category_title,
+.ct__title--limit {
+  min-height: 3em;
+  display: flex;
+  align-items: flex-start;
+}
+
+.ct__title--limit {
+  min-height: 64px;
+}
+
+.post_category_title a,
+.ct__title--limit h3,
+.post_limit_text,
+.post_title_excerpt,
+.tablet_post_title .elementor-heading-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.post_category_title a,
+.ct__title--limit h3,
+.tablet_post_title .elementor-heading-title {
+  -webkit-line-clamp: 2;
+}
+
+.post_limit_text {
+  -webkit-line-clamp: 3;
+}
+
+.post_title_excerpt {
+  -webkit-line-clamp: 4;
+}
+
+.post_title_limit_text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.limit_category_text a {
+  color: #8C8B8B !important;
+}
+
+/* === SWIPER === */
+.custom_navigation_new .swiper-pagination {
+  top: 5% !important;
+  bottom: auto !important;
+  left: 50% !important;
+}
+
+.custom_navigation_new .swiper-pagination-bullet {
+  height: 4px !important;
+  width: 10%;
+  border-radius: 10px;
+  background-color: #D9D9D9;
+  opacity: 1;
+}
+
+.custom_navigation_new .swiper-pagination-bullet-active {
+  background-color: #F7B600;
+}
+
+.custom_navigation_new .elementor-swiper-button-prev,
+.custom_navigation_new .elementor-swiper-button-next {
+
+  font-size: 35px !important;
+}
+
+.tablet_post_most_view .elementor-swiper-button-prev,
+.tablet_post_most_view .elementor-swiper-button-next {
+  top: 60% !important;
+  font-size: 2.2rem !important;
+}
+
+.post_category_loop .elementor-swiper-button-next {
+  top: -6% !important;
+}
+
+.post_category_loop .elementor-swiper-button-prev {
+  font-size: 1rem !important;
+  left: 96% !important;
+  top: -5% !important;
+}
+
+@media (max-width: 767px) {
+  .post_category_loop .elementor-swiper-button-prev {
+    left: 90% !important;
+  }
+
+  .custom_featured_img img {
+    min-height: unset;
+  }
+}
+
+/* === ẢNH BÀI VIẾT === */
+.post-category-img img {
+  min-height: 244px;
+}
+
+.custom_featured_img,
+.post_most_view_ctn .elementor-widget-theme-post-featured-image {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.custom_featured_img img,
+.post_most_view_ctn .elementor-widget-theme-post-featured-image img {
+  transition: transform 0.5s ease;
+  will-change: transform;
+}
+
+/* === TAB CHỈ CHẠY TRÊN DESKTOP === */
+@media only screen and (min-width: 1025px) {
+
+}
+
+/* === HOVER HIỆU ỨNG === */
+.custom_navigation_new,
+.post_most_view_ctn {
+  transition: all 1s ease;
+}
+
+.custom_navigation_new:hover,
+.post_most_view_ctn:hover {
+  background-color: #FFF9E4 !important;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25) !important;
+  border-radius: 16px;
+  padding: 10px;
+}
+
+.ir_post_title {
+  transition: all 1s ease;
+}
+
+
+.ir_post_title:hover .custom_featured_img img,
+.post_most_view_ctn:hover .elementor-widget-theme-post-featured-image img {
+  transform: scale(1.05);
+}
+.ir_post_sidebar{
+    height: fit-content;
+}
+
+
+.post-category-img{
+    overflow: hidden;
+    transition: all 1s ease;
+    border-radius: 16px;
+}
+.post-category-img img{
+   transition: all 1s ease;
+}
+.post-category-img:hover img{
+    transform: scale(1.05);
+}
+</style>
+
+<span class="mark">BNB</span>

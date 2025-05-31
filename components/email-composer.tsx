@@ -29,7 +29,6 @@ export function EmailComposer({ projects, tasks = [], accounts = [] }: EmailComp
     sendTaskCreatedEmail, 
     sendTaskCompletedEmail, 
     sendProjectUpdateEmail, 
-    sendDailyReportEmail, 
     sendCustomEmail 
   } = useEmail()
 
@@ -43,7 +42,7 @@ export function EmailComposer({ projects, tasks = [], accounts = [] }: EmailComp
     bcc: "",
     subject: "",
     content: "",
-    emailType: "custom" as "task_created" | "task_completed" | "project_update" | "daily_report" | "custom",
+    emailType: "custom" as "task_created" | "task_completed" | "project_update" | "custom",
   })
   
   const [connectionStatus, setConnectionStatus] = useState<{
@@ -135,13 +134,6 @@ export function EmailComposer({ projects, tasks = [], accounts = [] }: EmailComp
           }, to)
           break
           
-        case "daily_report":
-          await sendDailyReportEmail({
-            tasks: tasks,
-            projects: projects
-          }, to)
-          break
-          
         case "custom":
         default:
           await sendCustomEmail({
@@ -174,7 +166,6 @@ export function EmailComposer({ projects, tasks = [], accounts = [] }: EmailComp
     { value: "task_created", label: "🆕 Thông báo task mới" },
     { value: "task_completed", label: "✅ Thông báo task hoàn thành" },
     { value: "project_update", label: "📊 Cập nhật dự án" },
-    { value: "daily_report", label: "📈 Báo cáo hàng ngày" },
   ]
 
   return (

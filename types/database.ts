@@ -9,6 +9,21 @@ export interface Project {
   updated_at: string
 }
 
+export interface CodeComponent {
+  id: number
+  project_id?: number
+  name: string
+  description?: string
+  category: "element" | "section" | "template" | "widget" | "global"
+  tags: string[]
+  code_json: object
+  preview_image?: string
+  elementor_data: object
+  created_at: string
+  updated_at: string
+  project_name?: string
+}
+
 export interface Account {
   id: number
   project_id?: number
@@ -32,32 +47,7 @@ export interface Task {
   priority: "low" | "medium" | "high"
   date: string
   estimated_time?: number
-  actual_time?: number
-  completed: boolean
-  created_at: string
-  updated_at: string
-}
-
-export interface Feedback {
-  id: number
-  project_id?: number
-  client_name: string
-  client_email: string
-  subject: string
-  message: string
-  rating: number
-  priority: string
-  status: string
-  created_at: string
-  updated_at: string
-  project_name?: string
-}
-
-export interface ReportTemplate {
-  id: number
-  name: string
-  type: string
-  content: string
+  actual_time?: number  completed: boolean
   created_at: string
   updated_at: string
 }
@@ -75,11 +65,9 @@ export interface EmailTemplate {
 export interface Settings {
   id?: number
   language: string
-  theme: "light" | "dark" | "system"
-  notifications: {
+  theme: "light" | "dark" | "system"  notifications: {
     email: boolean
     desktop: boolean
-    feedback: boolean
     tasks: boolean
   }
   custom_colors: {
@@ -101,6 +89,17 @@ export interface CreateProjectInput {
   status?: string
 }
 
+export interface CreateCodeComponentInput {
+  project_id?: number
+  name: string
+  description?: string
+  category: "element" | "section" | "template" | "widget" | "global"
+  tags: string[]
+  code_json: object
+  preview_image?: string
+  elementor_data: object
+}
+
 export interface CreateAccountInput {
   project_id: number
   username: string
@@ -118,24 +117,7 @@ export interface CreateTaskInput {
   status?: string
   priority?: string
   date: string
-  estimated_time?: number
-  completed?: boolean
-}
-
-export interface CreateFeedbackInput {
-  project_id?: number
-  client_name: string
-  client_email: string
-  subject: string
-  message: string
-  rating: number
-  priority?: string
-}
-
-export interface CreateReportTemplateInput {
-  name: string
-  type: string
-  content: string
+  estimated_time?: number  completed?: boolean
 }
 
 export interface CreateEmailTemplateInput {
@@ -160,5 +142,5 @@ export interface ConnectionTestResult {
 // Partial update types
 export interface UpdateProjectInput extends Partial<CreateProjectInput> {}
 export interface UpdateTaskInput extends Partial<CreateTaskInput> {}
-export interface UpdateFeedbackInput extends Partial<CreateFeedbackInput> {}
+export interface UpdateCodeComponentInput extends Partial<CreateCodeComponentInput> {}
 export interface UpdateSettingsInput extends Partial<Omit<Settings, 'id' | 'created_at' | 'updated_at'>> {}

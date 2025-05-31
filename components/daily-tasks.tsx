@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,9 +10,13 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Clock, Circle, Mail } from "lucide-react"
+import { Plus, Clock, Circle, Mail, Inbox, Loader, Check, X } from "lucide-react"
 import { useLanguage } from "@/hooks/use-language"
 import { useEmail } from "@/hooks/use-email"
+import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 interface Task {
   id: string
@@ -39,9 +43,89 @@ interface DailyTasksProps {
   }
 }
 
+// Tạo component cho task có thể kéo thả
+interface DraggableTaskCardProps {
+  task: any;
+  project: any;
+  onToggle: (taskId: string, completed: boolean) => void;
+  getPriorityColor: (priority: string) => string;
+}
+
+function DraggableTaskCard({ task, project, onToggle, getPriorityColor }: DraggableTaskCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition
+  } = useSortable({
+    id: task.id,
+    data: { ...task }
+  });
+  
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition
+  };
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      {...attributes} 
+      {...listeners}
+      className={`border rounded-lg p-4 mb-2 bg-white cursor-move hover:shadow-md transition-shadow ${task.completed ? "opacity-60" : ""}`}
+    >
+      <div className="flex items-start gap-3">
+        <Checkbox
+          checked={task.completed}
+          onCheckedChange={() => onToggle(task.id, task.completed)}
+          className="mt-1"
+        />
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className={`font-medium ${task.completed ? "line-through" : ""}`}>{task.title}</h3>
+            <Badge variant={getPriorityColor(task.priority)}>{task.priority}</Badge>
+          </div>
+          {task.description && <p className="text-sm text-muted-foreground mb-2">{task.description}</p>}
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            {project && (
+              <span className="flex items-center gap-1">
+                <Circle className="h-3 w-3" />
+                {project.name}
+              </span>
+            )}
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {task.estimated_time || task.estimatedTime}min
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function DailyTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTask, onToggleTask, emailNotifications }: DailyTasksProps) {
   const { t } = useLanguage()
   const { sendTaskCreatedEmail, sendTaskCompletedEmail } = useEmail()
+  
+  // Thêm state để ẩn/hiện form thêm task
+  const [showAddForm, setShowAddForm] = useState(false)
+  
+  // Thêm state để theo dõi tasks theo trạng thái
+  const [todoTasks, setTodoTasks] = useState<any[]>([])
+  const [inProgressTasks, setInProgressTasks] = useState<any[]>([])
+  const [doneTasks, setDoneTasks] = useState<any[]>([])
+  
+  // Sensors cho drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px khoảng cách tối thiểu để kích hoạt kéo
+      },
+    })
+  );
 
   const [formData, setFormData] = useState({
     title: "",
@@ -49,6 +133,7 @@ export function DailyTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTas
     projectId: "none",
     priority: "medium" as const,
     estimatedTime: 60,
+    status: "todo" // Thêm trạng thái mặc định
   })
   const [selectedDate, setSelectedDate] = useState(() => {
     // Smart default: use date with existing tasks if today has no tasks
@@ -70,6 +155,22 @@ export function DailyTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTas
     const sortedTasks = [...tasks].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     return sortedTasks[0]?.date ? new Date(sortedTasks[0].date).toISOString().split("T")[0] : today
   })
+
+  // Debug: Log khi selectedDate thay đổi
+  useEffect(() => {
+    console.log("DailyTasks: selectedDate =", selectedDate);
+    console.log("Today's ISO date =", new Date().toISOString().split("T")[0]);
+    
+    // Log các task được lọc theo ngày đã chọn
+    const filteredTasks = tasks.filter((task: any) => {
+      const taskDate = task.date ? new Date(task.date).toISOString().split("T")[0] : null;
+      const matches = taskDate === selectedDate;
+      console.log(`Task ${task.id}: date=${task.date}, ISO date=${taskDate}, matches=${matches}`);
+      return matches;
+    });
+    
+    console.log("Filtered tasks for selectedDate:", filteredTasks.length);
+  }, [selectedDate, tasks]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -136,7 +237,7 @@ export function DailyTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTas
         try {
           const task = tasks.find(t => t.id === Number.parseInt(taskId))
           if (task) {
-            const project = projects.find(p => p.id === task.project_id)
+            const project = projects.find(p => p.id === task.projectId)
             await sendTaskCompletedEmail({
               taskTitle: task.title,
               taskDescription: task.description,

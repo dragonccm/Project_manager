@@ -3,13 +3,14 @@
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Bell, Settings, BarChart3, Users, FolderOpen, CheckSquare, Mail, Database } from "lucide-react"
+import { Bell, Settings, BarChart3, Users, FolderOpen, CheckSquare, Mail, Database, Code, FileText } from "lucide-react"
 import { ProjectForm } from "@/components/project-form"
 import { AccountManager } from "@/components/account-manager"
-import { DailyTasks } from "@/components/daily-tasks"
-import { FeedbackSystem } from "@/components/feedback-system"
-import { ReportGenerator } from "@/components/report-generator"
+import { TrelloTasks } from "@/components/trello-tasks"
+import { TaskReports } from "@/components/task-reports"
+
 import { SettingsPanel } from "@/components/settings-panel"
+import { CodeComponentManager } from "@/components/code-component-manager"
 import { useLanguage } from "@/hooks/use-language"
 import { useTheme } from "@/hooks/use-theme"
 import { DashboardOverview } from "@/components/dashboard-overview"
@@ -53,8 +54,6 @@ export default function Dashboard() {
     projects,
     accounts,
     tasks,
-    feedbacks,
-    reportTemplates,
     emailTemplates,
     settings,
     loading,
@@ -69,10 +68,6 @@ export default function Dashboard() {
     editTask,
     removeTask,
     toggleTask,
-    addFeedback,
-    editFeedback,
-    addReportTemplate,
-    removeReportTemplate,
     addEmailTemplate,
     removeEmailTemplate,
     updateUserSettings,
@@ -83,8 +78,8 @@ export default function Dashboard() {
     { id: "projects", label: t("projects"), icon: FolderOpen },
     { id: "accounts", label: t("accounts"), icon: Users },
     { id: "tasks", label: t("dailyTasks"), icon: CheckSquare },
-    { id: "feedback", label: t("feedback"), icon: Bell },
-    { id: "reports", label: t("reports"), icon: BarChart3 },
+    { id: "reports", label: "Báo Cáo", icon: FileText },
+    { id: "components", label: "Code Components", icon: Code },
     { id: "settings", label: t("settings"), icon: Settings },
     { id: "email", label: t("emailComposer"), icon: Mail },
     { id: "emailSettings", label: "Email Settings", icon: Settings },
@@ -112,7 +107,7 @@ export default function Dashboard() {
         )
       case "tasks":
         return (
-          <DailyTasks
+          <TrelloTasks
             projects={projects}
             tasks={tasks}
             onAddTask={addTask}
@@ -122,34 +117,21 @@ export default function Dashboard() {
             emailNotifications={emailNotificationSettings}
           />
         )
-      case "feedback":
-        return (
-          <FeedbackSystem
-            projects={projects}
-            feedbacks={feedbacks}
-            onAddFeedback={addFeedback}
-            onEditFeedback={editFeedback}
-          />
-        )
       case "reports":
         return (
-          <ReportGenerator
+          <TaskReports
             projects={projects}
             tasks={tasks}
-            feedbacks={feedbacks}
-            accounts={accounts}
-            templates={reportTemplates}
-            onAddTemplate={addReportTemplate}
-            onDeleteTemplate={removeReportTemplate}
           />
         )
+      case "components":
+        return <CodeComponentManager />
       case "settings":
         return (
           <SettingsPanel
             projects={projects}
             accounts={accounts}
             tasks={tasks}
-            feedbacks={feedbacks}
             onImportData={async (data) => {
               // Handle import by calling individual add functions
               if (data.projects) {
@@ -165,11 +147,6 @@ export default function Dashboard() {
               if (data.tasks) {
                 for (const task of data.tasks) {
                   await addTask(task)
-                }
-              }
-              if (data.feedbacks) {
-                for (const feedback of data.feedbacks) {
-                  await addFeedback(feedback)
                 }
               }
             }}
@@ -191,7 +168,6 @@ export default function Dashboard() {
             projects={projects}
             tasks={tasks}
             accounts={accounts}
-            feedbacks={feedbacks}
             onToggleTask={toggleTask}
           />
         )
@@ -264,11 +240,6 @@ export default function Dashboard() {
               >
                 <item.icon className="h-4 w-4 mr-2" />
                 {item.label}
-                {item.id === "feedback" && !loading && (
-                  <Badge variant="destructive" className="ml-auto">
-                    {feedbacks.filter((f) => f.status === "new").length}
-                  </Badge>
-                )}
               </Button>
             ))}
           </nav>

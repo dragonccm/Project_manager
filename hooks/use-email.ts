@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 export interface EmailData {
-  type: 'task_created' | 'task_completed' | 'project_update' | 'daily_report' | 'custom'
+  type: 'task_created' | 'task_completed' | 'project_update' | 'custom'
   data: any
   recipients: string | string[]
 }
@@ -125,21 +125,6 @@ export function useEmail() {
       recipients,
     })
   }
-
-  const sendDailyReportEmail = async (
-    reportData: {
-      tasks: any[]
-      projects: any[]
-    },
-    recipients: string | string[]
-  ) => {
-    return sendEmail({
-      type: 'daily_report',
-      data: reportData,
-      recipients,
-    })
-  }
-
   const sendCustomEmail = async (
     emailData: {
       subject: string
@@ -154,7 +139,6 @@ export function useEmail() {
       recipients,
     })
   }
-
   return {
     status,
     sendEmail,
@@ -162,7 +146,6 @@ export function useEmail() {
     sendTaskCreatedEmail,
     sendTaskCompletedEmail,
     sendProjectUpdateEmail,
-    sendDailyReportEmail,
     sendCustomEmail,
   }
 }

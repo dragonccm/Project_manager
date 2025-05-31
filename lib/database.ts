@@ -67,6 +67,7 @@ export async function initializeTables() {
         description TEXT,
         priority VARCHAR(20) DEFAULT 'medium',
         completed BOOLEAN DEFAULT FALSE,
+        status VARCHAR(20) DEFAULT 'todo',
         date DATE NOT NULL,
         estimated_time INTEGER DEFAULT 60,
         actual_time INTEGER,
@@ -75,34 +76,15 @@ export async function initializeTables() {
       )
     `
 
-    // Create feedbacks table
-    await sql`
-      CREATE TABLE IF NOT EXISTS feedbacks (
-        id SERIAL PRIMARY KEY,
-        project_id INTEGER REFERENCES projects(id) ON DELETE SET NULL,
-        client_name VARCHAR(255) NOT NULL,
-        client_email VARCHAR(255) NOT NULL,
-        subject VARCHAR(255) NOT NULL,
-        message TEXT NOT NULL,
-        rating INTEGER CHECK (rating >= 1 AND rating <= 5),
-        priority VARCHAR(20) DEFAULT 'medium',
-        status VARCHAR(20) DEFAULT 'new',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `
-
-    // Create report_templates table
-    await sql`
-      CREATE TABLE IF NOT EXISTS report_templates (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        type VARCHAR(50) NOT NULL,
-        content TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `
+    // Add status column to existing tasks table if it doesn't exist
+    try {
+      await sql`
+        ALTER TABLE tasks ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'todo'
+      `
+    } catch (error) {
+      // Column might already exist, ignore error
+      console.log("Status column might already exist:", error)
+    }
 
     // Create email_templates table
     await sql`
@@ -112,6 +94,23 @@ export async function initializeTables() {
         type VARCHAR(50) NOT NULL,
         subject VARCHAR(255) NOT NULL,
         content TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `
+
+    // Create code_components table
+    await sql`
+      CREATE TABLE IF NOT EXISTS code_components (
+        id SERIAL PRIMARY KEY,
+        project_id INTEGER REFERENCES projects(id) ON DELETE SET NULL,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        category VARCHAR(50) NOT NULL DEFAULT 'element',
+        tags TEXT[] DEFAULT '{}',
+        code_json JSONB NOT NULL,
+        preview_image TEXT,
+        elementor_data JSONB DEFAULT '{}',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -135,7 +134,7 @@ export async function initializeTables() {
     await sql`
       INSERT INTO settings (user_id, language, theme, notifications, custom_colors)
       SELECT 'default', 'en', 'light', 
-        '{"email": true, "desktop": false, "feedback": true, "tasks": true}',
+        '{"email": true, "desktop": false, "tasks": true}',
         '{"primary": "#3b82f6", "secondary": "#64748b", "accent": "#f59e0b", "background": "#ffffff"}'
       WHERE NOT EXISTS (SELECT 1 FROM settings WHERE user_id = 'default')
     `
@@ -306,6 +305,7 @@ export async function createTask(taskData: {
   title: string
   description?: string
   priority?: string
+  status?: string
   date: string
   estimated_time?: number
 }) {
@@ -313,8 +313,8 @@ export async function createTask(taskData: {
 
   try {
     const [task] = await sql`
-      INSERT INTO tasks (project_id, title, description, priority, date, estimated_time)
-      VALUES (${taskData.project_id || null}, ${taskData.title}, ${taskData.description || ""}, ${taskData.priority || "medium"}, ${taskData.date}, ${taskData.estimated_time || 60})
+      INSERT INTO tasks (project_id, title, description, priority, status, date, estimated_time)
+      VALUES (${taskData.project_id || null}, ${taskData.title}, ${taskData.description || ""}, ${taskData.priority || "medium"}, ${taskData.status || "todo"}, ${taskData.date}, ${taskData.estimated_time || 60})
       RETURNING *
     `
     return task
@@ -331,6 +331,7 @@ export async function updateTask(
     description?: string
     priority?: string
     completed?: boolean
+    status?: string
     actual_time?: number
   },
 ) {
@@ -344,6 +345,7 @@ export async function updateTask(
         description = COALESCE(${taskData.description}, description),
         priority = COALESCE(${taskData.priority}, priority),
         completed = COALESCE(${taskData.completed}, completed),
+        status = COALESCE(${taskData.status}, status),
         actual_time = COALESCE(${taskData.actual_time}, actual_time),
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ${id}
@@ -368,122 +370,7 @@ export async function deleteTask(id: number) {
   }
 }
 
-// Feedbacks
-export async function getFeedbacks() {
-  if (!sql) throw new Error("Database not available")
-
-  try {
-    const feedbacks = await sql`
-      SELECT f.*, p.name as project_name 
-      FROM feedbacks f
-      LEFT JOIN projects p ON f.project_id = p.id
-      ORDER BY f.created_at DESC
-    `
-    return feedbacks
-  } catch (error) {
-    console.error("Error fetching feedbacks:", error)
-    throw error
-  }
-}
-
-export async function createFeedback(feedbackData: {
-  project_id?: number
-  client_name: string
-  client_email: string
-  subject: string
-  message: string
-  rating: number
-  priority?: string
-}) {
-  if (!sql) throw new Error("Database not available")
-
-  try {
-    const [feedback] = await sql`
-      INSERT INTO feedbacks (project_id, client_name, client_email, subject, message, rating, priority)
-      VALUES (${feedbackData.project_id || null}, ${feedbackData.client_name}, ${feedbackData.client_email}, ${feedbackData.subject}, ${feedbackData.message}, ${feedbackData.rating}, ${feedbackData.priority || "medium"})
-      RETURNING *
-    `
-    return feedback
-  } catch (error) {
-    console.error("Error creating feedback:", error)
-    throw error
-  }
-}
-
-export async function updateFeedback(
-  id: number,
-  feedbackData: {
-    status?: string
-    priority?: string
-  },
-) {
-  if (!sql) throw new Error("Database not available")
-
-  try {
-    const [feedback] = await sql`
-      UPDATE feedbacks 
-      SET 
-        status = COALESCE(${feedbackData.status}, status),
-        priority = COALESCE(${feedbackData.priority}, priority),
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = ${id}
-      RETURNING *
-    `
-    return feedback
-  } catch (error) {
-    console.error("Error updating feedback:", error)
-    throw error
-  }
-}
-
 // Templates
-export async function getReportTemplates() {
-  if (!sql) throw new Error("Database not available")
-
-  try {
-    const templates = await sql`
-      SELECT * FROM report_templates 
-      ORDER BY created_at DESC
-    `
-    return templates
-  } catch (error) {
-    console.error("Error fetching report templates:", error)
-    throw error
-  }
-}
-
-export async function createReportTemplate(templateData: {
-  name: string
-  type: string
-  content: string
-}) {
-  if (!sql) throw new Error("Database not available")
-
-  try {
-    const [template] = await sql`
-      INSERT INTO report_templates (name, type, content)
-      VALUES (${templateData.name}, ${templateData.type}, ${templateData.content})
-      RETURNING *
-    `
-    return template
-  } catch (error) {
-    console.error("Error creating report template:", error)
-    throw error
-  }
-}
-
-export async function deleteReportTemplate(id: number) {
-  if (!sql) throw new Error("Database not available")
-
-  try {
-    await sql`DELETE FROM report_templates WHERE id = ${id}`
-    return true
-  } catch (error) {
-    console.error("Error deleting report template:", error)
-    throw error
-  }
-}
-
 export async function getEmailTemplates() {
   if (!sql) throw new Error("Database not available")
 
@@ -538,38 +425,126 @@ export async function getSettings() {
 
   try {
     const [settings] = await sql`
-      SELECT * FROM settings WHERE user_id = 'default'
+      SELECT * FROM settings 
+      WHERE user_id = 'default'
+      LIMIT 1
     `
-    return settings
+    return settings || null
   } catch (error) {
     console.error("Error fetching settings:", error)
     throw error
   }
 }
 
-export async function updateSettings(settingsData: {
-  language?: string
-  theme?: string
-  notifications?: object
-  custom_colors?: object
-}) {
+export async function updateSettings(settingsData: any) {
   if (!sql) throw new Error("Database not available")
-
+  
   try {
-    const [settings] = await sql`
+    const [updatedSettings] = await sql`
       UPDATE settings 
       SET 
         language = COALESCE(${settingsData.language}, language),
         theme = COALESCE(${settingsData.theme}, theme),
         notifications = COALESCE(${JSON.stringify(settingsData.notifications)}, notifications),
         custom_colors = COALESCE(${JSON.stringify(settingsData.custom_colors)}, custom_colors),
-        updated_at = CURRENT_TIMESTAMP
+        updated_at = NOW()
       WHERE user_id = 'default'
       RETURNING *
     `
-    return settings
+    return updatedSettings
   } catch (error) {
     console.error("Error updating settings:", error)
+    throw error
+  }
+}
+
+// Code Components
+export async function getCodeComponents() {
+  if (!sql) throw new Error("Database not available")
+
+  try {
+    const components = await sql`
+      SELECT cc.*, p.name as project_name 
+      FROM code_components cc
+      LEFT JOIN projects p ON cc.project_id = p.id
+      ORDER BY cc.created_at DESC
+    `
+    return components
+  } catch (error) {
+    console.error("Error fetching code components:", error)
+    throw error
+  }
+}
+
+export async function createCodeComponent(componentData: {
+  project_id?: number
+  name: string
+  description?: string
+  category: string
+  tags: string[]
+  code_json: object
+  preview_image?: string
+  elementor_data: object
+}) {
+  if (!sql) throw new Error("Database not available")
+
+  try {
+    const [component] = await sql`
+      INSERT INTO code_components (project_id, name, description, category, tags, code_json, preview_image, elementor_data)
+      VALUES (${componentData.project_id || null}, ${componentData.name}, ${componentData.description || ""}, ${componentData.category}, ${componentData.tags}, ${JSON.stringify(componentData.code_json)}, ${componentData.preview_image || ""}, ${JSON.stringify(componentData.elementor_data)})
+      RETURNING *
+    `
+    return component
+  } catch (error) {
+    console.error("Error creating code component:", error)
+    throw error
+  }
+}
+
+export async function updateCodeComponent(
+  id: number,
+  componentData: {
+    name?: string
+    description?: string
+    category?: string
+    tags?: string[]
+    code_json?: object
+    preview_image?: string
+    elementor_data?: object
+  }
+) {
+  if (!sql) throw new Error("Database not available")
+
+  try {
+    const [component] = await sql`
+      UPDATE code_components 
+      SET 
+        name = COALESCE(${componentData.name}, name),
+        description = COALESCE(${componentData.description}, description),
+        category = COALESCE(${componentData.category}, category),
+        tags = COALESCE(${componentData.tags}, tags),
+        code_json = COALESCE(${componentData.code_json ? JSON.stringify(componentData.code_json) : null}, code_json),
+        preview_image = COALESCE(${componentData.preview_image}, preview_image),
+        elementor_data = COALESCE(${componentData.elementor_data ? JSON.stringify(componentData.elementor_data) : null}, elementor_data),
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ${id}
+      RETURNING *
+    `
+    return component
+  } catch (error) {
+    console.error("Error updating code component:", error)
+    throw error
+  }
+}
+
+export async function deleteCodeComponent(id: number) {
+  if (!sql) throw new Error("Database not available")
+
+  try {
+    await sql`DELETE FROM code_components WHERE id = ${id}`
+    return true
+  } catch (error) {
+    console.error("Error deleting code component:", error)
     throw error
   }
 }

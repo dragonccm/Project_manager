@@ -11,6 +11,27 @@ const emailConfig = {
   },
 }
 
+// Trial mode configuration
+const isTrialMode = process.env.SMTP_TRIAL_MODE === 'true'
+const adminEmail = process.env.SMTP_ADMIN_EMAIL
+
+// Helper function to handle trial mode email routing
+const handleTrialModeEmail = (originalRecipients: string | string[], originalSubject: string) => {
+  if (!isTrialMode || !adminEmail) {
+    return {
+      to: originalRecipients,
+      subject: originalSubject
+    }
+  }
+
+  // In trial mode, redirect all emails to admin with original recipient info
+  const recipientList = Array.isArray(originalRecipients) ? originalRecipients.join(', ') : originalRecipients
+  return {
+    to: adminEmail,
+    subject: `[TRIAL MODE - Intended for: ${recipientList}] ${originalSubject}`
+  }
+}
+
 // Create transporter
 export const createTransporter = () => {
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
@@ -171,65 +192,7 @@ Loại cập nhật: ${data.updateType}
 ${data.description ? `Mô tả: ${data.description}` : ''}
 ${data.deadline ? `Deadline: ${new Date(data.deadline).toLocaleDateString('vi-VN')}` : ''}
 ${data.progress !== undefined ? `Tiến độ: ${data.progress}%` : ''}
-    `
-  }),
-
-  dailyReport: (tasks: TaskNotificationData[], projects: ProjectUpdateData[]) => ({
-    subject: `📈 Báo cáo hàng ngày - ${new Date().toLocaleDateString('vi-VN')}`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0;">
-          <h1 style="margin: 0; font-size: 24px;">📈 Báo Cáo Hàng Ngày</h1>
-          <p style="margin: 5px 0 0 0; opacity: 0.9;">${new Date().toLocaleDateString('vi-VN')}</p>
-        </div>
-        
-        <div style="background: white; padding: 20px; border: 1px solid #e1e5e9; border-radius: 0 0 8px 8px;">
-          <h3 style="color: #333; margin-top: 0;">📋 Tổng quan Tasks</h3>
-          <p>Hôm nay có <strong>${tasks.length}</strong> task được cập nhật.</p>
-          
-          ${tasks.length > 0 ? `
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin: 15px 0;">
-              ${tasks.map(task => `
-                <div style="border-bottom: 1px solid #e1e5e9; padding: 10px 0;">
-                  <strong>${task.taskTitle}</strong>
-                  <br>
-                  <small style="color: #666;">${task.projectName || 'Không có dự án'} • ${task.priority} priority</small>
-                </div>
-              `).join('')}
-            </div>
-          ` : ''}
-          
-          <h3 style="color: #333;">🚀 Cập nhật Dự án</h3>
-          <p>Có <strong>${projects.length}</strong> dự án được cập nhật.</p>
-          
-          ${projects.length > 0 ? `
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin: 15px 0;">
-              ${projects.map(project => `
-                <div style="border-bottom: 1px solid #e1e5e9; padding: 10px 0;">
-                  <strong>${project.projectName}</strong>
-                  <br>
-                  <small style="color: #666;">${project.updateType} • ${project.progress !== undefined ? project.progress + '%' : 'N/A'}</small>
-                </div>
-              `).join('')}
-            </div>
-          ` : ''}
-          
-          <p style="color: #666; font-size: 14px; margin-top: 20px;">
-            Email này được gửi tự động từ hệ thống Project Manager.
-          </p>
-        </div>
-      </div>
-    `,
-    text: `
-Báo cáo hàng ngày - ${new Date().toLocaleDateString('vi-VN')}
-
-Tasks: ${tasks.length} task được cập nhật
-${tasks.map(task => `- ${task.taskTitle} (${task.projectName || 'Không có dự án'})`).join('\n')}
-
-Dự án: ${projects.length} dự án được cập nhật  
-${projects.map(project => `- ${project.projectName} (${project.updateType})`).join('\n')}
-    `
-  })
+    `  }),
 }
 
 // Email service functions
@@ -257,23 +220,94 @@ export class EmailService {
       }
     }
     return this.transporter
-  }
+  }  async sendEmail(options: EmailOptions): Promise<void> {
+    try {      // In trial mode with unknown admin email, log the email instead of failing
+      if (isTrialMode && (!adminEmail || adminEmail === 'unknown' || adminEmail.includes('test-p7kx4xwmm72g9yjr.mlsender.net'))) {
+        console.log('📧 Trial Mode - Email Service (Simulated Send):')
+        console.log(`   From: ${options.from || process.env.SMTP_FROM}`)
+        console.log(`   To: ${Array.isArray(options.to) ? options.to.join(', ') : options.to}`)
+        console.log(`   Subject: ${options.subject}`)
+        console.log(`   Content: Email logged instead of sent due to trial account limitations`)
+        
+        // Store the email attempt for later review
+        this.logEmailAttempt(options)
+        return
+      }
 
-  async sendEmail(options: EmailOptions): Promise<void> {
-    try {
+      // Handle trial mode email routing if admin email is known
+      const emailRouting = handleTrialModeEmail(options.to, options.subject)
+      
       const mailOptions = {
         from: options.from || process.env.SMTP_FROM,
-        to: Array.isArray(options.to) ? options.to.join(', ') : options.to,
-        subject: options.subject,
-        html: options.html,        text: options.text,
+        to: Array.isArray(emailRouting.to) ? emailRouting.to.join(', ') : emailRouting.to,
+        subject: emailRouting.subject,
+        html: options.html,
+        text: options.text,
+      }
+
+      // Add trial mode notice to email content if in trial mode
+      if (isTrialMode && adminEmail && !adminEmail.includes('test-p7kx4xwmm72g9yjr.mlsender.net')) {
+        const originalRecipients = Array.isArray(options.to) ? options.to.join(', ') : options.to
+        const trialNotice = `
+          <div style="background: #fef3c7; border: 1px solid #f59e0b; padding: 15px; margin-bottom: 20px; border-radius: 6px;">
+            <p style="margin: 0; color: #92400e;">
+              <strong>🚨 TRIAL MODE:</strong> This email was originally intended for: <strong>${originalRecipients}</strong>
+              <br>Due to trial account limitations, all emails are redirected to the administrator.
+            </p>
+          </div>
+        `
+        
+        if (mailOptions.html) {
+          // Insert trial notice after the opening div if HTML email
+          mailOptions.html = mailOptions.html.replace(
+            /(<div[^>]*>)/,
+            `$1${trialNotice}`
+          )
+        }
+        
+        if (mailOptions.text) {
+          mailOptions.text = `[TRIAL MODE] Originally for: ${originalRecipients}\n\n${mailOptions.text}`
+        }
       }
 
       const info = await this.ensureTransporter().sendMail(mailOptions)
       console.log('✅ Email sent successfully:', info.messageId)
-    } catch (error) {
+      
+      if (isTrialMode) {
+        console.log(`📧 Trial mode: Email redirected from ${options.to} to ${adminEmail}`)
+      }    } catch (error: any) {
+      // Handle trial account limitations gracefully
+      if (error.message && error.message.includes('MS42225')) {
+        console.log('📧 Trial Mode - Email Service (Fallback):')
+        console.log(`   ⚠️  Trial account limitation detected`)
+        console.log(`   📝 Email logged instead of sent:`)
+        console.log(`       From: ${options.from || process.env.SMTP_FROM}`)
+        console.log(`       To: ${Array.isArray(options.to) ? options.to.join(', ') : options.to}`)
+        console.log(`       Subject: ${options.subject}`)
+        
+        // Store the email attempt for later review
+        this.logEmailAttempt(options)
+        return
+      }
+      
       console.error('Failed to send email:', error)
       throw error
     }
+  }
+
+  private logEmailAttempt(options: EmailOptions): void {
+    const timestamp = new Date().toISOString()
+    const logEntry = {
+      timestamp,
+      from: options.from || process.env.SMTP_FROM,
+      to: options.to,
+      subject: options.subject,
+      content: options.text || 'HTML content provided',
+      status: 'trial_mode_blocked'
+    }
+    
+    // In a real application, you might want to store this in a database or file
+    console.log('📊 Email Log Entry:', JSON.stringify(logEntry, null, 2))
   }
 
   async sendTaskNotification(type: 'created' | 'completed', data: TaskNotificationData, recipients: string | string[]): Promise<void> {
@@ -295,19 +329,8 @@ export class EmailService {
       subject: template.subject,
       html: template.html,
       text: template.text,
-    })
-  }
+    })  }
 
-  async sendDailyReport(tasks: TaskNotificationData[], projects: ProjectUpdateData[], recipients: string | string[]): Promise<void> {
-    const template = emailTemplates.dailyReport(tasks, projects)
-    
-    await this.sendEmail({
-      to: recipients,
-      subject: template.subject,
-      html: template.html,
-      text: template.text,
-    })
-  }
   async testConnection(): Promise<boolean> {
     try {
       const transporter = this.ensureTransporter()

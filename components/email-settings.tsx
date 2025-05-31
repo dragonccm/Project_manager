@@ -22,8 +22,6 @@ interface EmailNotificationSettings {
   notifyOnTaskCreated: boolean
   notifyOnTaskCompleted: boolean
   notifyOnProjectUpdate: boolean
-  dailyReportEnabled: boolean
-  dailyReportTime: string
 }
 
 export function EmailSettings({ onSettingsChange }: EmailSettingsProps) {
@@ -35,8 +33,6 @@ export function EmailSettings({ onSettingsChange }: EmailSettingsProps) {
     notifyOnTaskCreated: true,
     notifyOnTaskCompleted: true,
     notifyOnProjectUpdate: true,
-    dailyReportEnabled: false,
-    dailyReportTime: "09:00"
   })
 
   const [newRecipient, setNewRecipient] = useState("")
@@ -225,9 +221,7 @@ export function EmailSettings({ onSettingsChange }: EmailSettingsProps) {
                   }
                   disabled={!settings.enabled}
                 />
-              </div>
-
-              <div className="flex items-center justify-between">
+              </div>              <div className="flex items-center justify-between">
                 <Label htmlFor="projectUpdate" className="font-normal">
                   Cập nhật dự án
                 </Label>
@@ -240,40 +234,6 @@ export function EmailSettings({ onSettingsChange }: EmailSettingsProps) {
                   disabled={!settings.enabled}
                 />
               </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="dailyReport" className="font-normal">
-                    Báo cáo hàng ngày
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    Gửi tự động vào {settings.dailyReportTime}
-                  </p>
-                </div>
-                <Switch
-                  id="dailyReport"
-                  checked={settings.dailyReportEnabled}
-                  onCheckedChange={(checked) => 
-                    setSettings({ ...settings, dailyReportEnabled: checked })
-                  }
-                  disabled={!settings.enabled}
-                />
-              </div>
-
-              {settings.dailyReportEnabled && (
-                <div className="ml-4">
-                  <Label htmlFor="reportTime">Thời gian gửi</Label>
-                  <Input
-                    id="reportTime"
-                    type="time"
-                    value={settings.dailyReportTime}
-                    onChange={(e) => 
-                      setSettings({ ...settings, dailyReportTime: e.target.value })
-                    }
-                    className="w-32"
-                  />
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>

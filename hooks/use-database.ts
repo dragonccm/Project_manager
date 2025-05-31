@@ -13,15 +13,13 @@ import {
   createTask,
   updateTask,
   deleteTask,
-  getFeedbacks,
-  createFeedback,
-  updateFeedback,
-  getReportTemplates,
-  createReportTemplate,
-  deleteReportTemplate,
   getEmailTemplates,
   createEmailTemplate,
   deleteEmailTemplate,
+  getCodeComponents,
+  createCodeComponent,
+  updateCodeComponent,
+  deleteCodeComponent,
   getSettings,
   updateSettings,
   testDatabaseConnection,
@@ -32,19 +30,17 @@ import {
   Project,
   Account,
   Task,
-  Feedback,
-  ReportTemplate,
   EmailTemplate,
+  CodeComponent,
   Settings,
   CreateProjectInput,
   CreateAccountInput,
   CreateTaskInput,
-  CreateFeedbackInput,
-  CreateReportTemplateInput,
   CreateEmailTemplateInput,
+  CreateCodeComponentInput,
   UpdateProjectInput,
   UpdateTaskInput,
-  UpdateFeedbackInput,
+  UpdateCodeComponentInput,
   UpdateSettingsInput,
 } from "@/types/database"
 
@@ -52,9 +48,8 @@ export function useDatabase() {
   const [projects, setProjects] = useState<Project[]>([])
   const [accounts, setAccounts] = useState<Account[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
-  const [feedbacks, setFeedbacks] = useState<Feedback[]>([])
-  const [reportTemplates, setReportTemplates] = useState<ReportTemplate[]>([])
   const [emailTemplates, setEmailTemplates] = useState<EmailTemplate[]>([])
+  const [codeComponents, setCodeComponents] = useState<CodeComponent[]>([])
   const [settings, setSettings] = useState<Settings | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<Error | null>(null)
@@ -68,24 +63,22 @@ export function useDatabase() {
       const savedProjects = localStorage.getItem("projects")
       const savedAccounts = localStorage.getItem("accounts")
       const savedTasks = localStorage.getItem("tasks")
-      const savedFeedbacks = localStorage.getItem("feedbacks")
-      const savedReportTemplates = localStorage.getItem("reportTemplates")
       const savedEmailTemplates = localStorage.getItem("emailTemplates")
+      const savedCodeComponents = localStorage.getItem("codeComponents")
       const savedSettings = localStorage.getItem("settings")
 
       setProjects(savedProjects ? JSON.parse(savedProjects) : [])
       setAccounts(savedAccounts ? JSON.parse(savedAccounts) : [])
       setTasks(savedTasks ? JSON.parse(savedTasks) : [])
-      setFeedbacks(savedFeedbacks ? JSON.parse(savedFeedbacks) : [])
-      setReportTemplates(savedReportTemplates ? JSON.parse(savedReportTemplates) : [])
       setEmailTemplates(savedEmailTemplates ? JSON.parse(savedEmailTemplates) : [])
+      setCodeComponents(savedCodeComponents ? JSON.parse(savedCodeComponents) : [])
       setSettings(
         savedSettings
           ? JSON.parse(savedSettings)
           : {
               language: "en",
               theme: "light",
-              notifications: { email: true, desktop: false, feedback: true, tasks: true },
+              notifications: { email: true, desktop: false, tasks: true },
               custom_colors: { primary: "#3b82f6", secondary: "#64748b", accent: "#f59e0b", background: "#ffffff" },
             },
       )
@@ -130,17 +123,15 @@ export function useDatabase() {
         projectsData,
         accountsData,
         tasksData,
-        feedbacksData,
-        reportTemplatesData,
         emailTemplatesData,
+        codeComponentsData,
         settingsData,
       ] = await Promise.all([
         getProjects(),
         getAccounts(),
         getTasks(),
-        getFeedbacks(),
-        getReportTemplates(),
         getEmailTemplates(),
+        getCodeComponents(),
         getSettings(),
       ])
 
@@ -148,7 +139,6 @@ export function useDatabase() {
         projects: projectsData.length,
         accounts: accountsData.length,
         tasks: tasksData.length,
-        feedbacks: feedbacksData.length,
       })
 
       // Map database fields to component-expected fields
@@ -163,6 +153,10 @@ export function useDatabase() {
         ...task,
         id: task.id.toString(), // Ensure ID is string for components
         projectId: task.project_id?.toString() || "1",
+        status: task.status || (task.completed ? "done" : "todo"),
+        completed: typeof task.completed === "boolean" ? task.completed : !!task.completed,
+        estimatedTime: typeof task.estimated_time === "number" ? task.estimated_time : (task.estimatedTime || 60),
+        date: task.date ? (typeof task.date === "string" ? task.date.split("T")[0] : new Date(task.date).toISOString().split("T")[0]) : "",
         createdAt: task.created_at,
         updatedAt: task.updated_at
       }))
@@ -175,24 +169,24 @@ export function useDatabase() {
         figmaLink: project.figma_link
       }))
 
-      const mappedFeedbacks = feedbacksData.map((feedback: any) => ({
-        ...feedback,
-        id: feedback.id.toString(), // Ensure ID is string for components
-        projectId: feedback.project_id?.toString() || "1",
-        createdAt: feedback.created_at
+      const mappedCodeComponents = codeComponentsData.map((component: any) => ({
+        ...component,
+        id: component.id.toString(), // Ensure ID is string for components
+        projectId: component.project_id?.toString() || "1",
+        createdAt: component.created_at,
+        updatedAt: component.updated_at
       }))
 
       setProjects(mappedProjects as Project[])
       setAccounts(mappedAccounts as Account[])
       setTasks(mappedTasks as Task[])
-      setFeedbacks(mappedFeedbacks as Feedback[])
-      setReportTemplates(reportTemplatesData as ReportTemplate[])
       setEmailTemplates(emailTemplatesData as EmailTemplate[])
+      setCodeComponents(mappedCodeComponents as CodeComponent[])
       setSettings(
         (settingsData as Settings) || {
           language: "en",
           theme: "light",
-          notifications: { email: true, desktop: false, feedback: true, tasks: true },
+          notifications: { email: true, desktop: false, tasks: true },
           custom_colors: { primary: "#3b82f6", secondary: "#64748b", accent: "#f59e0b", background: "#ffffff" },
         },
       )
@@ -351,11 +345,15 @@ export function useDatabase() {
 
       const newTask = await createTask(taskData) as any
       
-      // Map database fields to component-expected fields
+      // Map database fields to component-expected fields (matching the getTasks mapping)
       const mappedTask = {
         ...newTask,
         id: newTask.id.toString(),
         projectId: newTask.project_id?.toString() || "1",
+        status: newTask.status || (newTask.completed ? "done" : "todo"),
+        completed: typeof newTask.completed === "boolean" ? newTask.completed : !!newTask.completed,
+        estimatedTime: typeof newTask.estimated_time === "number" ? newTask.estimated_time : (newTask.estimatedTime || 60),
+        date: newTask.date ? (typeof newTask.date === "string" ? newTask.date.split("T")[0] : new Date(newTask.date).toISOString().split("T")[0]) : "",
         createdAt: newTask.created_at,
         updatedAt: newTask.updated_at
       } as Task
@@ -381,11 +379,15 @@ export function useDatabase() {
 
       const updatedTask = await updateTask(id, taskData) as any
       
-      // Map database fields to component-expected fields
+      // Map database fields to component-expected fields (matching the getTasks mapping)
       const mappedTask = {
         ...updatedTask,
         id: updatedTask.id.toString(),
         projectId: updatedTask.project_id?.toString() || "1",
+        status: updatedTask.status || (updatedTask.completed ? "done" : "todo"),
+        completed: typeof updatedTask.completed === "boolean" ? updatedTask.completed : !!updatedTask.completed,
+        estimatedTime: typeof updatedTask.estimated_time === "number" ? updatedTask.estimated_time : (updatedTask.estimatedTime || 60),
+        date: updatedTask.date ? (typeof updatedTask.date === "string" ? updatedTask.date.split("T")[0] : new Date(updatedTask.date).toISOString().split("T")[0]) : "",
         createdAt: updatedTask.created_at,
         updatedAt: updatedTask.updated_at
       } as Task
@@ -429,9 +431,19 @@ export function useDatabase() {
         return updatedTask
       }
 
-      const updatedTask = await updateTask(id, { completed }) as Task
-      setTasks((prev) => prev.map((t) => (t.id === id ? updatedTask : t)))
-      return updatedTask
+      const updatedTask = await updateTask(id, { completed }) as any
+      
+      // Map database fields to component-expected fields
+      const mappedTask = {
+        ...updatedTask,
+        id: updatedTask.id.toString(),
+        projectId: updatedTask.project_id?.toString() || "1",
+        createdAt: updatedTask.created_at,
+        updatedAt: updatedTask.updated_at
+      } as Task
+      
+      setTasks((prev) => prev.map((t) => (t.id == id ? mappedTask : t)))
+      return mappedTask
     } catch (err) {
       console.error("Database error, using localStorage:", err)
       const updatedTask = localOps.updateTask(id.toString(), { completed })
@@ -441,106 +453,7 @@ export function useDatabase() {
     }
   }
 
-  // Feedback operations
-  const addFeedback = async (feedbackData: CreateFeedbackInput) => {
-    try {
-      console.log("Adding feedback:", feedbackData)
-
-      if (!isDatabaseAvailable) {
-        const newFeedback = localOps.createFeedback(feedbackData)
-        setFeedbacks((prev) => [newFeedback as Feedback, ...prev])
-        return newFeedback
-      }
-
-      const newFeedback = await createFeedback(feedbackData) as any
-      
-      // Map database fields to component-expected fields
-      const mappedFeedback = {
-        ...newFeedback,
-        id: newFeedback.id.toString(),
-        projectId: newFeedback.project_id?.toString() || "1",
-        createdAt: newFeedback.created_at
-      } as Feedback
-      
-      setFeedbacks((prev) => [mappedFeedback, ...prev])
-      return mappedFeedback
-    } catch (err) {
-      console.error("Database error, using localStorage:", err)
-      const newFeedback = localOps.createFeedback(feedbackData)
-      setFeedbacks((prev) => [newFeedback as Feedback, ...prev])
-      setIsDatabaseAvailable(false)
-      return newFeedback
-    }
-  }
-
-  const editFeedback = async (id: number, feedbackData: UpdateFeedbackInput) => {
-    try {
-      if (!isDatabaseAvailable) {
-        const updatedFeedback = localOps.updateFeedback(id.toString(), feedbackData)
-        setFeedbacks((prev) => prev.map((f) => (f.id == id ? updatedFeedback as Feedback : f)))
-        return updatedFeedback
-      }
-
-      const updatedFeedback = await updateFeedback(id, feedbackData) as any
-      
-      // Map database fields to component-expected fields
-      const mappedFeedback = {
-        ...updatedFeedback,
-        id: updatedFeedback.id.toString(),
-        projectId: updatedFeedback.project_id?.toString() || "1",
-        createdAt: updatedFeedback.created_at
-      } as Feedback
-      
-      setFeedbacks((prev) => prev.map((f) => (f.id == id ? mappedFeedback : f)))
-      return mappedFeedback
-    } catch (err) {
-      console.error("Database error, using localStorage:", err)
-      const updatedFeedback = localOps.updateFeedback(id.toString(), feedbackData)
-      setFeedbacks((prev) => prev.map((f) => (f.id == id ? updatedFeedback as Feedback : f)))
-      setIsDatabaseAvailable(false)
-      return updatedFeedback
-    }
-  }
-
   // Template operations
-  const addReportTemplate = async (templateData: CreateReportTemplateInput) => {
-    try {
-      if (!isDatabaseAvailable) {
-        const newTemplate = localOps.createReportTemplate(templateData)
-        setReportTemplates((prev) => [newTemplate as ReportTemplate, ...prev])
-        return newTemplate
-      }
-
-      const newTemplate = await createReportTemplate(templateData) as ReportTemplate
-      setReportTemplates((prev) => [newTemplate, ...prev])
-      return newTemplate
-    } catch (err) {
-      console.error("Database error, using localStorage:", err)
-      const newTemplate = localOps.createReportTemplate(templateData)
-      setReportTemplates((prev) => [newTemplate as ReportTemplate, ...prev])
-      setIsDatabaseAvailable(false)
-      return newTemplate
-    }
-  }
-
-  const removeReportTemplate = async (id: number) => {
-    try {
-      if (!isDatabaseAvailable) {
-        localOps.deleteReportTemplate(id.toString())
-        setReportTemplates((prev) => prev.filter((t) => t.id != id))
-        return
-      }
-
-      await deleteReportTemplate(id)
-      setReportTemplates((prev) => prev.filter((t) => t.id !== id))
-    } catch (err) {
-      console.error("Database error, using localStorage:", err)
-      localOps.deleteReportTemplate(id.toString())
-      setReportTemplates((prev) => prev.filter((t) => t.id != id))
-      setIsDatabaseAvailable(false)
-    }
-  }
-
   const addEmailTemplate = async (templateData: CreateEmailTemplateInput) => {
     try {
       if (!isDatabaseAvailable) {
@@ -579,6 +492,118 @@ export function useDatabase() {
     }
   }
 
+  // Code Component operations
+  const addCodeComponent = async (componentData: CreateCodeComponentInput) => {
+    try {
+      console.log("Adding code component:", componentData)
+
+      if (!isDatabaseAvailable) {
+        console.log("Using localStorage for code component creation")
+        const newComponent = {
+          id: Date.now().toString(),
+          ...componentData,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        } as CodeComponent
+        
+        const updatedComponents = [newComponent, ...codeComponents]
+        localStorage.setItem("codeComponents", JSON.stringify(updatedComponents))
+        setCodeComponents(updatedComponents)
+        return newComponent
+      }
+
+      console.log("Using database for code component creation")
+      const newComponent = await createCodeComponent(componentData) as any
+      console.log("Code component created in database:", newComponent)
+      
+      // Map database fields to component-expected fields
+      const mappedComponent = {
+        ...newComponent,
+        id: newComponent.id.toString(),
+        projectId: newComponent.project_id?.toString() || "1",
+        createdAt: newComponent.created_at,
+        updatedAt: newComponent.updated_at
+      } as CodeComponent
+
+      setCodeComponents((prev) => [mappedComponent, ...prev])
+      return mappedComponent
+    } catch (err) {
+      console.error("Database error, using localStorage:", err)
+      const newComponent = {
+        id: Date.now().toString(),
+        ...componentData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      } as CodeComponent
+      
+      const updatedComponents = [newComponent, ...codeComponents]
+      localStorage.setItem("codeComponents", JSON.stringify(updatedComponents))
+      setCodeComponents(updatedComponents)
+      setIsDatabaseAvailable(false)
+      return newComponent
+    }
+  }
+
+  const editCodeComponent = async (id: string, componentData: UpdateCodeComponentInput) => {
+    try {
+      const componentId = parseInt(id)
+      
+      if (!isDatabaseAvailable) {
+        const updatedComponents = codeComponents.map((comp) =>
+          comp.id.toString() === id ? { ...comp, ...componentData, updated_at: new Date().toISOString() } : comp
+        )
+        localStorage.setItem("codeComponents", JSON.stringify(updatedComponents))
+        setCodeComponents(updatedComponents)
+        return updatedComponents.find((comp) => comp.id.toString() === id)
+      }
+
+      const updatedComponent = await updateCodeComponent(componentId, componentData) as any
+      
+      // Map database fields to component-expected fields
+      const mappedComponent = {
+        ...updatedComponent,
+        id: updatedComponent.id.toString(),
+        projectId: updatedComponent.project_id?.toString() || "1",
+        createdAt: updatedComponent.created_at,
+        updatedAt: updatedComponent.updated_at
+      } as CodeComponent
+
+      setCodeComponents((prev) => prev.map((comp) => (comp.id.toString() === id ? mappedComponent : comp)))
+      return mappedComponent
+    } catch (err) {
+      console.error("Database error, using localStorage:", err)
+      const updatedComponents = codeComponents.map((comp) =>
+        comp.id.toString() === id ? { ...comp, ...componentData, updated_at: new Date().toISOString() } : comp
+      )
+      localStorage.setItem("codeComponents", JSON.stringify(updatedComponents))
+      setCodeComponents(updatedComponents)
+      setIsDatabaseAvailable(false)
+      return updatedComponents.find((comp) => comp.id.toString() === id)
+    }
+  }
+
+  const removeCodeComponent = async (id: string) => {
+    try {
+      const componentId = parseInt(id)
+      
+      if (!isDatabaseAvailable) {
+        const updatedComponents = codeComponents.filter((comp) => comp.id.toString() !== id)
+        localStorage.setItem("codeComponents", JSON.stringify(updatedComponents))
+        setCodeComponents(updatedComponents)
+        return
+      }
+
+      await deleteCodeComponent(componentId)
+      setCodeComponents((prev) => prev.filter((comp) => comp.id.toString() !== id))
+    } catch (err) {
+      console.error("Database error, using localStorage:", err)
+      const updatedComponents = codeComponents.filter((comp) => comp.id.toString() !== id)
+      localStorage.setItem("codeComponents", JSON.stringify(updatedComponents))
+      setCodeComponents(updatedComponents)
+      setIsDatabaseAvailable(false)
+    }
+  }
+
   // Settings operations
   const updateUserSettings = async (settingsData: UpdateSettingsInput) => {
     try {
@@ -607,9 +632,8 @@ export function useDatabase() {
     projects,
     accounts,
     tasks,
-    feedbacks,
-    reportTemplates,
     emailTemplates,
+    codeComponents,
     settings,
     loading,
     error,
@@ -626,12 +650,11 @@ export function useDatabase() {
     editTask,
     removeTask,
     toggleTask,
-    addFeedback,
-    editFeedback,
-    addReportTemplate,
-    removeReportTemplate,
     addEmailTemplate,
     removeEmailTemplate,
+    addCodeComponent,
+    editCodeComponent,
+    removeCodeComponent,
     updateUserSettings,
   }
 }

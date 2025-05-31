@@ -101,61 +101,16 @@ export function createLocalStorageOperations() {
     return true
   }
 
-  // Feedbacks
-  const getFeedbacksLocal = () => {
-    const saved = localStorage.getItem("feedbacks")
-    return saved ? JSON.parse(saved) : []
-  }
-
-  const createFeedbackLocal = (feedbackData: any) => {
-    const feedbacks = getFeedbacksLocal()
-    const newFeedback = {
-      id: Date.now().toString(),
-      ...feedbackData,
-      status: "new",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }
-    const updated = [newFeedback, ...feedbacks]
-    localStorage.setItem("feedbacks", JSON.stringify(updated))
-    return newFeedback
-  }
-
-  const updateFeedbackLocal = (id: string, feedbackData: any) => {
-    const feedbacks = getFeedbacksLocal()
-    const updated = feedbacks.map((f: any) =>
-      f.id === id ? { ...f, ...feedbackData, updated_at: new Date().toISOString() } : f,
+  const toggleTaskLocal = (id: string) => {
+    const tasks = getTasksLocal()
+    const updated = tasks.map((t: any) =>
+      t.id == id ? { ...t, completed: !t.completed, updated_at: new Date().toISOString() } : t,
     )
-    localStorage.setItem("feedbacks", JSON.stringify(updated))
-    return updated.find((f: any) => f.id === id)
+    localStorage.setItem("tasks", JSON.stringify(updated))
+    return updated.find((t: any) => t.id == id)
   }
 
   // Templates
-  const getReportTemplatesLocal = () => {
-    const saved = localStorage.getItem("reportTemplates")
-    return saved ? JSON.parse(saved) : []
-  }
-
-  const createReportTemplateLocal = (templateData: any) => {
-    const templates = getReportTemplatesLocal()
-    const newTemplate = {
-      id: Date.now().toString(),
-      ...templateData,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }
-    const updated = [newTemplate, ...templates]
-    localStorage.setItem("reportTemplates", JSON.stringify(updated))
-    return newTemplate
-  }
-
-  const deleteReportTemplateLocal = (id: string) => {
-    const templates = getReportTemplatesLocal()
-    const updated = templates.filter((t: any) => t.id !== id)
-    localStorage.setItem("reportTemplates", JSON.stringify(updated))
-    return true
-  }
-
   const getEmailTemplatesLocal = () => {
     const saved = localStorage.getItem("emailTemplates")
     return saved ? JSON.parse(saved) : []
@@ -181,6 +136,41 @@ export function createLocalStorageOperations() {
     return true
   }
 
+  // Code Components
+  const getCodeComponentsLocal = () => {
+    const saved = localStorage.getItem("codeComponents")
+    return saved ? JSON.parse(saved) : []
+  }
+
+  const createCodeComponentLocal = (componentData: any) => {
+    const components = getCodeComponentsLocal()
+    const newComponent = {
+      id: Date.now(),
+      ...componentData,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+    const updated = [newComponent, ...components]
+    localStorage.setItem("codeComponents", JSON.stringify(updated))
+    return newComponent
+  }
+
+  const updateCodeComponentLocal = (id: string, componentData: any) => {
+    const components = getCodeComponentsLocal()
+    const updated = components.map((c: any) =>
+      c.id == id ? { ...c, ...componentData, updated_at: new Date().toISOString() } : c,
+    )
+    localStorage.setItem("codeComponents", JSON.stringify(updated))
+    return updated.find((c: any) => c.id == id)
+  }
+
+  const deleteCodeComponentLocal = (id: string) => {
+    const components = getCodeComponentsLocal()
+    const updated = components.filter((c: any) => c.id != id)
+    localStorage.setItem("codeComponents", JSON.stringify(updated))
+    return true
+  }
+
   return {
     // Projects
     getProjects: getProjectsLocal,
@@ -198,18 +188,17 @@ export function createLocalStorageOperations() {
     createTask: createTaskLocal,
     updateTask: updateTaskLocal,
     deleteTask: deleteTaskLocal,
-
-    // Feedbacks
-    getFeedbacks: getFeedbacksLocal,
-    createFeedback: createFeedbackLocal,
-    updateFeedback: updateFeedbackLocal,
+    toggleTask: toggleTaskLocal,
 
     // Templates
-    getReportTemplates: getReportTemplatesLocal,
-    createReportTemplate: createReportTemplateLocal,
-    deleteReportTemplate: deleteReportTemplateLocal,
     getEmailTemplates: getEmailTemplatesLocal,
     createEmailTemplate: createEmailTemplateLocal,
     deleteEmailTemplate: deleteEmailTemplateLocal,
+
+    // Code Components
+    getCodeComponents: getCodeComponentsLocal,
+    createCodeComponent: createCodeComponentLocal,
+    updateCodeComponent: updateCodeComponentLocal,
+    deleteCodeComponent: deleteCodeComponentLocal,
   }
 }

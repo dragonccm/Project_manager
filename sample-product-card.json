@@ -1,0 +1,63 @@
+{
+  "name": "Card Sản phẩm",
+  "description": "Card hiển thị sản phẩm với hình ảnh, tiêu đề, mô tả và nút mua hàng",
+  "category": "element",
+  "tags": ["card", "product", "ecommerce", "hover-effect"],
+  "code_json": {
+    "type": "card",
+    "settings": {
+      "border_radius": "12px",
+      "box_shadow": "0 4px 6px rgba(0, 0, 0, 0.1)",
+      "hover_effect": "lift",
+      "transition": "all 0.3s ease"
+    },
+    "content": {
+      "image": {
+        "src": "placeholder-product.jpg",
+        "alt": "Sản phẩm"
+      },
+      "title": "Tên sản phẩm",
+      "description": "Mô tả ngắn gọn về sản phẩm",
+      "price": "299.000đ",
+      "button": {
+        "text": "Mua ngay",
+        "style": "primary"
+      }
+    }
+  },
+  "elementor_data": {
+    "id": "product-card-1",
+    "elType": "widget",
+    "widgetType": "image-box",
+    "settings": {
+      "image": {
+        "url": "placeholder-product.jpg"
+      },
+      "title_text": "Tên sản phẩm",
+      "description_text": "Mô tả ngắn gọn về sản phẩm",
+      "border_border": "solid",
+      "border_width": {
+        "unit": "px",
+        "top": "1",
+        "right": "1",
+        "bottom": "1",
+        "left": "1"
+      },
+      "border_color": "#e5e5e5",
+      "border_radius": {
+        "unit": "px",
+        "top": "12",
+        "right": "12",
+        "bottom": "12",
+        "left": "12"
+      },
+      "box_shadow_box_shadow": {
+        "horizontal": 0,
+        "vertical": 4,
+        "blur": 6,
+        "spread": 0,
+        "color": "rgba(0,0,0,0.1)"
+      }
+    }
+  }
+}

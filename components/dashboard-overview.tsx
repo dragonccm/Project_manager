@@ -26,7 +26,6 @@ interface DashboardOverviewProps {
   projects: any[]
   tasks: any[]
   accounts: any[]
-  feedbacks: any[]
   onToggleTask: (id: number, completed: boolean) => Promise<any>
 }
 
@@ -34,7 +33,6 @@ export function DashboardOverview({
   projects, 
   tasks, 
   accounts, 
-  feedbacks, 
   onToggleTask 
 }: DashboardOverviewProps) {
   const { t } = useLanguage()
@@ -55,23 +53,14 @@ export function DashboardOverview({
   //   if (savedAccounts) setAccounts(JSON.parse(savedAccounts))
   //   if (savedFeedbacks) setFeedbacks(JSON.parse(savedFeedbacks))
   // }, [])
-
   const today = new Date().toISOString().split("T")[0]
   const todayTasks = tasks.filter((task: any) => task.date === today)
   const completedTasks = todayTasks.filter((task: any) => task.completed)
   const highPriorityTasks = tasks.filter((task: any) => task.priority === "high" && !task.completed)
-  const newFeedbacks = feedbacks.filter((feedback: any) => feedback.status === "new")
-
-  // Calculate average rating
-  const avgRating =
-    feedbacks.length > 0
-      ? feedbacks.reduce((sum: number, feedback: any) => sum + feedback.rating, 0) / feedbacks.length
-      : 0
 
   // Get recent activity (last 7 days)
   const sevenDaysAgo = new Date()
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-
   const recentActivity = [
     ...tasks
       .filter((task: any) => new Date(task.date) >= sevenDaysAgo)
@@ -81,17 +70,6 @@ export function DashboardOverview({
         date: typeof task.date === 'string' ? task.date : new Date(task.date).toISOString().split("T")[0],
         status: task.completed ? "completed" : "pending",
         priority: task.priority,
-      })),
-    ...feedbacks
-      .filter((feedback: any) => new Date(feedback.createdAt) >= sevenDaysAgo)
-      .map((feedback: any) => ({
-        type: "feedback",
-        title: feedback.subject,
-        date: typeof feedback.createdAt === 'string' 
-          ? feedback.createdAt.split("T")[0] 
-          : new Date(feedback.createdAt).toISOString().split("T")[0],
-        status: feedback.status,
-        rating: feedback.rating,
       })),
   ]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -103,18 +81,11 @@ export function DashboardOverview({
       await onToggleTask(task.id, task.completed)
     }
   }
-
   const getProjectProgress = (projectId: string) => {
     const projectTasks = tasks.filter((task: any) => task.projectId == projectId)
     if (projectTasks.length === 0) return 0
     const completed = projectTasks.filter((task: any) => task.completed).length
     return Math.round((completed / projectTasks.length) * 100)
-  }
-
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star key={i} className={`h-3 w-3 ${i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />
-    ))
   }
 
   return (
@@ -123,11 +94,10 @@ export function DashboardOverview({
         <div>
           <h1 className="text-3xl font-bold">{t("welcome")}</h1>
           <p className="text-muted-foreground">{new Date().toLocaleDateString()}</p>
-        </div>
-        <div className="flex items-center gap-2">
+        </div>        <div className="flex items-center gap-2">
           <Button variant="outline" size="sm">
             <Bell className="h-4 w-4 mr-2" />
-            {newFeedbacks.length + highPriorityTasks.length}
+            {highPriorityTasks.length}
           </Button>
         </div>
       </div>
@@ -161,17 +131,15 @@ export function DashboardOverview({
               className="mt-2"
             />
           </CardContent>
-        </Card>
-
-        <Card>
+        </Card>        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("avgRating")}</CardTitle>
-            <Star className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">{t("totalTasks")}</CardTitle>
+            <CheckSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{avgRating.toFixed(1)}</div>
+            <div className="text-2xl font-bold">{tasks.length}</div>
             <p className="text-xs text-muted-foreground">
-              {t("across")} {feedbacks.length} {t("feedback")}
+              {tasks.filter((t) => t.completed).length} {t("completed")}
             </p>
           </CardContent>
         </Card>
@@ -188,10 +156,8 @@ export function DashboardOverview({
             </p>
           </CardContent>
         </Card>
-      </div>
-
-      {/* Alerts */}
-      {(highPriorityTasks.length > 0 || newFeedbacks.length > 0) && (
+      </div>      {/* Alerts */}
+      {highPriorityTasks.length > 0 && (
         <Card className="border-orange-200 bg-orange-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-orange-800">
@@ -205,15 +171,6 @@ export function DashboardOverview({
                 <div className="flex items-center gap-2">
                   <Badge variant="destructive">{highPriorityTasks.length}</Badge>
                   <span className="text-sm">{t("highPriorityTasks")}</span>
-                  <Button variant="ghost" size="sm">
-                    {t("review")}
-                  </Button>
-                </div>
-              )}
-              {newFeedbacks.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <Badge variant="destructive">{newFeedbacks.length}</Badge>
-                  <span className="text-sm">{t("newFeedback")}</span>
                   <Button variant="ghost" size="sm">
                     {t("review")}
                   </Button>
@@ -273,19 +230,11 @@ export function DashboardOverview({
           <CardContent>
             <div className="space-y-3 max-h-80 overflow-y-auto">
               {recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-start gap-3 pb-3 border-b last:border-b-0">
-                  <div
+                <div key={index} className="flex items-start gap-3 pb-3 border-b last:border-b-0">                  <div
                     className={`w-2 h-2 rounded-full mt-2 ${
-                      activity.type === "task"
-                        ? activity.status === "completed"
-                          ? "bg-green-500"
-                          : "bg-blue-500"
-                        : activity.status === "resolved"
-                          ? "bg-green-500"
-                          : "bg-orange-500"
+                      activity.status === "completed" ? "bg-green-500" : "bg-blue-500"
                     }`}
-                  />
-                  <div className="flex-1 min-w-0">
+                  /><div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{activity.title}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs text-muted-foreground">{activity.date}</span>
@@ -293,9 +242,6 @@ export function DashboardOverview({
                         <Badge variant={(activity as any).priority === "high" ? "destructive" : "outline"} className="text-xs">
                           {(activity as any).priority}
                         </Badge>
-                      )}
-                      {activity.type === "feedback" && (activity as any).rating && (
-                        <div className="flex items-center gap-1">{renderStars((activity as any).rating)}</div>
                       )}
                     </div>
                   </div>
