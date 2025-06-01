@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { getLocalDateString, getTodayDateString } from "@/lib/date-utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -19,15 +20,15 @@ import { CSS } from '@dnd-kit/utilities'
 import { Textarea } from "@/components/ui/textarea"
 
 interface Task {
-  id: string
+  id: number
   title: string
   description: string
-  projectId: string
+  project_id?: number
   priority: "low" | "medium" | "high"
   completed: boolean
   date: string
-  estimatedTime: number
-  actualTime?: number
+  estimated_time?: number
+  actual_time?: number
   status: "todo" | "in-progress" | "done"
 }
 
@@ -48,7 +49,7 @@ interface TrelloTasksProps {
 interface DraggableTaskCardProps {
   task: any;
   project: any;
-  onToggle: (taskId: string, completed: boolean) => void;
+  onToggle: (taskId: number, completed: boolean) => void;
   getPriorityColor: (priority: string) => string;
   onViewDetails: (task: any) => void;
 }
@@ -60,7 +61,7 @@ interface DroppableColumnProps {
   icon: React.ReactNode;
   tasks: any[];
   bgColor: string;
-  onToggle: (taskId: string, completed: boolean) => void;
+  onToggle: (taskId: number, completed: boolean) => void;
   getPriorityColor: (priority: string) => string;
   projects: any[];
   onViewDetails: (task: any) => void;
@@ -109,13 +110,12 @@ function DraggableTaskCard({ task, project, onToggle, getPriorityColor, onViewDe
                 <Circle className="h-3 w-3" />
                 {project.name}
               </span>
-            )}
-            <span className="flex items-center gap-1">
+            )}            <span className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              {task.estimated_time || task.estimatedTime}min
+              {task.estimated_time || 60}min
             </span>
             <span className="text-xs">
-              {task.date ? new Date(task.date).toLocaleDateString('vi-VN') : 'Chưa có ngày'}
+              {task.date ? getLocalDateString(new Date(task.date)) : 'Chưa có ngày'}
             </span>
           </div>
           <div className="flex justify-end mt-2">
@@ -182,10 +182,9 @@ function DroppableColumn({ id, title, icon, tasks, bgColor, onToggle, getPriorit
 export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTask, onToggleTask, emailNotifications }: TrelloTasksProps) {
   const { t } = useLanguage()
   const { sendTaskCreatedEmail, sendTaskCompletedEmail } = useEmail()
-  
-  // Default to today's date
+    // Default to today's date using local timezone  // Sử dụng hàm tiện ích đã được cập nhật để sử dụng giờ Việt Nam
   const [selectedDate, setSelectedDate] = useState(() => {
-    return new Date().toISOString().split("T")[0]
+    return getLocalDateString(new Date()); // Sử dụng getLocalDateString để nhất quán
   })
   // Ẩn/hiện form thêm task
   const [showAddForm, setShowAddForm] = useState(false)
@@ -201,7 +200,7 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
     priority: "medium" as const,
     estimatedTime: 60,
     status: "todo" as "todo" | "in-progress" | "done",
-    date: selectedDate
+    // KHÔNG khởi tạo date ở đây, sẽ set khi submit
   })
 
   // Phân loại tasks theo trạng thái
@@ -238,10 +237,9 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
       });
       return;
     }
-    
-    // Lọc tasks theo ngày đã chọn
+      // Lọc tasks theo ngày đã chọn, sử dụng hàm getLocalDateString để đảm bảo timezone nhất quán
     const filteredTasks = tasks.filter((task: any) => {
-      const taskDate = task.date ? new Date(task.date).toISOString().split("T")[0] : null;
+      const taskDate = task.date ? getLocalDateString(new Date(task.date)) : null;
       const matches = taskDate === selectedDate;
       console.log(`TrelloTasks: Task ${task.id} - date: ${task.date}, taskDate: ${taskDate}, selectedDate: ${selectedDate}, matches: ${matches}`);
       return matches;
@@ -331,22 +329,22 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
         alert("Lỗi khi cập nhật trạng thái task. Vui lòng thử lại.");
       }
     }
-  };
-  const handleToggleTask = async (taskId: string, completed: boolean) => {
+  };  const handleToggleTask = async (taskId: number, completed: boolean) => {
     if (!onToggleTask) {
       alert("Chức năng cập nhật task chưa được kết nối!");
       return;
     }
 
     try {
-      await onToggleTask(Number.parseInt(taskId), !completed);
+      await onToggleTask(taskId, !completed);
       
       // Gửi email thông báo khi task hoàn thành
       if (!completed && emailNotifications?.enabled && emailNotifications.recipients.length > 0) {
         try {
           const task = tasks.find(t => t.id == taskId);
           if (task) {
-            const project = projects.find(p => p.id === task.projectId);
+            const taskProjectId = task.projectId || task.project_id;
+            const project = projects.find(p => p.id == taskProjectId);
             await sendTaskCompletedEmail({
               taskTitle: task.title,
               taskDescription: task.description,
@@ -384,8 +382,8 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
           Number.parseInt(formData.projectId) : null,
         title: formData.title,
         description: formData.description,
-        priority: formData.priority,
-        date: selectedDate,
+        priority: formData.priority,        // Sử dụng ngày local yyyy-mm-dd (tz safe) để lưu vào DB, tránh lệch ngày do UTC
+        date: selectedDate, // Sử dụng trực tiếp selectedDate đã được định dạng đúng
         estimated_time: formData.estimatedTime,
         status: formData.status,
         completed: formData.status === 'done' // Tự động đánh dấu hoàn thành nếu status là done
@@ -414,7 +412,7 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
         priority: "medium",
         estimatedTime: 60,
         status: "todo",
-        date: selectedDate
+        // date: selectedDate
       });
       
       // Ẩn form sau khi thêm thành công
@@ -449,13 +447,13 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
             <Input
               type="date"
               value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
+              onChange={(e) => setSelectedDate(getLocalDateString(new Date(e.target.value)))}
               className="w-auto"
             />
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => setSelectedDate(new Date().toISOString().split("T")[0])}
+              onClick={() => setSelectedDate(getLocalDateString(new Date()))}
             >
               Hôm nay
             </Button>
@@ -478,13 +476,12 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
         </div>
       ) : (
         <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800">
-          ✅ Đã kết nối database thành công - {projects?.length || 0} project(s), {tasks?.length || 0} task(s) tổng cộng.
-          {tasks.filter((task: any) => {
-            const taskDate = task.date ? new Date(task.date).toISOString().split("T")[0] : null;
+          ✅ Đã kết nối database thành công - {projects?.length || 0} project(s), {tasks?.length || 0} task(s) tổng cộng.          {tasks.filter((task: any) => {
+            const taskDate = task.date ? getLocalDateString(new Date(task.date)) : null;
             return taskDate === selectedDate;
           }).length > 0 ? 
             ` Hôm nay có ${tasks.filter((task: any) => {
-              const taskDate = task.date ? new Date(task.date).toISOString().split("T")[0] : null;
+              const taskDate = task.date ? getLocalDateString(new Date(task.date)) : null;
               return taskDate === selectedDate;
             }).length} task(s).` : 
             " Hôm nay chưa có task nào."}
@@ -542,13 +539,12 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="taskDate">Ngày thực hiện</Label>
-                  <Input
+                  <Label htmlFor="taskDate">Ngày thực hiện</Label>                  <Input
                     id="taskDate"
                     type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    min={new Date().toISOString().split("T")[0]}
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(getLocalDateString(new Date(e.target.value)))}
+                    min={getLocalDateString(new Date())}
                   />
                 </div>
               </div>
@@ -713,11 +709,10 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
                 </div>
               </div>
               
-              <div className="grid grid-cols-3 gap-4">
-                <div>
+              <div className="grid grid-cols-3 gap-4">                <div>
                   <Label className="text-sm font-medium">Ngày thực hiện</Label>
                   <p className="mt-1 p-2 bg-gray-50 rounded border">
-                    {viewingTask.date ? new Date(viewingTask.date).toLocaleDateString('vi-VN') : 'Chưa có ngày'}
+                    {viewingTask.date ? getLocalDateString(new Date(viewingTask.date)) : 'Chưa có ngày'}
                   </p>
                 </div>
                 <div>

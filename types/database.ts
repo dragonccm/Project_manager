@@ -17,8 +17,10 @@ export interface CodeComponent {
   category: "element" | "section" | "template" | "widget" | "global"
   tags: string[]
   code_json: object
+  code_json_raw?: string // Raw JSON string for editing
   preview_image?: string
   elementor_data: object
+  elementor_data_raw?: string // Raw JSON string for editing
   created_at: string
   updated_at: string
   project_name?: string
@@ -47,7 +49,8 @@ export interface Task {
   priority: "low" | "medium" | "high"
   date: string
   estimated_time?: number
-  actual_time?: number  completed: boolean
+  actual_time?: number
+  completed: boolean
   created_at: string
   updated_at: string
 }
@@ -65,7 +68,8 @@ export interface EmailTemplate {
 export interface Settings {
   id?: number
   language: string
-  theme: "light" | "dark" | "system"  notifications: {
+  theme: "light" | "dark" | "system"
+  notifications: {
     email: boolean
     desktop: boolean
     tasks: boolean
@@ -96,8 +100,10 @@ export interface CreateCodeComponentInput {
   category: "element" | "section" | "template" | "widget" | "global"
   tags: string[]
   code_json: object
+  code_json_raw?: string // Raw JSON string for editing
   preview_image?: string
   elementor_data: object
+  elementor_data_raw?: string // Raw JSON string for editing
 }
 
 export interface CreateAccountInput {
@@ -117,7 +123,8 @@ export interface CreateTaskInput {
   status?: string
   priority?: string
   date: string
-  estimated_time?: number  completed?: boolean
+  estimated_time?: number
+  completed?: boolean
 }
 
 export interface CreateEmailTemplateInput {

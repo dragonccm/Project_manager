@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Checkbox } from "@/components/ui/checkbox"
+import { getTodayDateString } from "@/lib/date-utils"
 import {
   Bell,
   Users,
@@ -21,6 +22,7 @@ import {
   Activity,
 } from "lucide-react"
 import { useLanguage } from "@/hooks/use-language"
+import { getLocalDateString } from "@/lib/date-utils"
 
 interface DashboardOverviewProps {
   projects: any[]
@@ -29,30 +31,13 @@ interface DashboardOverviewProps {
   onToggleTask: (id: number, completed: boolean) => Promise<any>
 }
 
-export function DashboardOverview({ 
-  projects, 
-  tasks, 
-  accounts, 
-  onToggleTask 
+export function DashboardOverview({
+  projects,
+  tasks,
+  accounts,
+  onToggleTask
 }: DashboardOverviewProps) {
   const { t } = useLanguage()
-
-  // Remove local state since we're receiving data via props
-  // const [tasks, setTasks] = useState<any[]>([])
-  // const [accounts, setAccounts] = useState<any[]>([])
-  // const [feedbacks, setFeedbacks] = useState([])
-
-  // Remove useEffect since data comes from props
-  // useEffect(() => {
-  //   // Load data from localStorage
-  //   const savedTasks = localStorage.getItem("tasks")
-  //   const savedAccounts = localStorage.getItem("accounts")
-  //   const savedFeedbacks = localStorage.getItem("feedbacks")
-
-  //   if (savedTasks) setTasks(JSON.parse(savedTasks))
-  //   if (savedAccounts) setAccounts(JSON.parse(savedAccounts))
-  //   if (savedFeedbacks) setFeedbacks(JSON.parse(savedFeedbacks))
-  // }, [])
   const today = new Date().toISOString().split("T")[0]
   const todayTasks = tasks.filter((task: any) => task.date === today)
   const completedTasks = todayTasks.filter((task: any) => task.completed)
@@ -67,34 +52,36 @@ export function DashboardOverview({
       .map((task: any) => ({
         type: "task",
         title: task.title,
-        date: typeof task.date === 'string' ? task.date : new Date(task.date).toISOString().split("T")[0],
+        date: task.date,
         status: task.completed ? "completed" : "pending",
         priority: task.priority,
-      })),
-  ]
+      })),  ]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 10)
+    .slice(0, 10);
 
-  const toggleTask = async (taskId: string) => {
+  const toggleTask = async (taskId: number) => {
     const task = tasks.find((t: any) => t.id == taskId)
     if (task && onToggleTask) {
-      await onToggleTask(task.id, task.completed)
+      await onToggleTask(task.id, !task.completed)
     }
   }
+  
   const getProjectProgress = (projectId: string) => {
-    const projectTasks = tasks.filter((task: any) => task.projectId == projectId)
-    if (projectTasks.length === 0) return 0
+    const projectTasks = tasks.filter((task: any) => {
+      const taskProjectId = task.projectId || task.project_id?.toString();
+      return taskProjectId == projectId;
+    });
+    if (projectTasks.length === 0) return 0;
     const completed = projectTasks.filter((task: any) => task.completed).length
     return Math.round((completed / projectTasks.length) * 100)
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">{t("welcome")}</h1>
-          <p className="text-muted-foreground">{new Date().toLocaleDateString()}</p>
-        </div>        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between">        <div>
+        <h1 className="text-3xl font-bold">{t("welcome")}</h1>
+        <p className="text-muted-foreground">{getTodayDateString()}</p>
+      </div><div className="flex items-center gap-2">
           <Button variant="outline" size="sm">
             <Bell className="h-4 w-4 mr-2" />
             {highPriorityTasks.length}
@@ -191,10 +178,12 @@ export function DashboardOverview({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {projects.slice(0, 5).map((project) => {
+            <div className="space-y-4">              {projects.slice(0, 5).map((project) => {
                 const progress = getProjectProgress(project.id)
-                const projectTasks = tasks.filter((task: any) => task.projectId == project.id)
+                const projectTasks = tasks.filter((task: any) => {
+                  const taskProjectId = task.projectId || task.project_id?.toString();
+                  return taskProjectId == project.id;
+                })
                 const completedProjectTasks = projectTasks.filter((task: any) => task.completed)
 
                 return (
@@ -231,10 +220,9 @@ export function DashboardOverview({
             <div className="space-y-3 max-h-80 overflow-y-auto">
               {recentActivity.map((activity, index) => (
                 <div key={index} className="flex items-start gap-3 pb-3 border-b last:border-b-0">                  <div
-                    className={`w-2 h-2 rounded-full mt-2 ${
-                      activity.status === "completed" ? "bg-green-500" : "bg-blue-500"
+                  className={`w-2 h-2 rounded-full mt-2 ${activity.status === "completed" ? "bg-green-500" : "bg-blue-500"
                     }`}
-                  /><div className="flex-1 min-w-0">
+                /><div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{activity.title}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs text-muted-foreground">{activity.date}</span>
@@ -263,9 +251,9 @@ export function DashboardOverview({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {todayTasks.map((task: any) => {
-                const project = projects.find((p) => p.id == task.projectId)
+            <div className="space-y-3">              {todayTasks.map((task: any) => {
+                const taskProjectId = task.projectId || task.project_id?.toString();
+                const project = projects.find((p) => p.id == taskProjectId)
                 return (
                   <div key={task.id} className="flex items-start gap-3">
                     <Checkbox checked={task.completed} onCheckedChange={() => toggleTask(task.id)} className="mt-1" />
@@ -279,10 +267,9 @@ export function DashboardOverview({
                         <Badge variant={task.priority === "high" ? "destructive" : "outline"} className="text-xs">
                           {task.priority}
                         </Badge>
-                        {project && <span className="text-xs text-muted-foreground">{project.name}</span>}
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        {project && <span className="text-xs text-muted-foreground">{project.name}</span>}                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <Clock className="h-3 w-3" />
-                          {task.estimatedTime}min
+                          {task.estimated_time || task.estimatedTime || 60}min
                         </div>
                       </div>
                     </div>

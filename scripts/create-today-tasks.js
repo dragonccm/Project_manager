@@ -13,7 +13,9 @@ config({ path: resolve(__dirname, '..', '.env') });
 
 const sql = neon(process.env.NEON_DATABASE_URL || process.env.DATABASE_URL);
 
-const today = "2025-05-29"; // Using the current date as specified in the context
+// Import utility function để có ngày tháng theo giờ Việt Nam
+import { getLocalDateString } from '../lib/date-utils.js';
+const today = getLocalDateString(new Date()); // Sử dụng ngày hiện tại theo giờ Việt Nam
 
 async function createTodayTasks() {
   try {

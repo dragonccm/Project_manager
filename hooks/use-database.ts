@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { getLocalDateString, getLocalISOString } from "@/lib/date-utils"
 import {
   getProjects,
   createProject,
@@ -59,7 +60,6 @@ export function useDatabase() {
 
   const loadFromLocalStorage = () => {
     try {
-      console.log("Loading data from localStorage...")
       const savedProjects = localStorage.getItem("projects")
       const savedAccounts = localStorage.getItem("accounts")
       const savedTasks = localStorage.getItem("tasks")
@@ -136,9 +136,9 @@ export function useDatabase() {
       ])
 
       console.log("Database data loaded:", {
-        projects: projectsData.length,
-        accounts: accountsData.length,
-        tasks: tasksData.length,
+        projects: projectsData,
+        accounts: accountsData,
+        tasks: tasksData,
       })
 
       // Map database fields to component-expected fields
@@ -148,7 +148,8 @@ export function useDatabase() {
         projectId: account.project_id?.toString() || "1",
         createdAt: account.created_at
       }))
-
+      console.log("Database data loaded successfully------------------", getLocalDateString(new Date(tasksData[0].date)))
+      console.log("Database data loaded successfully------------------",tasksData[0].date)
       const mappedTasks = tasksData.map((task: any) => ({
         ...task,
         id: task.id.toString(), // Ensure ID is string for components
@@ -156,7 +157,7 @@ export function useDatabase() {
         status: task.status || (task.completed ? "done" : "todo"),
         completed: typeof task.completed === "boolean" ? task.completed : !!task.completed,
         estimatedTime: typeof task.estimated_time === "number" ? task.estimated_time : (task.estimatedTime || 60),
-        date: task.date ? (typeof task.date === "string" ? task.date.split("T")[0] : new Date(task.date).toISOString().split("T")[0]) : "",
+        date: task.date ? (typeof task.date === "string" ? getLocalDateString(new Date(task.date)) : getLocalDateString(new Date(task.date))) : "",
         createdAt: task.created_at,
         updatedAt: task.updated_at
       }))
@@ -353,7 +354,7 @@ export function useDatabase() {
         status: newTask.status || (newTask.completed ? "done" : "todo"),
         completed: typeof newTask.completed === "boolean" ? newTask.completed : !!newTask.completed,
         estimatedTime: typeof newTask.estimated_time === "number" ? newTask.estimated_time : (newTask.estimatedTime || 60),
-        date: newTask.date ? (typeof newTask.date === "string" ? newTask.date.split("T")[0] : new Date(newTask.date).toISOString().split("T")[0]) : "",
+        date: newTask.date ? (typeof newTask.date === "string" ? getLocalDateString(new Date(newTask.date)) : getLocalDateString(new Date(newTask.date))) : "",
         createdAt: newTask.created_at,
         updatedAt: newTask.updated_at
       } as Task
@@ -387,7 +388,7 @@ export function useDatabase() {
         status: updatedTask.status || (updatedTask.completed ? "done" : "todo"),
         completed: typeof updatedTask.completed === "boolean" ? updatedTask.completed : !!updatedTask.completed,
         estimatedTime: typeof updatedTask.estimated_time === "number" ? updatedTask.estimated_time : (updatedTask.estimatedTime || 60),
-        date: updatedTask.date ? (typeof updatedTask.date === "string" ? updatedTask.date.split("T")[0] : new Date(updatedTask.date).toISOString().split("T")[0]) : "",
+        date: updatedTask.date ? (typeof updatedTask.date === "string" ? getLocalDateString(new Date(updatedTask.date)) : getLocalDateString(new Date(updatedTask.date))) : "",
         createdAt: updatedTask.created_at,
         updatedAt: updatedTask.updated_at
       } as Task
@@ -500,10 +501,10 @@ export function useDatabase() {
       if (!isDatabaseAvailable) {
         console.log("Using localStorage for code component creation")
         const newComponent = {
-          id: Date.now().toString(),
+          id: Date.now(),
           ...componentData,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          created_at: getLocalISOString(),
+          updated_at: getLocalISOString(),
         } as CodeComponent
         
         const updatedComponents = [newComponent, ...codeComponents]
@@ -530,10 +531,10 @@ export function useDatabase() {
     } catch (err) {
       console.error("Database error, using localStorage:", err)
       const newComponent = {
-        id: Date.now().toString(),
+        id: Date.now(),
         ...componentData,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        created_at: getLocalISOString(),
+        updated_at: getLocalISOString(),
       } as CodeComponent
       
       const updatedComponents = [newComponent, ...codeComponents]
@@ -550,7 +551,7 @@ export function useDatabase() {
       
       if (!isDatabaseAvailable) {
         const updatedComponents = codeComponents.map((comp) =>
-          comp.id.toString() === id ? { ...comp, ...componentData, updated_at: new Date().toISOString() } : comp
+          comp.id.toString() === id ? { ...comp, ...componentData, updated_at: getLocalISOString() } : comp
         )
         localStorage.setItem("codeComponents", JSON.stringify(updatedComponents))
         setCodeComponents(updatedComponents)
@@ -573,7 +574,7 @@ export function useDatabase() {
     } catch (err) {
       console.error("Database error, using localStorage:", err)
       const updatedComponents = codeComponents.map((comp) =>
-        comp.id.toString() === id ? { ...comp, ...componentData, updated_at: new Date().toISOString() } : comp
+        comp.id.toString() === id ? { ...comp, ...componentData, updated_at: getLocalISOString() } : comp
       )
       localStorage.setItem("codeComponents", JSON.stringify(updatedComponents))
       setCodeComponents(updatedComponents)
