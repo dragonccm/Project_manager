@@ -1,40 +1,25 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useTheme as useNextTheme } from "next-themes"
+import { useEffect, useState } from "react"
 
 export function useTheme() {
-  const [theme, setTheme] = useState<"light" | "dark" | "system">("light")
+  const { theme, setTheme: setNextTheme } = useNextTheme()
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | "system"
-    if (savedTheme) {
-      setTheme(savedTheme)
-    }
+    setMounted(true)
   }, [])
 
-  const changeTheme = (newTheme: "light" | "dark" | "system") => {
-    setTheme(newTheme)
-    localStorage.setItem("theme", newTheme)
-
-    // Apply theme to document
-    const root = document.documentElement
-    if (newTheme === "dark") {
-      root.classList.add("dark")
-    } else if (newTheme === "light") {
-      root.classList.remove("dark")
-    } else {
-      // System theme
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
-      if (prefersDark) {
-        root.classList.add("dark")
-      } else {
-        root.classList.remove("dark")
-      }
+  if (!mounted) {
+    return {
+      theme: "light" as const,
+      setTheme: () => {},
     }
   }
 
   return {
-    theme,
-    setTheme: changeTheme,
+    theme: theme as "light" | "dark" | "system" | undefined,
+    setTheme: setNextTheme,
   }
 }

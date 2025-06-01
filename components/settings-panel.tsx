@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -39,6 +39,44 @@ export function SettingsPanel({
     accent: "#f59e0b",
     background: "#ffffff",
   })
+
+  // Load saved custom colors on mount
+  useEffect(() => {
+    const savedColors = localStorage.getItem("customColors")
+    if (savedColors) {
+      try {
+        const parsedColors = JSON.parse(savedColors)
+        setCustomColors(parsedColors)
+        // Auto-apply saved colors
+        const root = document.documentElement
+        const hexToHsl = (hex: string) => {
+          const r = parseInt(hex.slice(1, 3), 16) / 255
+          const g = parseInt(hex.slice(3, 5), 16) / 255
+          const b = parseInt(hex.slice(5, 7), 16) / 255
+          const max = Math.max(r, g, b)
+          const min = Math.min(r, g, b)
+          let h = 0, s = 0, l = (max + min) / 2
+          if (max !== min) {
+            const d = max - min
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+            switch (max) {
+              case r: h = (g - b) / d + (g < b ? 6 : 0); break
+              case g: h = (b - r) / d + 2; break
+              case b: h = (r - g) / d + 4; break
+            }
+            h /= 6
+          }
+          return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`
+        }
+        root.style.setProperty("--primary", hexToHsl(parsedColors.primary))
+        root.style.setProperty("--secondary", hexToHsl(parsedColors.secondary))
+        root.style.setProperty("--accent", hexToHsl(parsedColors.accent))
+        root.style.setProperty("--background", hexToHsl(parsedColors.background))
+      } catch (error) {
+        console.error("Error loading custom colors:", error)
+      }
+    }
+  }, [])
 
   const exportData = () => {
     const data = {
@@ -92,10 +130,42 @@ export function SettingsPanel({
 
   const applyCustomTheme = () => {
     const root = document.documentElement
-    root.style.setProperty("--primary", customColors.primary)
-    root.style.setProperty("--secondary", customColors.secondary)
-    root.style.setProperty("--accent", customColors.accent)
-    root.style.setProperty("--background", customColors.background)
+    
+    // Convert hex colors to HSL values
+    const hexToHsl = (hex: string) => {
+      const r = parseInt(hex.slice(1, 3), 16) / 255
+      const g = parseInt(hex.slice(3, 5), 16) / 255
+      const b = parseInt(hex.slice(5, 7), 16) / 255
+
+      const max = Math.max(r, g, b)
+      const min = Math.min(r, g, b)
+      let h = 0, s = 0, l = (max + min) / 2
+
+      if (max !== min) {
+        const d = max - min
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+        switch (max) {
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break
+          case g: h = (b - r) / d + 2; break
+          case b: h = (r - g) / d + 4; break
+        }
+        h /= 6
+      }
+
+      return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`
+    }
+    
+    // Apply custom colors as CSS variables
+    root.style.setProperty("--primary", hexToHsl(customColors.primary))
+    root.style.setProperty("--secondary", hexToHsl(customColors.secondary))
+    root.style.setProperty("--accent", hexToHsl(customColors.accent))
+    root.style.setProperty("--background", hexToHsl(customColors.background))
+    
+    // Save to localStorage
+    localStorage.setItem("customColors", JSON.stringify(customColors))
+    
+    // Show success message
+    alert(t("colorsAppliedSuccessfully") || "Colors applied successfully!")
   }
 
   return (
@@ -157,44 +227,182 @@ export function SettingsPanel({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="primary">{t("primaryColor")}</Label>
-                <Input
-                  id="primary"
-                  type="color"
-                  value={customColors.primary}
-                  onChange={(e) => setCustomColors({ ...customColors, primary: e.target.value })}
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="primary"
+                    type="color"
+                    value={customColors.primary}
+                    onChange={(e) => setCustomColors({ ...customColors, primary: e.target.value })}
+                    className="w-16 h-10"
+                  />
+                  <Input
+                    type="text"
+                    value={customColors.primary}
+                    onChange={(e) => setCustomColors({ ...customColors, primary: e.target.value })}
+                    className="flex-1"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="secondary">{t("secondaryColor")}</Label>
-                <Input
-                  id="secondary"
-                  type="color"
-                  value={customColors.secondary}
-                  onChange={(e) => setCustomColors({ ...customColors, secondary: e.target.value })}
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="secondary"
+                    type="color"
+                    value={customColors.secondary}
+                    onChange={(e) => setCustomColors({ ...customColors, secondary: e.target.value })}
+                    className="w-16 h-10"
+                  />
+                  <Input
+                    type="text"
+                    value={customColors.secondary}
+                    onChange={(e) => setCustomColors({ ...customColors, secondary: e.target.value })}
+                    className="flex-1"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="accent">{t("accentColor")}</Label>
-                <Input
-                  id="accent"
-                  type="color"
-                  value={customColors.accent}
-                  onChange={(e) => setCustomColors({ ...customColors, accent: e.target.value })}
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="accent"
+                    type="color"
+                    value={customColors.accent}
+                    onChange={(e) => setCustomColors({ ...customColors, accent: e.target.value })}
+                    className="w-16 h-10"
+                  />
+                  <Input
+                    type="text"
+                    value={customColors.accent}
+                    onChange={(e) => setCustomColors({ ...customColors, accent: e.target.value })}
+                    className="flex-1"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="background">{t("backgroundColor")}</Label>
-                <Input
-                  id="background"
-                  type="color"
-                  value={customColors.background}
-                  onChange={(e) => setCustomColors({ ...customColors, background: e.target.value })}
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="background"
+                    type="color"
+                    value={customColors.background}
+                    onChange={(e) => setCustomColors({ ...customColors, background: e.target.value })}
+                    className="w-16 h-10"
+                  />
+                  <Input
+                    type="text"
+                    value={customColors.background}
+                    onChange={(e) => setCustomColors({ ...customColors, background: e.target.value })}
+                    className="flex-1"
+                  />
+                </div>
               </div>
             </div>
-            <Button onClick={applyCustomTheme} className="w-full">
-              {t("applyColors")}
-            </Button>
+            
+            {/* Color Preview */}
+            <div className="space-y-2">
+              <Label>Preview</Label>
+              <div className="grid grid-cols-4 gap-2">
+                <div
+                  className="h-12 rounded border-2 border-gray-300 flex items-center justify-center text-xs font-medium"
+                  style={{ backgroundColor: customColors.primary, color: '#fff' }}
+                >
+                  Primary
+                </div>
+                <div
+                  className="h-12 rounded border-2 border-gray-300 flex items-center justify-center text-xs font-medium"
+                  style={{ backgroundColor: customColors.secondary, color: '#fff' }}
+                >
+                  Secondary
+                </div>
+                <div
+                  className="h-12 rounded border-2 border-gray-300 flex items-center justify-center text-xs font-medium"
+                  style={{ backgroundColor: customColors.accent, color: '#fff' }}
+                >
+                  Accent
+                </div>
+                <div
+                  className="h-12 rounded border-2 border-gray-300 flex items-center justify-center text-xs font-medium"
+                  style={{ backgroundColor: customColors.background, color: '#000' }}
+                >
+                  Background
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={applyCustomTheme} className="flex-1">
+                {t("applyColors")}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  const defaultColors = {
+                    primary: "#3b82f6",
+                    secondary: "#64748b", 
+                    accent: "#f59e0b",
+                    background: "#ffffff"
+                  }
+                  setCustomColors(defaultColors)
+                }}
+              >
+                Reset
+              </Button>
+            </div>
+            
+            {/* Preset Themes */}
+            <div className="space-y-2">
+              <Label>Preset Themes</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setCustomColors({
+                    primary: "#3b82f6", // Blue
+                    secondary: "#64748b", // Slate
+                    accent: "#f59e0b", // Amber
+                    background: "#ffffff" // White
+                  })}
+                >
+                  🔵 Default Blue
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setCustomColors({
+                    primary: "#10b981", // Emerald
+                    secondary: "#6b7280", // Gray
+                    accent: "#f59e0b", // Amber
+                    background: "#ffffff" // White
+                  })}
+                >
+                  🟢 Green Nature
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setCustomColors({
+                    primary: "#8b5cf6", // Violet
+                    secondary: "#64748b", // Slate
+                    accent: "#ec4899", // Pink
+                    background: "#ffffff" // White
+                  })}
+                >
+                  🟣 Purple Royal
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setCustomColors({
+                    primary: "#ef4444", // Red
+                    secondary: "#64748b", // Slate
+                    accent: "#f97316", // Orange
+                    background: "#ffffff" // White
+                  })}
+                >
+                  🔴 Red Energy
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
 

@@ -8,7 +8,7 @@ import { ProjectForm } from "@/features/projects/project-form"
 import { AccountManager } from "@/features/accounts/account-manager"
 import { TrelloTasks } from "@/features/tasks/trello-tasks"
 import { TaskReports } from "@/features/tasks/task-reports"
-
+import { ThemeToggle } from "@/components/theme-toggle"
 import { SettingsPanel } from "@/features/settings/settings-panel"
 import { CodeComponentManager } from "@/features/code-components/code-component-manager"
 import { useLanguage } from "@/hooks/use-language"
@@ -201,7 +201,10 @@ export default function Dashboard() {
         {/* Sidebar */}
         <div className="w-64 bg-card border-r border-border p-4">
           <div className="mb-8">
-            <h2 className="text-xl font-bold">Project Manager</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold">Project Manager</h2>
+              <ThemeToggle />
+            </div>
             {!loading && (
               <div className="flex items-center justify-between mt-2">
                 <p className="text-sm text-muted-foreground">
