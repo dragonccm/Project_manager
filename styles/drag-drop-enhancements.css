@@ -1,0 +1,257 @@
+/* Enhanced Drag & Drop Styles for Report Designer */
+
+/* Prevent text selection during drag operations */
+.dnd-context * {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Enhanced drag overlay styles */
+.drag-overlay {
+  position: fixed;
+  pointer-events: none;
+  z-index: 999999;
+  transform-origin: center;
+  animation: dragOverlayEnter 0.15s ease-out;
+}
+
+@keyframes dragOverlayEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.8) rotate(0deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.05) rotate(2deg);
+  }
+}
+
+@keyframes dragOverlayPulse {
+  0%, 100% {
+    transform: rotate(2deg) scale(1.05);
+  }
+  50% {
+    transform: rotate(3deg) scale(1.08);
+  }
+}
+
+/* Dragging state indicators */
+.dragging-source {
+  opacity: 0 !important;
+  transform: scale(0.95);
+  transition: all 0.2s ease;
+}
+
+.drag-ghost {
+  opacity: 0.3;
+  transform: scale(0.98);
+  border: 2px dashed rgba(var(--primary), 0.5);
+  background: rgba(var(--primary), 0.05);
+}
+
+/* Drop zone enhancements */
+.drop-zone-active {
+  background: linear-gradient(45deg, 
+    rgba(var(--primary), 0.1) 25%, 
+    transparent 25%,
+    transparent 50%,
+    rgba(var(--primary), 0.1) 50%,
+    rgba(var(--primary), 0.1) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 20px 20px;
+  animation: dropZoneShimmer 1s infinite linear;
+  border-color: rgb(var(--primary));
+  box-shadow: inset 0 0 20px rgba(var(--primary), 0.2);
+}
+
+@keyframes dropZoneShimmer {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 20px 20px;
+  }
+}
+
+/* Grid pattern overlay */
+.bg-grid-pattern {
+  background-image: 
+    linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Draggable item enhancements */
+.draggable-item {
+  cursor: grab;
+  transition: all 0.2s ease;
+  will-change: transform, opacity;
+}
+
+.draggable-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.draggable-item:active {
+  cursor: grabbing;
+  transform: scale(0.98);
+}
+
+/* Sortable container */
+.sortable-container {
+  position: relative;
+}
+
+.sortable-item {
+  position: relative;
+  z-index: 1;
+  transition: transform 0.2s ease;
+}
+
+.sortable-item.sorting {
+  z-index: 10;
+}
+
+/* Drag handle styling */
+.drag-handle {
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+  cursor: grab;
+}
+
+.drag-handle:hover {
+  opacity: 1;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Visual feedback for field types */
+.field-type-text {
+  border-left: 3px solid #10b981;
+}
+
+.field-type-date {
+  border-left: 3px solid #3b82f6;
+}
+
+.field-type-number {
+  border-left: 3px solid #f59e0b;
+}
+
+.field-type-boolean {
+  border-left: 3px solid #8b5cf6;
+}
+
+.field-type-status {
+  border-left: 3px solid #ef4444;
+}
+
+.field-type-priority {
+  border-left: 3px solid #f97316;
+}
+
+/* Smooth hover effects */
+.hover-scale {
+  transition: transform 0.2s ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+/* Drop indicator styles */
+.drop-indicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgb(var(--primary));
+  border-radius: 1px;
+  opacity: 0;
+  transform: scaleX(0);
+  transition: all 0.2s ease;
+}
+
+.drop-indicator.active {
+  opacity: 1;
+  transform: scaleX(1);
+  box-shadow: 0 0 4px rgba(var(--primary), 0.5);
+}
+
+/* Enhanced button styles for drag controls */
+.drag-control-btn {
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: all 0.2s ease;
+}
+
+.group:hover .drag-control-btn {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Accessibility improvements */
+.draggable-item:focus {
+  outline: 2px solid rgb(var(--primary));
+  outline-offset: 2px;
+}
+
+.draggable-item[aria-grabbed="true"] {
+  box-shadow: 0 0 0 2px rgba(var(--primary), 0.5);
+}
+
+/* Mobile drag enhancements */
+@media (max-width: 768px) {
+  .draggable-item {
+    padding: 12px;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+  
+  .drag-handle {
+    padding: 8px;
+    opacity: 1; /* Always visible on mobile */
+  }
+  
+  .drag-overlay {
+    transform: scale(1.1) rotate(3deg);
+  }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .bg-grid-pattern {
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+  }
+  
+  .drop-zone-active {
+    background: linear-gradient(45deg, 
+      rgba(var(--primary), 0.15) 25%, 
+      transparent 25%,
+      transparent 50%,
+      rgba(var(--primary), 0.15) 50%,
+      rgba(var(--primary), 0.15) 75%,
+      transparent 75%,
+      transparent
+    );
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .draggable-item,
+  .drag-overlay,
+  .drop-indicator,
+  .sortable-item {
+    transition: none;
+    animation: none;
+  }
+}

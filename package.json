@@ -5,12 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
+    "dev:socket": "node server.js",
     "build": "next build",
     "start": "next start",
+    "start:socket": "NODE_ENV=production node server.js",
     "lint": "next lint",
     "check-env": "node scripts/check-env.js",
-    "setup": "npm run check-env && npm run dev",
-    "dev:check": "npm run check-env && npm run dev",
+    "setup": "npm run check-env && npm run dev:socket",
+    "dev:check": "npm run check-env && npm run dev:socket",
     "create-tasks": "node scripts/create-today-tasks.cjs"
   },
   "dependencies": {
@@ -54,6 +56,7 @@
     "date-fns": "4.1.0",
     "dotenv": "^16.5.0",
     "embla-carousel-react": "8.5.1",
+    "framer-motion": "^12.15.0",
     "input-otp": "1.4.1",
     "lucide-react": "^0.454.0",
     "next": "15.2.4",
@@ -66,6 +69,8 @@
     "react-hook-form": "^7.54.1",
     "react-resizable-panels": "^2.1.7",
     "recharts": "2.15.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "sonner": "^1.7.1",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",

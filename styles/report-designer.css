@@ -1,0 +1,191 @@
+/* Enhanced drag and drop styles for Report Designer */
+
+/* Grid pattern background */
+.bg-grid-pattern {
+  background-image: radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Smooth hover scale animation */
+.hover\:scale-102:hover {
+  transform: scale(1.02);
+}
+
+/* Enhanced drop zone animations */
+@keyframes pulse-border {
+  0%, 100% {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 0 hsla(var(--primary), 0.7);
+  }
+  50% {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 10px hsla(var(--primary), 0);
+  }
+}
+
+.pulse-border {
+  animation: pulse-border 2s infinite;
+}
+
+/* Drag ghost effect */
+@keyframes drag-ghost {
+  0% {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+  100% {
+    opacity: 0.7;
+    transform: rotate(3deg) scale(1.05);
+  }
+}
+
+.drag-ghost {
+  animation: drag-ghost 0.2s ease-out forwards;
+}
+
+/* Smooth drag preview */
+.drag-preview {
+  pointer-events: none;
+  z-index: 9999;
+  transition: transform 0.1s ease-out;
+}
+
+/* Field card hover effects */
+.field-card-hover {
+  transition: all 0.2s ease-in-out;
+}
+
+.field-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Drop zone visual feedback */
+.drop-zone-active {
+  background: linear-gradient(135deg, 
+    hsla(var(--primary), 0.1) 0%, 
+    hsla(var(--primary), 0.05) 100%
+  );
+  border-style: solid;
+  border-width: 2px;
+  border-color: hsl(var(--primary));
+}
+
+.drop-zone-active::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, 
+    transparent 40%, 
+    hsla(var(--primary), 0.1) 50%, 
+    transparent 60%
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Enhanced sortable item animations */
+.sortable-item {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sortable-item.dragging {
+  z-index: 1000;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  transform: rotate(3deg) scale(1.05);
+}
+
+/* Snap-to-grid indicator */
+.snap-grid {
+  position: relative;
+}
+
+.snap-grid::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.snap-grid.active::after {
+  opacity: 1;
+}
+
+/* Touch-friendly drag handles */
+@media (max-width: 768px) {
+  .drag-handle {
+    padding: 12px;
+    touch-action: none;
+  }
+  
+  .field-card {
+    padding: 16px;
+    min-height: 60px;
+  }
+  
+  .drop-zone {
+    min-height: 200px;
+    padding: 24px;
+  }
+}
+
+/* Accessibility improvements */
+.drag-item:focus {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Loading and transition states */
+.loading-shimmer {
+  background: linear-gradient(90deg, 
+    transparent 40%, 
+    rgba(255, 255, 255, 0.5) 50%, 
+    transparent 60%
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+/* Responsive drag and drop */
+@media (max-width: 1024px) {
+  .drag-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .drag-panel {
+    order: 2;
+  }
+  
+  .drop-zone {
+    order: 1;
+    min-height: 300px;
+  }
+}
+
+/* Drag overlay styles */
+.drag-overlay {
+  opacity: 0.8;
+  transform: rotate(5deg);
+  z-index: 1000;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.drag-overlay.dragging {
+  transform: rotate(8deg) scale(1.05);
+  opacity: 0.9;
+}

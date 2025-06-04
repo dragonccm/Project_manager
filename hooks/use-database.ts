@@ -25,6 +25,12 @@ import {
   updateSettings,
   testDatabaseConnection,
   initializeTables,
+  // Add report template functions
+  getReportTemplates,
+  createReportTemplate,
+  updateReportTemplate,
+  deleteReportTemplate,
+  duplicateReportTemplate,
 } from "@/lib/database"
 import { createLocalStorageOperations } from "@/lib/database-fallback"
 import {
@@ -43,6 +49,10 @@ import {
   UpdateTaskInput,
   UpdateCodeComponentInput,
   UpdateSettingsInput,
+  // Add report template types
+  ReportTemplate,
+  CreateReportTemplateInput,
+  UpdateReportTemplateInput,
 } from "@/types/database"
 
 export function useDatabase() {
@@ -51,6 +61,7 @@ export function useDatabase() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [emailTemplates, setEmailTemplates] = useState<EmailTemplate[]>([])
   const [codeComponents, setCodeComponents] = useState<CodeComponent[]>([])
+  const [reportTemplates, setReportTemplates] = useState<ReportTemplate[]>([])
   const [settings, setSettings] = useState<Settings | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<Error | null>(null)
@@ -125,6 +136,7 @@ export function useDatabase() {
         tasksData,
         emailTemplatesData,
         codeComponentsData,
+        reportTemplatesData,
         settingsData,
       ] = await Promise.all([
         getProjects(),
@@ -132,6 +144,7 @@ export function useDatabase() {
         getTasks(),
         getEmailTemplates(),
         getCodeComponents(),
+        getReportTemplates(),
         getSettings(),
       ])
 
@@ -148,8 +161,13 @@ export function useDatabase() {
         projectId: account.project_id?.toString() || "1",
         createdAt: account.created_at
       }))
-      console.log("Database data loaded successfully------------------", getLocalDateString(new Date(tasksData[0].date)))
-      console.log("Database data loaded successfully------------------",tasksData[0].date)
+      
+      // Safe date logging - only if tasks exist
+      if (tasksData.length > 0) {
+        console.log("Database data loaded successfully------------------", getLocalDateString(new Date(tasksData[0].date)))
+        console.log("Database data loaded successfully------------------",tasksData[0].date)
+      }
+      
       const mappedTasks = tasksData.map((task: any) => ({
         ...task,
         id: task.id.toString(), // Ensure ID is string for components
@@ -162,13 +180,21 @@ export function useDatabase() {
         updatedAt: task.updated_at
       }))
 
-      const mappedProjects = projectsData.map((project: any) => ({
-        ...project,
-        id: project.id.toString(), // Ensure ID is string for components
-        createdAt: project.created_at,
-        updatedAt: project.updated_at,
-        figmaLink: project.figma_link
-      }))
+      const mappedProjects = projectsData.map((project: any) => {
+        // Find accounts associated with this project
+        const projectAccounts = mappedAccounts.filter((account: any) => 
+          account.projectId === project.id.toString()
+        );
+        
+        return {
+          ...project,
+          id: project.id.toString(), // Ensure ID is string for components
+          createdAt: project.created_at,
+          updatedAt: project.updated_at,
+          figmaLink: project.figma_link,
+          accounts: projectAccounts // Add accounts array to project
+        };
+      })
 
       const mappedCodeComponents = codeComponentsData.map((component: any) => ({
         ...component,
@@ -178,11 +204,19 @@ export function useDatabase() {
         updatedAt: component.updated_at
       }))
 
+      const mappedReportTemplates = reportTemplatesData.map((template: any) => ({
+        ...template,
+        id: template.id.toString(), // Ensure ID is string for components
+        createdAt: template.created_at,
+        updatedAt: template.updated_at
+      }))
+
       setProjects(mappedProjects as Project[])
       setAccounts(mappedAccounts as Account[])
       setTasks(mappedTasks as Task[])
       setEmailTemplates(emailTemplatesData as EmailTemplate[])
       setCodeComponents(mappedCodeComponents as CodeComponent[])
+      setReportTemplates(mappedReportTemplates as ReportTemplate[])
       setSettings(
         (settingsData as Settings) || {
           language: "en",
@@ -628,6 +662,146 @@ export function useDatabase() {
     }
   }
 
+  // Report Templates
+  const addReportTemplate = async (templateData: CreateReportTemplateInput) => {
+    try {
+      if (isDatabaseAvailable) {
+        const newTemplate = await createReportTemplate(templateData)
+        const mappedTemplate: ReportTemplate = {
+          id: newTemplate.id,
+          name: newTemplate.name,
+          description: newTemplate.description,
+          template_data: newTemplate.template_data,
+          category: newTemplate.category,
+          is_default: newTemplate.is_default,
+          created_by: newTemplate.created_by,
+          created_at: newTemplate.created_at,
+          updated_at: newTemplate.updated_at
+        }
+        setReportTemplates([...reportTemplates, mappedTemplate])
+        return mappedTemplate
+      } else {
+        const newTemplate: ReportTemplate = {
+          id: Date.now(),
+          name: templateData.name,
+          description: templateData.description || "",
+          template_data: templateData.template_data,
+          category: templateData.category || "custom",
+          is_default: templateData.is_default || false,
+          created_by: templateData.created_by || "user",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }
+        const updatedTemplates = [...reportTemplates, newTemplate]
+        localStorage.setItem("reportTemplates", JSON.stringify(updatedTemplates))
+        setReportTemplates(updatedTemplates)
+        return newTemplate
+      }
+    } catch (error: any) {
+      console.error("Error adding report template:", error)
+      throw error
+    }
+  }
+
+  const editReportTemplate = async (id: number, templateData: UpdateReportTemplateInput) => {
+    try {
+      if (isDatabaseAvailable) {
+        const updatedTemplate = await updateReportTemplate(id, templateData)
+        const mappedTemplate: ReportTemplate = {
+          id: updatedTemplate.id,
+          name: updatedTemplate.name,
+          description: updatedTemplate.description,
+          template_data: updatedTemplate.template_data,
+          category: updatedTemplate.category,
+          is_default: updatedTemplate.is_default,
+          created_by: updatedTemplate.created_by,
+          created_at: updatedTemplate.created_at,
+          updated_at: updatedTemplate.updated_at
+        }
+        setReportTemplates(reportTemplates.map((t) => (t.id === id ? mappedTemplate : t)))
+        return mappedTemplate
+      } else {
+        const updatedTemplates = reportTemplates.map((template) =>
+          template.id === id
+            ? { 
+                ...template, 
+                ...templateData, 
+                updated_at: new Date().toISOString() 
+              }
+            : template
+        )
+        localStorage.setItem("reportTemplates", JSON.stringify(updatedTemplates))
+        setReportTemplates(updatedTemplates)
+        return updatedTemplates.find((t) => t.id === id)
+      }
+    } catch (error: any) {
+      console.error("Error editing report template:", error)
+      throw error
+    }
+  }
+
+  const removeReportTemplate = async (id: number) => {
+    try {
+      if (isDatabaseAvailable) {
+        await deleteReportTemplate(id)
+        setReportTemplates(reportTemplates.filter((template) => template.id !== id))
+      } else {
+        const updatedTemplates = reportTemplates.filter((template) => template.id !== id)
+        localStorage.setItem("reportTemplates", JSON.stringify(updatedTemplates))
+        setReportTemplates(updatedTemplates)
+      }
+    } catch (error: any) {
+      console.error("Error removing report template:", error)
+      throw error
+    }
+  }
+
+  const duplicateReportTemplateFunc = async (id: number, newName: string): Promise<ReportTemplate> => {
+    try {
+      if (isDatabaseAvailable) {
+        const duplicatedTemplate = await duplicateReportTemplate(id, newName)
+        const mappedTemplate: ReportTemplate = {
+          id: duplicatedTemplate.id,
+          name: duplicatedTemplate.name,
+          description: duplicatedTemplate.description,
+          template_data: duplicatedTemplate.template_data,
+          category: duplicatedTemplate.category,
+          is_default: duplicatedTemplate.is_default,
+          created_by: duplicatedTemplate.created_by,
+          created_at: duplicatedTemplate.created_at,
+          updated_at: duplicatedTemplate.updated_at
+        }
+        setReportTemplates([...reportTemplates, mappedTemplate])
+        return mappedTemplate
+      } else {
+        const originalTemplate = reportTemplates.find((t) => t.id === id)
+        if (!originalTemplate) {
+          throw new Error("Template not found")
+        }
+        
+        const newTemplate: ReportTemplate = {
+          ...originalTemplate,
+          id: Date.now(),
+          name: newName,
+          description: (originalTemplate.description || "") + " (Copy)",
+          category: "custom",
+          is_default: false,
+          created_by: "user",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }
+        
+        const updatedTemplates = [...reportTemplates, newTemplate]
+        localStorage.setItem("reportTemplates", JSON.stringify(updatedTemplates))
+        setReportTemplates(updatedTemplates)
+        return newTemplate
+      }
+    } catch (error: any) {
+      console.error("Error duplicating report template:", error)
+      throw error
+    }
+  }
+
   return {
     // Data
     projects,
@@ -635,6 +809,7 @@ export function useDatabase() {
     tasks,
     emailTemplates,
     codeComponents,
+    reportTemplates,
     settings,
     loading,
     error,
@@ -657,5 +832,9 @@ export function useDatabase() {
     editCodeComponent,
     removeCodeComponent,
     updateUserSettings,
+    addReportTemplate,
+    editReportTemplate,
+    removeReportTemplate,
+    duplicateReportTemplate,
   }
 }

@@ -66,6 +66,7 @@ export function DashboardOverview({
       await onToggleTask(task.id, task.completed)
     }
   }
+  
   const getProjectProgress = (projectId: string) => {
     const projectTasks = tasks.filter((task: any) => task.projectId == projectId)
     if (projectTasks.length === 0) return 0
@@ -74,88 +75,97 @@ export function DashboardOverview({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">        <div>
-        <h1 className="text-3xl font-bold">{t("welcome")}</h1>
-        <p className="text-muted-foreground">{getTodayDateString()}</p>
-      </div><div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
+    <div className="space-y-4 md:space-y-6">
+      {/* Mobile-optimized header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold truncate">{t("welcome")}</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">{getTodayDateString()}</p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button variant="outline" size="sm" className="min-h-[44px] px-3">
             <Bell className="h-4 w-4 mr-2" />
-            {highPriorityTasks.length}
+            <span className="text-sm font-medium">{highPriorityTasks.length}</span>
           </Button>
         </div>
       </div>
 
-      {/* Main Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
+      {/* Enhanced responsive stats grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <Card className="touch-manipulation">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t("totalProjects")}</CardTitle>
-            <FolderOpen className="h-4 w-4 text-muted-foreground" />
+            <FolderOpen className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-4">
             <div className="text-2xl font-bold">{projects.length}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mt-1">
               {projects.filter((p) => p.status === "active").length} {t("active")}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="touch-manipulation">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t("todayTasks")}</CardTitle>
-            <CheckSquare className="h-4 w-4 text-muted-foreground" />
+            <CheckSquare className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-4">
             <div className="text-2xl font-bold">
               {completedTasks.length}/{todayTasks.length}
             </div>
             <Progress
               value={todayTasks.length > 0 ? (completedTasks.length / todayTasks.length) * 100 : 0}
-              className="mt-2"
+              className="mt-2 h-2"
             />
           </CardContent>
-        </Card>        <Card>
+        </Card>
+
+        <Card className="touch-manipulation">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t("totalTasks")}</CardTitle>
-            <CheckSquare className="h-4 w-4 text-muted-foreground" />
+            <CheckSquare className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-4">
             <div className="text-2xl font-bold">{tasks.length}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mt-1">
               {tasks.filter((t) => t.completed).length} {t("completed")}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="touch-manipulation">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t("activeAccounts")}</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <Users className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-4">
             <div className="text-2xl font-bold">{accounts.length}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mt-1">
               {projects.length} {t("projects")}
             </p>
           </CardContent>
         </Card>
-      </div>      {/* Alerts */}
+      </div>
+
+      {/* Mobile-optimized alerts */}
       {highPriorityTasks.length > 0 && (
-        <Card className="border-orange-200 bg-orange-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-orange-800">
-              <AlertTriangle className="h-5 w-5" />
+        <Card className="border-orange-200 bg-orange-50 touch-manipulation">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-orange-800 text-base">
+              <AlertTriangle className="h-5 w-5 shrink-0" />
               {t("requiresAttention")}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             <div className="space-y-2">
               {highPriorityTasks.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <Badge variant="destructive">{highPriorityTasks.length}</Badge>
-                  <span className="text-sm">{t("highPriorityTasks")}</span>
-                  <Button variant="ghost" size="sm">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="destructive">{highPriorityTasks.length}</Badge>
+                    <span className="text-sm">{t("highPriorityTasks")}</span>
+                  </div>
+                  <Button variant="ghost" size="sm" className="self-start sm:self-auto min-h-[44px]">
                     {t("review")}
                   </Button>
                 </div>
@@ -165,16 +175,17 @@ export function DashboardOverview({
         </Card>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Project Progress */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
+      {/* Enhanced responsive three-column layout */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
+        {/* Project Progress - Full width on mobile/tablet */}
+        <Card className="xl:col-span-1 touch-manipulation">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <TrendingUp className="h-5 w-5 shrink-0" />
               {t("projectProgress")}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             <div className="space-y-4">
               {projects.slice(0, 5).map((project) => {
                 const progress = getProjectProgress(project.id)
@@ -183,43 +194,45 @@ export function DashboardOverview({
 
                 return (
                   <div key={project.id} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-sm">{project.name}</p>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm truncate">{project.name}</p>
                         <p className="text-xs text-muted-foreground">
                           {completedProjectTasks.length}/{projectTasks.length} {t("completed")}
                         </p>
                       </div>
-                      <Badge variant="outline">{progress}%</Badge>
+                      <Badge variant="outline" className="shrink-0">{progress}%</Badge>
                     </div>
                     <Progress value={progress} className="h-2" />
                   </div>
                 )
               })}
               {projects.length === 0 && (
-                <p className="text-center text-muted-foreground py-4">{t("noActiveProjects")}</p>
+                <p className="text-center text-muted-foreground py-4 text-sm">{t("noActiveProjects")}</p>
               )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />
+        {/* Recent Activity - Enhanced mobile scrolling */}
+        <Card className="xl:col-span-1 touch-manipulation">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Activity className="h-5 w-5 shrink-0" />
               {t("recentActivity")}
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3 max-h-80 overflow-y-auto">
+          <CardContent className="pt-0">
+            <div className="space-y-3 max-h-80 overflow-y-auto overscroll-contain">
               {recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-start gap-3 pb-3 border-b last:border-b-0">                  <div
-                  className={`w-2 h-2 rounded-full mt-2 ${activity.status === "completed" ? "bg-green-500" : "bg-blue-500"
-                    }`}
-                /><div className="flex-1 min-w-0">
+                <div key={index} className="flex items-start gap-3 pb-3 border-b last:border-b-0 touch-manipulation">
+                  <div
+                    className={`w-2 h-2 rounded-full mt-2 shrink-0 ${activity.status === "completed" ? "bg-green-500" : "bg-blue-500"
+                      }`}
+                  />
+                  <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{activity.title}</p>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
                       <span className="text-xs text-muted-foreground">{activity.date}</span>
                       {activity.type === "task" && (activity as any).priority && (
                         <Badge variant={(activity as any).priority === "high" ? "destructive" : "outline"} className="text-xs">
@@ -231,40 +244,44 @@ export function DashboardOverview({
                 </div>
               ))}
               {recentActivity.length === 0 && (
-                <p className="text-center text-muted-foreground py-4">{t("noRecentActivity")}</p>
+                <p className="text-center text-muted-foreground py-4 text-sm">{t("noRecentActivity")}</p>
               )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Today's Schedule */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
+        {/* Today's Schedule - Enhanced touch targets */}
+        <Card className="xl:col-span-1 touch-manipulation">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Calendar className="h-5 w-5 shrink-0" />
               {t("todaySchedule")}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             <div className="space-y-3">
               {todayTasks.map((task: any) => {
                 const project = projects.find((p) => p.id == task.projectId)
                 return (
-                  <div key={task.id} className="flex items-start gap-3">
-                    <Checkbox checked={task.completed} onCheckedChange={() => toggleTask(task.id)} className="mt-1" />
+                  <div key={task.id} className="flex items-start gap-3 touch-manipulation">
+                    <Checkbox 
+                      checked={task.completed} 
+                      onCheckedChange={() => toggleTask(task.id)} 
+                      className="mt-1 touch-manipulation h-5 w-5" 
+                    />
                     <div className="flex-1 min-w-0">
                       <p
                         className={`text-sm font-medium ${task.completed ? "line-through text-muted-foreground" : ""}`}
                       >
                         {task.title}
                       </p>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex flex-wrap items-center gap-2 mt-1">
                         <Badge variant={task.priority === "high" ? "destructive" : "outline"} className="text-xs">
                           {task.priority}
                         </Badge>
-                        {project && <span className="text-xs text-muted-foreground">{project.name}</span>}
+                        {project && <span className="text-xs text-muted-foreground truncate">{project.name}</span>}
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Clock className="h-3 w-3" />
+                          <Clock className="h-3 w-3 shrink-0" />
                           {task.estimatedTime}min
                         </div>
                       </div>
@@ -272,37 +289,37 @@ export function DashboardOverview({
                   </div>
                 )
               })}
-              {todayTasks.length === 0 && <p className="text-center text-muted-foreground py-4">{t("noTasksToday")}</p>}
+              {todayTasks.length === 0 && <p className="text-center text-muted-foreground py-4 text-sm">{t("noTasksToday")}</p>}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5" />
+      {/* Mobile-optimized Quick Actions */}
+      <Card className="touch-manipulation">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Plus className="h-5 w-5 shrink-0" />
             {t("quickActions")}
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
+        <CardContent className="pt-0">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
+            <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2 min-h-[88px] touch-manipulation">
               <FolderOpen className="h-6 w-6" />
-              <span className="text-sm">{t("newProject")}</span>
+              <span className="text-sm text-center">{t("newProject")}</span>
             </Button>
-            <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
+            <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2 min-h-[88px] touch-manipulation">
               <CheckSquare className="h-6 w-6" />
-              <span className="text-sm">{t("addTask")}</span>
+              <span className="text-sm text-center">{t("addTask")}</span>
             </Button>
-            <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
+            <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2 min-h-[88px] touch-manipulation">
               <Users className="h-6 w-6" />
-              <span className="text-sm">{t("newAccount")}</span>
+              <span className="text-sm text-center">{t("newAccount")}</span>
             </Button>
-            <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
+            <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2 min-h-[88px] touch-manipulation">
               <BarChart3 className="h-6 w-6" />
-              <span className="text-sm">{t("generateReport")}</span>
+              <span className="text-sm text-center">{t("generateReport")}</span>
             </Button>
           </div>
         </CardContent>

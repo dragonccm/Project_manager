@@ -197,59 +197,99 @@ export default function Dashboard() {
 
   return (
     <div className={`min-h-screen bg-background ${theme}`}>
+      {/* Mobile Header */}
+      <div className="lg:hidden flex items-center justify-between p-4 border-b border-border bg-card">
+        <h2 className="text-lg font-bold">Project Manager</h2>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          {!isDatabaseAvailable && (
+            <Badge variant="outline" className="text-xs">
+              Offline
+            </Badge>
+          )}
+        </div>
+      </div>
+
       <div className="flex">
-        {/* Sidebar */}
-        <div className="w-64 bg-card border-r border-border p-4">
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">Project Manager</h2>
-              <ThemeToggle />
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:block w-64 bg-card border-r border-border">
+          <div className="p-4">
+            <div className="mb-8">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold">Project Manager</h2>
+                <ThemeToggle />
+              </div>
+              {!loading && (
+                <div className="flex items-center justify-between mt-2">
+                  <p className="text-sm text-muted-foreground">
+                    {projects.length} {t("projects")} • {tasks.filter((t) => !t.completed).length} {t("pending")}
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowDatabaseStatus(!showDatabaseStatus)}
+                    className="p-1 h-6 w-6"
+                  >
+                    <Database className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
+              {!isDatabaseAvailable && (
+                <Badge variant="outline" className="mt-2 text-xs">
+                  Offline Mode
+                </Badge>
+              )}
             </div>
-            {!loading && (
-              <div className="flex items-center justify-between mt-2">
-                <p className="text-sm text-muted-foreground">
-                  {projects.length} {t("projects")} • {tasks.filter((t) => !t.completed).length} {t("pending")}
-                </p>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowDatabaseStatus(!showDatabaseStatus)}
-                  className="p-1 h-6 w-6"
-                >
-                  <Database className="h-3 w-3" />
-                </Button>
+
+            {showDatabaseStatus && (
+              <div className="mb-4">
+                <DatabaseStatus />
               </div>
             )}
-            {!isDatabaseAvailable && (
-              <Badge variant="outline" className="mt-2 text-xs">
-                Offline Mode
-              </Badge>
-            )}
+
+            <nav className="space-y-2">
+              {menuItems.map((item) => (
+                <Button
+                  key={item.id}
+                  variant={activeTab === item.id ? "default" : "ghost"}
+                  className="w-full justify-start"
+                  onClick={() => setActiveTab(item.id)}
+                >
+                  <item.icon className="h-4 w-4 mr-2" />
+                  {item.label}
+                </Button>
+              ))}
+            </nav>
           </div>
-
-          {showDatabaseStatus && (
-            <div className="mb-4">
-              <DatabaseStatus />
-            </div>
-          )}
-
-          <nav className="space-y-2">
-            {menuItems.map((item) => (
-              <Button
-                key={item.id}
-                variant={activeTab === item.id ? "default" : "ghost"}
-                className="w-full justify-start"
-                onClick={() => setActiveTab(item.id)}
-              >
-                <item.icon className="h-4 w-4 mr-2" />
-                {item.label}
-              </Button>
-            ))}
-          </nav>
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-6">{renderContent()}</div>
+        <div className="flex-1 flex flex-col">
+          {/* Mobile Navigation */}
+          <div className="lg:hidden bg-card border-b border-border">
+            <div className="overflow-x-auto">
+              <div className="flex min-w-max">
+                {menuItems.map((item) => (
+                  <Button
+                    key={item.id}
+                    variant={activeTab === item.id ? "default" : "ghost"}
+                    size="sm"
+                    className="shrink-0 m-2"
+                    onClick={() => setActiveTab(item.id)}
+                  >
+                    <item.icon className="h-4 w-4 mr-2" />
+                    <span className="text-xs">{item.label}</span>
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Content Area */}
+          <div className="flex-1 p-4 lg:p-6 overflow-auto">
+            {renderContent()}
+          </div>
+        </div>
       </div>
     </div>
   )

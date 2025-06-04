@@ -51,6 +51,40 @@ export function CodeComponentManager() {
   })
   const categories = ["element", "section", "template", "widget", "global"] as const
 
+  // Clipboard helper function
+  const copyToClipboard = async (text: string, successMessage: string) => {
+    try {
+      // Try modern clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text)
+        alert(successMessage)
+      } else {
+        // Fallback for older browsers or insecure contexts
+        const textArea = document.createElement('textarea')
+        textArea.value = text
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-999999px'
+        textArea.style.top = '-999999px'
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
+        
+        try {
+          document.execCommand('copy')
+          alert(successMessage)
+        } catch (err) {
+          console.error('Failed to copy text: ', err)
+          alert('Không thể sao chép. Vui lòng sao chép thủ công.')
+        } finally {
+          document.body.removeChild(textArea)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to copy text: ', err)
+      alert('Không thể sao chép. Vui lòng sao chép thủ công.')
+    }
+  }
+
   // Filter components with performance optimization using useMemo
   const filteredComponents = useMemo(() => {
     return codeComponents.filter((component) => {
@@ -356,12 +390,11 @@ export function CodeComponentManager() {
                         ))}
                       </SelectContent>
                     </Select>
-                  </div>
-                  <div className="space-y-2">
+                  </div>                  <div className="space-y-2">
                     <Label htmlFor="tags">Tags (phân cách bằng dấu phẩy)</Label>
                     <Input
                       id="tags"
-                      value={formData.tags.join(", ")}
+                      value={formData.tags?.join(", ") || ""}
                       onChange={(e) => handleTagsChange(e.target.value)}
                       placeholder="button, header, hero"
                     />
@@ -679,12 +712,11 @@ export function CodeComponentManager() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="space-y-2">
+              </div>              <div className="space-y-2">
                 <Label htmlFor="edit-tags">Tags (phân cách bằng dấu phẩy)</Label>
                 <Input
                   id="edit-tags"
-                  value={formData.tags.join(", ")}
+                  value={formData.tags?.join(", ") || ""}
                   onChange={(e) => handleTagsChange(e.target.value)}
                   placeholder="button, header, hero"
                 />
@@ -817,14 +849,10 @@ export function CodeComponentManager() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold">Code JSON</h4>
-                    <Button
+                    <h4 className="font-semibold">Code JSON</h4>                    <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => {
-                        navigator.clipboard.writeText(safeStringify(previewComponent.code_json, 2))
-                        alert("JSON đã được sao chép!")
-                      }}
+                      onClick={() => copyToClipboard(safeStringify(previewComponent.code_json, 2), "JSON đã được sao chép!")}
                     >
                       Sao chép
                     </Button>
@@ -834,14 +862,10 @@ export function CodeComponentManager() {
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold">Elementor Data</h4>
-                    <Button
+                    <h4 className="font-semibold">Elementor Data</h4>                    <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => {
-                        navigator.clipboard.writeText(safeStringify(previewComponent.elementor_data, 2))
-                        alert("Elementor data đã được sao chép!")
-                      }}
+                      onClick={() => copyToClipboard(safeStringify(previewComponent.elementor_data, 2), "Elementor data đã được sao chép!")}
                     >
                       Sao chép
                     </Button>

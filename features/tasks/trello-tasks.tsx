@@ -18,6 +18,8 @@ import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-ki
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Textarea } from "@/components/ui/textarea"
+import { MobileKanbanBoard } from "@/components/mobile-kanban"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface Task {
   id: string
@@ -83,43 +85,41 @@ function DraggableTaskCard({ task, project, onToggle, getPriorityColor, onViewDe
     transform: CSS.Transform.toString(transform),
     transition
   };
-
   return (
     <div 
       ref={setNodeRef} 
       style={style} 
       {...attributes} 
       {...listeners}
-      className={`border rounded-lg p-4 mb-2 bg-card shadow hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing ${task.completed ? "opacity-60" : ""}`}
+      className={`border rounded-lg p-4 mb-3 bg-card shadow hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing touch-manipulation ${task.completed ? "opacity-60" : ""}`}
     >
       <div className="flex items-start gap-3">
         <Checkbox
           checked={task.completed}
           onCheckedChange={() => onToggle(task.id, task.completed)}
-          className="mt-1"
+          className="mt-1 touch-manipulation h-5 w-5"
         />
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className={`font-medium ${task.completed ? "line-through" : ""}`}>{task.title}</h3>
-            <Badge variant={getPriorityColor(task.priority) as any}>{task.priority}</Badge>
+        <div className="flex-1 min-w-0">          <div className="flex items-center gap-2 mb-2">
+            <h3 className={`font-medium text-sm truncate ${task.completed ? "line-through" : ""}`}>{task.title}</h3>
+            <Badge variant={getPriorityColor(task.priority) as any} className="shrink-0">{task.priority}</Badge>
           </div>
-          {task.description && <p className="text-sm text-muted-foreground mb-2">{task.description}</p>}
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+          {task.description && <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{task.description}</p>}
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mb-2">
             {project && (
               <span className="flex items-center gap-1">
-                <Circle className="h-3 w-3" />
-                {project.name}
+                <Circle className="h-3 w-3 shrink-0" />
+                <span className="truncate">{project.name}</span>
               </span>
             )}
             <span className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
+              <Clock className="h-3 w-3 shrink-0" />
               {task.estimated_time || task.estimatedTime}min
             </span>
-            <span className="text-xs">
+            <span className="text-xs truncate">
               {task.date ? getLocalDateString(new Date(task.date)) : 'Chưa có ngày'}
             </span>
           </div>
-          <div className="flex justify-end mt-2">
+          <div className="flex justify-end">
             <Button
               variant="ghost"
               size="sm"
@@ -127,7 +127,7 @@ function DraggableTaskCard({ task, project, onToggle, getPriorityColor, onViewDe
                 e.stopPropagation();
                 onViewDetails(task);
               }}
-              className="h-6 px-2 text-xs"
+              className="h-8 px-2 text-xs touch-manipulation"
             >
               <Eye className="h-3 w-3 mr-1" />
               Xem chi tiết
@@ -145,15 +145,15 @@ function DroppableColumn({ id, title, icon, tasks, bgColor, onToggle, getPriorit
   });
 
   return (
-    <Card>
-      <CardHeader className={`${bgColor} rounded-t-lg`}>
-        <CardTitle className="text-sm font-medium flex items-center">
+    <Card className="touch-manipulation">
+      <CardHeader className={`${bgColor} rounded-t-lg pb-3`}>
+        <CardTitle className="text-sm font-medium flex items-center gap-2">
           {icon}
-          {title}
-          <Badge variant="outline" className="ml-2">{tasks.length}</Badge>
+          <span className="truncate">{title}</span>
+          <Badge variant="outline" className="ml-auto shrink-0">{tasks.length}</Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent ref={setNodeRef} className="p-2 min-h-[200px] max-h-[500px] overflow-y-auto">
+      <CardContent ref={setNodeRef} className="p-3 min-h-[200px] max-h-[400px] lg:max-h-[500px] overflow-y-auto overscroll-contain">
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map(task => {
             const taskProjectId = task.projectId || task.project_id?.toString();
@@ -183,7 +183,9 @@ function DroppableColumn({ id, title, icon, tasks, bgColor, onToggle, getPriorit
 export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTask, onToggleTask, emailNotifications }: TrelloTasksProps) {
   const { t } = useLanguage()
   const { sendTaskCreatedEmail, sendTaskCompletedEmail } = useEmail()
-    // Default to today's date using local timezone  // Sử dụng hàm tiện ích đã được cập nhật để sử dụng giờ Việt Nam
+  const isMobile = useIsMobile()
+  
+  // Default to today's date using local timezone  // Sử dụng hàm tiện ích đã được cập nhật để sử dụng giờ Việt Nam
   const [selectedDate, setSelectedDate] = useState(() => {
     return getLocalDateString(new Date()); // Sử dụng getLocalDateString để nhất quán
   })
@@ -610,46 +612,46 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
             </form>
           </CardContent>
         </Card>
-      )}      {/* Trello-style Kanban Board */}
+      )}      {/* Enhanced mobile-responsive Kanban Board */}
       <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">          {/* Todo Column */}
-          <DroppableColumn
-            id="todo"
-            title="Cần làm"
-            icon={<Inbox className="h-4 w-4 mr-2" />}
-            tasks={tasksByStatus.todo}
-            bgColor="bg-slate-50"
-            onToggle={handleToggleTask}
-            getPriorityColor={getPriorityColor}
-            projects={displayProjects}
-            onViewDetails={handleViewTaskDetails}
-          />
-          
-          {/* In Progress Column */}
-          <DroppableColumn
-            id="in-progress"
-            title="Đang làm"
-            icon={<Loader className="h-4 w-4 mr-2" />}
-            tasks={tasksByStatus["in-progress"]}
-            bgColor="bg-blue-50"
-            onToggle={handleToggleTask}
-            getPriorityColor={getPriorityColor}
-            projects={displayProjects}
-            onViewDetails={handleViewTaskDetails}
-          />
-          
-          {/* Done Column */}
-          <DroppableColumn
-            id="done"
-            title="Hoàn thành"
-            icon={<Check className="h-4 w-4 mr-2" />}
-            tasks={tasksByStatus.done}
-            bgColor="bg-green-50"
-            onToggle={handleToggleTask}
-            getPriorityColor={getPriorityColor}
-            projects={displayProjects}
-            onViewDetails={handleViewTaskDetails}
-          />        </div>
+        <MobileKanbanBoard
+          columns={[
+            {
+              id: "todo",
+              title: "Cần làm",
+              icon: <Inbox className="h-4 w-4 mr-2" />,
+              tasks: tasksByStatus.todo,
+              bgColor: "bg-slate-50"
+            },
+            {
+              id: "in-progress", 
+              title: "Đang làm",
+              icon: <Loader className="h-4 w-4 mr-2" />,
+              tasks: tasksByStatus["in-progress"],
+              bgColor: "bg-blue-50"
+            },
+            {
+              id: "done",
+              title: "Hoàn thành", 
+              icon: <Check className="h-4 w-4 mr-2" />,
+              tasks: tasksByStatus.done,
+              bgColor: "bg-green-50"
+            }
+          ]}
+          renderTask={(task) => {
+            const taskProjectId = task.projectId || task.project_id?.toString();
+            const project = displayProjects.find((p) => p.id == taskProjectId);
+            return (
+              <DraggableTaskCard 
+                key={task.id}
+                task={task}
+                project={project}
+                onToggle={handleToggleTask}
+                getPriorityColor={getPriorityColor}
+                onViewDetails={handleViewTaskDetails}
+              />
+            );          }}
+        />
       </DndContext>
 
       {/* Task Details Dialog */}

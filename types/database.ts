@@ -7,6 +7,7 @@ export interface Project {
   status: "active" | "paused" | "completed" | "cancelled"
   created_at: string
   updated_at: string
+  accounts?: Account[] // Added for runtime account association
 }
 
 export interface CodeComponent {
@@ -61,6 +62,18 @@ export interface EmailTemplate {
   type: string
   subject: string
   content: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ReportTemplate {
+  id: number
+  name: string
+  description?: string
+  template_data: object // Stores the field configuration, layout, styles
+  category: "standard" | "custom"
+  is_default: boolean
+  created_by?: string
   created_at: string
   updated_at: string
 }
@@ -134,6 +147,15 @@ export interface CreateEmailTemplateInput {
   content: string
 }
 
+export interface CreateReportTemplateInput {
+  name: string
+  description?: string
+  template_data: object
+  category?: "standard" | "custom"
+  is_default?: boolean
+  created_by?: string
+}
+
 export interface DatabaseResponse<T = any> {
   success: boolean
   data?: T
@@ -150,4 +172,5 @@ export interface ConnectionTestResult {
 export interface UpdateProjectInput extends Partial<CreateProjectInput> {}
 export interface UpdateTaskInput extends Partial<CreateTaskInput> {}
 export interface UpdateCodeComponentInput extends Partial<CreateCodeComponentInput> {}
+export interface UpdateReportTemplateInput extends Partial<CreateReportTemplateInput> {}
 export interface UpdateSettingsInput extends Partial<Omit<Settings, 'id' | 'created_at' | 'updated_at'>> {}
