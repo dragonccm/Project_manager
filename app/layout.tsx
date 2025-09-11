@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
-
+import { Analytics } from "@vercel/analytics/next"
 export const metadata: Metadata = {
   title: 'Dragonccm Project Manager | Phần mềm quản lý dự án & báo cáo công việc',
   description:
@@ -67,6 +67,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
