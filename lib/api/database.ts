@@ -130,33 +130,6 @@ export async function initializeTables() {
       )
     `
 
-    // Create report_templates table
-    await sql`
-      CREATE TABLE IF NOT EXISTS report_templates (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        description TEXT,
-        template_data JSONB NOT NULL,
-        category VARCHAR(50) DEFAULT 'custom',
-        is_default BOOLEAN DEFAULT FALSE,
-        created_by VARCHAR(100),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `
-
-    // Ensure all columns exist in report_templates table (for existing databases)
-    try {
-      await sql`ALTER TABLE report_templates ADD COLUMN IF NOT EXISTS description TEXT`
-      await sql`ALTER TABLE report_templates ADD COLUMN IF NOT EXISTS template_data JSONB`
-      await sql`ALTER TABLE report_templates ADD COLUMN IF NOT EXISTS category VARCHAR(50) DEFAULT 'custom'`
-      await sql`ALTER TABLE report_templates ADD COLUMN IF NOT EXISTS is_default BOOLEAN DEFAULT FALSE`
-      await sql`ALTER TABLE report_templates ADD COLUMN IF NOT EXISTS created_by VARCHAR(100)`
-    } catch (error) {
-      // Columns might already exist, ignore error
-      console.log("Some columns might already exist in report_templates:", error)
-    }
-
     // Insert default settings if not exists
     await sql`
       INSERT INTO settings (user_id, language, theme, notifications, custom_colors)
@@ -164,43 +137,6 @@ export async function initializeTables() {
         '{"email": true, "desktop": false, "tasks": true}',
         '{"primary": "#3b82f6", "secondary": "#64748b", "accent": "#f59e0b", "background": "#ffffff"}'
       WHERE NOT EXISTS (SELECT 1 FROM settings WHERE user_id = 'default')
-    `
-
-    // Insert default report templates if not exists
-    await sql`
-      INSERT INTO report_templates (name, description, template_data, category, is_default, created_by)
-      SELECT 
-        'Standard Task Report',
-        'Báo cáo tiêu chuẩn hiển thị thông tin cơ bản của task',
-        '{"fields": ["title", "project", "status", "priority", "due_date"], "layout": "table", "styles": {"header": {"background": "#f8fafc", "color": "#334155"}, "rows": {"alternating": true}}}',
-        'standard',
-        true,
-        'system'
-      WHERE NOT EXISTS (SELECT 1 FROM report_templates WHERE name = 'Standard Task Report')
-    `
-
-    await sql`
-      INSERT INTO report_templates (name, description, template_data, category, is_default, created_by)
-      SELECT 
-        'Detailed Task Analysis',
-        'Báo cáo chi tiết với thời gian thực hiện và tiến độ',
-        '{"fields": ["title", "description", "project", "status", "priority", "created_date", "due_date", "estimated_time", "actual_time"], "layout": "detailed", "styles": {"header": {"background": "#e2e8f0", "color": "#1e293b"}, "sections": {"padding": "16px", "border": "1px solid #cbd5e1"}}}',
-        'standard',
-        true,
-        'system'
-      WHERE NOT EXISTS (SELECT 1 FROM report_templates WHERE name = 'Detailed Task Analysis')
-    `
-
-    await sql`
-      INSERT INTO report_templates (name, description, template_data, category, is_default, created_by)
-      SELECT 
-        'Project Summary',
-        'Báo cáo tóm tắt theo dự án',
-        '{"fields": ["project", "status", "priority"], "layout": "summary", "groupBy": "project", "styles": {"header": {"background": "#dbeafe", "color": "#1e40af"}, "summary": {"showCounts": true, "showPercentages": true}}}',
-        'standard',
-        true,
-        'system'
-      WHERE NOT EXISTS (SELECT 1 FROM report_templates WHERE name = 'Project Summary')
     `
 
     console.log("Database tables initialized successfully")
@@ -609,122 +545,6 @@ export async function deleteCodeComponent(id: number) {
     return true
   } catch (error) {
     console.error("Error deleting code component:", error)
-    throw error
-  }
-}
-
-// Report Templates
-export async function getReportTemplates() {
-  if (!sql) throw new Error("Database not available")
-
-  try {
-    const templates = await sql`
-      SELECT * FROM report_templates 
-      ORDER BY is_default DESC, created_at DESC
-    `
-    return templates
-  } catch (error) {
-    console.error("Error fetching report templates:", error)
-    throw error
-  }
-}
-
-export async function createReportTemplate(templateData: {
-  name: string
-  description?: string
-  template_data: object
-  category?: string
-  is_default?: boolean
-  created_by?: string
-}) {
-  if (!sql) throw new Error("Database not available")
-
-  try {
-    const [template] = await sql`
-      INSERT INTO report_templates (name, description, template_data, category, is_default, created_by)
-      VALUES (${templateData.name}, ${templateData.description || ""}, ${JSON.stringify(templateData.template_data)}, ${templateData.category || "custom"}, ${templateData.is_default || false}, ${templateData.created_by || "user"})
-      RETURNING *
-    `
-    return template
-  } catch (error) {
-    console.error("Error creating report template:", error)
-    throw error
-  }
-}
-
-export async function updateReportTemplate(
-  id: number,
-  templateData: {
-    name?: string
-    description?: string
-    template_data?: object
-    category?: string
-    is_default?: boolean
-  }
-) {
-  if (!sql) throw new Error("Database not available")
-
-  try {
-    const [template] = await sql`
-      UPDATE report_templates 
-      SET 
-        name = COALESCE(${templateData.name}, name),
-        description = COALESCE(${templateData.description}, description),
-        template_data = COALESCE(${templateData.template_data ? JSON.stringify(templateData.template_data) : null}, template_data),
-        category = COALESCE(${templateData.category}, category),
-        is_default = COALESCE(${templateData.is_default}, is_default),
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = ${id}
-      RETURNING *
-    `
-    return template
-  } catch (error) {
-    console.error("Error updating report template:", error)
-    throw error
-  }
-}
-
-export async function deleteReportTemplate(id: number) {
-  if (!sql) throw new Error("Database not available")
-
-  try {
-    // Don't allow deleting default templates
-    const [template] = await sql`
-      SELECT is_default FROM report_templates WHERE id = ${id}
-    `
-    
-    if (template?.is_default) {
-      throw new Error("Cannot delete default templates")
-    }
-
-    await sql`DELETE FROM report_templates WHERE id = ${id}`
-    return true
-  } catch (error) {
-    console.error("Error deleting report template:", error)
-    throw error
-  }
-}
-
-export async function duplicateReportTemplate(id: number, newName: string) {
-  if (!sql) throw new Error("Database not available")
-
-  try {
-    const [originalTemplate] = await sql`
-      SELECT * FROM report_templates WHERE id = ${id}
-    `
-    
-    if (!originalTemplate) {
-      throw new Error("Template not found")
-    }
-
-    const [newTemplate] = await sql`
-      INSERT INTO report_templates (name, description, template_data, category, is_default, created_by)
-      VALUES (${newName}, ${originalTemplate.description + " (Copy)"}, ${originalTemplate.template_data}, 'custom', false, 'user')
-      RETURNING *
-    `
-    return newTemplate
-  } catch (error) {
-    console.error("Error duplicating report template:", error)
     throw error
   }
 }

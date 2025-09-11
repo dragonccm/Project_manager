@@ -251,7 +251,12 @@ export function useDatabase() {
       }
 
       console.log("Using database for project creation")
-      const newProject = await createProject(projectData) as any
+      // Data is already in correct format from form (figma_link)
+      const dbProjectData = {
+        ...projectData
+      }
+      
+      const newProject = await createProject(dbProjectData) as any
       console.log("Project created in database:", newProject)
       
       // Map database fields to component-expected fields
@@ -284,9 +289,24 @@ export function useDatabase() {
         return updatedProject
       }
 
-      const updatedProject = await updateProject(id, projectData) as Project
-      setProjects((prev) => prev.map((p) => (p.id === id ? updatedProject : p)))
-      return updatedProject
+      // Data is already in correct format from form (figma_link)
+      const dbProjectData = {
+        ...projectData
+      }
+
+      const updatedProject = await updateProject(id, dbProjectData) as any
+      
+      // Map database fields back to component-expected fields
+      const mappedProject = {
+        ...updatedProject,
+        id: updatedProject.id.toString(),
+        createdAt: updatedProject.created_at,
+        updatedAt: updatedProject.updated_at,
+        figmaLink: updatedProject.figma_link
+      } as Project
+      
+      setProjects((prev) => prev.map((p) => (p.id === id ? mappedProject : p)))
+      return mappedProject
     } catch (err) {
       console.error("Database error, using localStorage:", err)
       const updatedProject = localOps.updateProject(id.toString(), projectData)

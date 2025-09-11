@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Checkbox } from "@/components/ui/checkbox"
-import { getTodayDateString } from "@/lib/date-utils.js"
+import { getTodayDateString } from "@/lib/date-utils"
 import {
   Bell,
   Users,

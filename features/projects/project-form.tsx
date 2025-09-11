@@ -81,8 +81,7 @@ export function ProjectForm({
     active: 'Đang hoạt động',
     paused: 'Tạm dừng', 
     completed: 'Hoàn thành',
-    cancelled: 'Đã hủy',
-    viewMode: 'Chế độ xem',
+    cancelled: 'Đã hủy',    viewMode: 'Chế độ xem',
     listView: 'Danh sách',
     gridView: 'Lưới',
     view: 'Xem',
@@ -90,15 +89,23 @@ export function ProjectForm({
     delete: 'Xóa',
     noResults: 'Không tìm thấy dự án nào'
   }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     try {
+      // Map form data to match API expectations
+      const apiProjectData = {
+        name: formData.name,
+        domain: formData.domain,
+        figma_link: formData.figmaLink, // Map figmaLink to figma_link
+        description: formData.description,
+        status: formData.status,
+      }
+
       if (isEditing && editingProject) {
-        await onEditProject(Number(editingProject.id), formData)
+        await onEditProject(Number(editingProject.id), apiProjectData)
       } else {
-        await onAddProject(formData)
+        await onAddProject(apiProjectData)
       }
 
       setFormData({ name: "", domain: "", figmaLink: "", description: "", status: "active" })

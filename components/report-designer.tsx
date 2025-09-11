@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useRef, useEffect, useCallback, useMemo, lazy, Suspense } from "react"
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { 
   DndContext, 
   DragEndEvent, 
@@ -50,7 +50,8 @@ import {
   Filter,
   FolderOpen,
   Edit3,
-  Settings
+  Settings,
+  ReceiptPoundSterlingIcon
 } from "lucide-react"
 import { useLanguage } from "@/hooks/use-language"
 import { useDatabase } from "@/hooks/use-database"
@@ -492,20 +493,24 @@ export const ReportDesigner = React.memo(function ReportDesignerComponent({ proj
     duplicateReportTemplate: duplicateReportTemplateFunc,
     loading: dbLoading 
   } = useDatabase()
-    // Template management state
+  
+  // Template management state
   const [templateName, setTemplateName] = useState("")
   const [templateDescription, setTemplateDescription] = useState("")
   const [selectedFields, setSelectedFields] = useState<string[]>([])
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null)
   const [isEditingTemplate, setIsEditingTemplate] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
-  const [savedTemplates, setSavedTemplates] = useState<ReportTemplate[]>([])
   
-  // Update savedTemplates when reportTemplates change
+  // Memoize reportTemplates reference to prevent unnecessary re-renders
+  const reportTemplatesRef = useRef(reportTemplates)
+
+  // Update ref when reportTemplates changes
   useEffect(() => {
-    setSavedTemplates(reportTemplates)
+    reportTemplatesRef.current = reportTemplates
   }, [reportTemplates])
-    // Enhanced drag state
+  
+  // Enhanced drag state
   const [dragState, setDragState] = useState<DragState>({
     isDragging: false,
     draggedItem: null
@@ -540,16 +545,21 @@ export const ReportDesigner = React.memo(function ReportDesignerComponent({ proj
   const [isMobile, setIsMobile] = useState(false)
   const [mobileToolbarVisible, setMobileToolbarVisible] = useState(false)
   const [zoomLevel, setZoomLevel] = useState(1)
-  const [selectedField, setSelectedField] = useState<any>(null)
+  const [isLoadingTemplate, setIsLoadingTemplate] = useState(false)
   
   // Touch hook for mobile gestures
   const touchHandlers = useTouch({
     preventDefault: true,
     threshold: 10
   })
-  // Real-time collaboration
+  // Real-time collaboration - generate userId once and memoize
+  const userId = useMemo(() => {
+    // Generate random ID only once
+    const randomId = Math.random().toString(36).substr(2, 9)
+    return `user-${randomId}`
+  }, []) // Empty dependency array to run only once
+  
   const reportId = `report-${templateName || 'untitled'}`
-  const userId = `user-${Math.random().toString(36).substr(2, 9)}`
   const {
     activeUsers,
     broadcastAction,
@@ -568,21 +578,21 @@ export const ReportDesigner = React.memo(function ReportDesignerComponent({ proj
     createParticleEffect,
     animateSuccess
   } = useAdvancedAnimations()
-  // Touch and mouse sensors with improved settings
-  const mouseSensor = useSensor(MouseSensor, {
+  // Touch and mouse sensors with improved settings - memoized to prevent recreation
+  const mouseSensor = useMemo(() => useSensor(MouseSensor, {
     activationConstraint: {
       distance: 8, // Reduced distance for more responsive dragging
     },
-  })
-  
-  const touchSensor = useSensor(TouchSensor, {
+  }), [])
+
+  const touchSensor = useMemo(() => useSensor(TouchSensor, {
     activationConstraint: {
       delay: 150, // Reduced delay for better touch response
       tolerance: 8, // Increased tolerance for touch devices
     },
-  })
-  
-  const sensors = useSensors(mouseSensor, touchSensor)
+  }), [])
+
+  const sensors = useMemo(() => useSensors(mouseSensor, touchSensor), [mouseSensor, touchSensor])
 
   // Add advanced field configuration state
   const [fieldConfigurations, setFieldConfigurations] = useState<Record<string, any>>({})
@@ -592,14 +602,20 @@ export const ReportDesigner = React.memo(function ReportDesignerComponent({ proj
     value: any
     style: Record<string, string>
   }>>([])
-  // Update history when fields change
+  // Update history when fields change (only when not loading template) - debounced to prevent excessive updates
   useEffect(() => {
-    setHistory(prev => ({
-      past: [...prev.past, prev.present],
-      present: selectedFields,
-      future: []
-    }))
-  }, [selectedFields])
+    if (!isLoadingTemplate) {
+      const timeoutId = setTimeout(() => {
+        setHistory(prev => ({
+          past: [...prev.past, prev.present],
+          present: selectedFields,
+          future: []
+        }))
+      }, 100) // Debounce by 100ms to prevent excessive history updates during rapid changes
+
+      return () => clearTimeout(timeoutId)
+    }
+  }, [selectedFields, isLoadingTemplate])
 
   // Mobile detection
   useEffect(() => {
@@ -897,29 +913,41 @@ export const ReportDesigner = React.memo(function ReportDesignerComponent({ proj
     }
   }
 
-  const handleLoadTemplate = (template: ReportTemplate) => {
+  // Ref to track loading state to avoid circular dependencies
+  const isLoadingRef = useRef(isLoadingTemplate)
+  
+  // Update ref when isLoadingTemplate changes
+  useEffect(() => {
+    isLoadingRef.current = isLoadingTemplate
+  }, [isLoadingTemplate])
+
+  const handleLoadTemplate = useCallback((template: ReportTemplate) => {
+    if (isLoadingRef.current) return // Prevent multiple calls
+
+    setIsLoadingTemplate(true)
     try {
       const templateData = template.template_data as any
-      
+
       setTemplateName(template.name)
       setTemplateDescription(template.description || "")
       setSelectedFields(templateData?.fields || [])
-      
+
       // Load field configurations if available
       if (templateData?.fieldConfigurations) {
         setFieldConfigurations(templateData.fieldConfigurations)
       }
-      
+
       // Load layout preferences if available
       if (templateData?.layout) {
         setShowGrid(templateData.layout.showGrid || false)
         setShowPreview(templateData.layout.showPreview || true)
       }
-      
+
       toast({
         title: "Success",
         description: `Template "${template.name}" loaded successfully!`
       })
+      setIsLoadingTemplate(false)
     } catch (error) {
       console.error("Error loading template:", error)
       toast({
@@ -927,13 +955,24 @@ export const ReportDesigner = React.memo(function ReportDesignerComponent({ proj
         description: "Failed to load template. Please try again.",
         variant: "destructive"
       })
+      setIsLoadingTemplate(false)
     }
-  }
+  }, []) // No dependencies needed since we use ref
+
+  // Memoize the onValueChange handler to prevent infinite re-renders
+  const handleTemplateSelect = useCallback((value: string) => {
+    if (isLoadingRef.current) return // Prevent changes while loading
+
+    const templateId = parseInt(value)
+    const template = reportTemplatesRef.current.find(t => t.id === templateId)
+    if (template) {
+      handleLoadTemplate(template)
+    }
+  }, [handleLoadTemplate])
 
   const handleEditTemplate = (template: ReportTemplate) => {
     setSelectedTemplateId(template.id)
     setIsEditingTemplate(true)
-    handleLoadTemplate(template)
   }
 
   const handleDeleteTemplate = async (templateId: number) => {
@@ -1094,16 +1133,12 @@ export const ReportDesigner = React.memo(function ReportDesignerComponent({ proj
           {/* Load Existing Template */}
           <div className="space-y-2">
             <Label htmlFor="template-select">Load Existing Template</Label>
-            <div className="flex gap-2">              <Select onValueChange={(value) => {
-                const templateId = parseInt(value)
-                const template = savedTemplates.find(t => t.id === templateId)
-                if (template) handleLoadTemplate(template)
-              }}>
+            <div className="flex gap-2">              <Select onValueChange={handleTemplateSelect}>
                 <SelectTrigger className="flex-1">
                   <SelectValue placeholder="Select a template to load..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {savedTemplates.map((template) => (
+                  {reportTemplates.map((template) => (
                     <SelectItem key={template.id} value={template.id.toString()}>
                       <div className="flex items-center justify-between w-full">
                         <span>{template.name}</span>
@@ -1217,17 +1252,17 @@ export const ReportDesigner = React.memo(function ReportDesignerComponent({ proj
       </Card>
 
       {/* Saved Templates Gallery */}
-      {savedTemplates.length > 0 && (
+      {reportTemplates.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FolderOpen className="h-5 w-5" />
-              Saved Templates ({savedTemplates.length})
+              Saved Templates ({reportTemplates.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {savedTemplates.map((template) => {
+              {reportTemplates.map((template) => {
                 const templateData = template.template_data as any
                 const fieldCount = templateData?.fields?.length || 0
                 
@@ -1582,90 +1617,100 @@ export const ReportDesigner = React.memo(function ReportDesignerComponent({ proj
                         {activity.timestamp.toLocaleTimeString()}
                       </p>
                     </div>
-                  </motion.div>                ))}
+                  </motion.div>
+                ))}
               </AnimatePresence>
             </CardContent>
           </Card>
         </motion.div>
-      )}      {/* Mobile Gestures and Toolbar */}
-      {isMobile && (
-        <>
-          <MobileGestureWrapper
-            onPinch={(scale: number) => {
-              // Handle zoom on mobile
-              setZoomLevel((prev: number) => Math.max(0.5, Math.min(2, prev * scale)))
-            }}
-            onRotate={(rotation: number) => {
-              // Handle rotation for field alignment - simplified for now
-              console.log('Rotation gesture detected:', rotation)
-            }}
-            onSwipe={(direction: 'left' | 'right' | 'up' | 'down', velocity: number) => {
-              // Handle swipe gestures for navigation
-              if (direction === 'left' && velocity > 0.5) {
-                // Swipe left - undo
+      )}      {/* Mobile Gestures and Toolbar - Always render but conditionally show */}
+      <MobileGestureWrapper
+        onPinch={(scale: number) => {
+          if (isMobile) {
+            // Handle zoom on mobile
+            setZoomLevel((prev: number) => Math.max(0.5, Math.min(2, prev * scale)))
+          }
+        }}
+        onRotate={(rotation: number) => {
+          if (isMobile) {
+            // Handle rotation for field alignment - simplified for now
+            console.log('Rotation gesture detected:', rotation)
+          }
+        }}
+        onSwipe={(direction: 'left' | 'right' | 'up' | 'down', velocity: number) => {
+          if (isMobile) {
+            // Handle swipe gestures for navigation
+            if (direction === 'left' && velocity > 0.5) {
+              // Swipe left - undo
+              handleUndo()
+            } else if (direction === 'right' && velocity > 0.5) {
+              // Swipe right - redo
+              handleRedo()
+            }
+          }
+        }}
+        onDoubleTap={() => {
+          if (isMobile) {
+            // Double tap to reset zoom
+            setZoomLevel(1)
+          }
+        }}
+        onLongPress={() => {
+          if (isMobile) {
+            // Long press to show mobile toolbar
+            setMobileToolbarVisible(true)
+          }
+        }}
+        className={`fixed inset-0 pointer-events-none ${isMobile ? '' : 'hidden'}`}
+      >
+        <div className="w-full h-full pointer-events-auto">
+          {/* Content that can receive touch events */}
+        </div>
+      </MobileGestureWrapper>
+      
+      {mobileToolbarVisible && isMobile && (
+        <MobileToolbar
+          tools={[
+            {
+              id: 'undo',
+              icon: <Undo2 className="h-4 w-4" />,
+              label: 'Undo'
+            },
+            {
+              id: 'redo', 
+              icon: <Redo2 className="h-4 w-4" />,
+              label: 'Redo'
+            },
+            {
+              id: 'grid',
+              icon: <Grid3X3 className="h-4 w-4" />,
+              label: 'Toggle Grid'
+            },
+            {
+              id: 'close',
+              icon: <EyeOff className="h-4 w-4" />,
+              label: 'Close'
+            }
+          ]}
+          onToolSelect={(toolId: string) => {
+            switch (toolId) {
+              case 'undo':
                 handleUndo()
-              } else if (direction === 'right' && velocity > 0.5) {
-                // Swipe right - redo
+                break
+              case 'redo':
                 handleRedo()
-              }
-            }}
-            onDoubleTap={() => {
-              // Double tap to reset zoom
-              setZoomLevel(1)
-            }}
-            onLongPress={() => {
-              // Long press to show mobile toolbar
-              setMobileToolbarVisible(true)
-            }}
-            className="fixed inset-0 pointer-events-none"
-          >
-            <div className="w-full h-full pointer-events-auto">
-              {/* Content that can receive touch events */}
-            </div>
-          </MobileGestureWrapper>
-          
-          {mobileToolbarVisible && (
-            <MobileToolbar
-              tools={[
-                {
-                  id: 'undo',
-                  icon: <Undo2 className="h-4 w-4" />,
-                  label: 'Undo'
-                },
-                {
-                  id: 'redo', 
-                  icon: <Redo2 className="h-4 w-4" />,
-                  label: 'Redo'
-                },                {
-                  id: 'grid',
-                  icon: <Grid3X3 className="h-4 w-4" />,
-                  label: 'Toggle Grid'
-                },
-                {
-                  id: 'close',
-                  icon: <EyeOff className="h-4 w-4" />,
-                  label: 'Close'
-                }
-              ]}              onToolSelect={(toolId: string) => {
-                switch (toolId) {
-                  case 'undo':
-                    handleUndo()
-                    break
-                  case 'redo':
-                    handleRedo()
-                    break
-                  case 'grid':
-                    setShowGrid(!showGrid)
-                    break
-                  case 'close':
-                    setMobileToolbarVisible(false)
-                    break
-                }
-              }}
-              selectedTool=""
-                            className="z-50"
-            />      )}
-        </>
+                break
+              case 'grid':
+                setShowGrid(!showGrid)
+                break
+              case 'close':
+                setMobileToolbarVisible(false)
+                break
+            }
+          }}
+          selectedTool=""
+          className="z-50"
+        />
       )}
     </div>
   )
