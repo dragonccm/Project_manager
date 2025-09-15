@@ -1,35 +1,67 @@
+import { PROJECT_STATUS, PRIORITY_LEVELS, TASK_STATUS } from '@/lib/constants'
+
+
 export interface Project {
-  id: number
+  id: string
   name: string
   domain?: string
   figma_link?: string
   description?: string
-  status: "active" | "paused" | "completed" | "cancelled"
+  status: keyof typeof PROJECT_STATUS
   created_at: string
   updated_at: string
+  user_id: string
   accounts?: Account[] // Added for runtime account association
 }
 
+export interface DatabaseConnection {
+  success: boolean
+  error?: string
+  isServerSide: boolean
+}
+
 export interface CodeComponent {
-  id: number
-  project_id?: number
+  id: string
   name: string
   description?: string
-  category: "element" | "section" | "template" | "widget" | "global"
-  tags: string[]
-  code_json: object
-  code_json_raw?: string // Raw JSON string for editing
+  component_type: "element" | "section" | "template" | "widget" | "global"
+  content_type: "code" | "text" | "link" | "file" | "webpage" | "mixed"
+  code?: string
+  content?: {
+    text?: string
+    links?: Array<{ url: string; title: string; description?: string }>
+    files?: Array<{ url: string; name: string; type: string; size?: number }>
+    webpages?: Array<{ url: string; title: string; thumbnail?: string; description?: string }>
+    html?: string
+    css?: string
+    javascript?: string
+  }
+  props?: object
+  dependencies?: string[]
+  tags?: string[]
   preview_image?: string
-  elementor_data: object
-  elementor_data_raw?: string // Raw JSON string for editing
-  created_at: string
-  updated_at: string
-  project_name?: string
+  preview_data?: {
+    thumbnail?: string
+    screenshots?: string[]
+    demo_url?: string
+  }
+  metadata?: {
+    author?: string
+    version?: string
+    license?: string
+    framework?: string
+    category?: string
+    difficulty?: "beginner" | "intermediate" | "advanced"
+    responsive?: boolean
+    accessibility?: boolean
+  }
+  created_at?: string
+  updated_at?: string
 }
 
 export interface Account {
-  id: number
-  project_id?: number
+  id: string
+  project_id?: string
   username: string
   password: string
   email?: string
@@ -41,11 +73,11 @@ export interface Account {
 }
 
 export interface Task {
-  id: number
+  id: string
   title: string
   description?: string
-  project_id?: number
-  assigned_to?: number
+  project_id?: string
+  assigned_to?: string
   status: "todo" | "in-progress" | "done"
   priority: "low" | "medium" | "high"
   date: string
@@ -57,7 +89,7 @@ export interface Task {
 }
 
 export interface EmailTemplate {
-  id: number
+  id: string
   name: string
   type: string
   subject: string
@@ -67,10 +99,10 @@ export interface EmailTemplate {
 }
 
 export interface ReportTemplate {
-  id: number
+  id: string
   name: string
   description?: string
-  template_data: object // Stores the field configuration, layout, styles
+  template_data: object
   category: "standard" | "custom"
   is_default: boolean
   created_by?: string
@@ -79,7 +111,7 @@ export interface ReportTemplate {
 }
 
 export interface Settings {
-  id?: number
+  id?: string
   language: string
   theme: "light" | "dark" | "system"
   notifications: {
@@ -107,20 +139,44 @@ export interface CreateProjectInput {
 }
 
 export interface CreateCodeComponentInput {
-  project_id?: number
+  project_id?: string
   name: string
   description?: string
-  category: "element" | "section" | "template" | "widget" | "global"
-  tags: string[]
-  code_json: object
-  code_json_raw?: string // Raw JSON string for editing
+  component_type: "element" | "section" | "template" | "widget" | "global"
+  content_type: "code" | "text" | "link" | "file" | "webpage" | "mixed"
+  code?: string
+  content?: {
+    text?: string
+    links?: Array<{ url: string; title: string; description?: string }>
+    files?: Array<{ url: string; name: string; type: string; size?: number }>
+    webpages?: Array<{ url: string; title: string; thumbnail?: string; description?: string }>
+    html?: string
+    css?: string
+    javascript?: string
+  }
+  props?: object
+  dependencies?: string[]
+  tags?: string[]
   preview_image?: string
-  elementor_data: object
-  elementor_data_raw?: string // Raw JSON string for editing
+  preview_data?: {
+    thumbnail?: string
+    screenshots?: string[]
+    demo_url?: string
+  }
+  metadata?: {
+    author?: string
+    version?: string
+    license?: string
+    framework?: string
+    category?: string
+    difficulty?: "beginner" | "intermediate" | "advanced"
+    responsive?: boolean
+    accessibility?: boolean
+  }
 }
 
 export interface CreateAccountInput {
-  project_id: number
+  project_id: string
   username: string
   password: string
   email?: string
@@ -131,8 +187,8 @@ export interface CreateAccountInput {
 export interface CreateTaskInput {
   title: string
   description?: string
-  project_id?: number
-  assigned_to?: number
+  project_id?: string
+  assigned_to?: string
   status?: string
   priority?: string
   date: string

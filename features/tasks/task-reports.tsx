@@ -13,7 +13,7 @@ import { Download, FileText, FileSpreadsheet, Calendar, Filter, BarChart3, Paint
 import { useLanguage } from "@/hooks/use-language"
 import { getLocalDateString } from "@/lib/date-utils"
 import { ReportDesigner } from "@/components/report-designer"
-import { useDatabase } from "@/hooks/use-database"
+import { useApi } from "@/hooks/use-api"
 import { useToast } from "@/components/ui/use-toast"
 
 interface TaskReportsProps {
@@ -24,7 +24,10 @@ interface TaskReportsProps {
 export function TaskReports({ projects, tasks }: TaskReportsProps) {
   const { t } = useLanguage()
   const { toast } = useToast()
-  const { reportTemplates } = useDatabase()
+  const { reportTemplates: rawReportTemplates } = useApi()
+  
+  // Ensure reportTemplates is always an array
+  const reportTemplates = Array.isArray(rawReportTemplates) ? rawReportTemplates : []
   
   const [reportType, setReportType] = useState("execution")
   const [selectedProject, setSelectedProject] = useState("all")

@@ -28,7 +28,7 @@ interface DashboardOverviewProps {
   projects: any[]
   tasks: any[]
   accounts: any[]
-  onToggleTask: (id: number, completed: boolean) => Promise<any>
+  onToggleTask: (id: string, completed: boolean) => Promise<any>
 }
 
 export function DashboardOverview({

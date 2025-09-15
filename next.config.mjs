@@ -10,9 +10,9 @@ const nextConfig = {
     unoptimized: true,
   },
   env: {
-    NEON_DATABASE_URL: process.env.NEON_DATABASE_URL,
+    MONGODB_URI: process.env.MONGODB_URI,
   },
-  serverExternalPackages: ['@neondatabase/serverless'],
+  serverExternalPackages: ['mongoose'],
 }
 
 export default nextConfig

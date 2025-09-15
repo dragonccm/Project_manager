@@ -79,13 +79,13 @@ export function useProjects(isDatabaseAvailable: boolean) {
       if (isDatabaseAvailable) {
         const updatedProject = await updateProject(parseInt(id), projectData)
         setProjects((prev) =>
-          prev.map((p) => (p.id === id ? (updatedProject as Project) : p)),
+          prev.map((p:any) => (p.id === id ? (updatedProject as Project) : p)),
         )
         return updatedProject
       } else {
         const updatedProject = localOps.updateProject(id, projectData)
         setProjects((prev) =>
-          prev.map((p) => (p.id === id ? (updatedProject as Project) : p)),
+          prev.map((p:any) => (p.id === id ? (updatedProject as Project) : p)),
         )
         return updatedProject
       }
@@ -94,7 +94,7 @@ export function useProjects(isDatabaseAvailable: boolean) {
       setError(err instanceof Error ? err : new Error("Unknown error occurred"))
       const updatedProject = localOps.updateProject(id, projectData)
       setProjects((prev) =>
-        prev.map((p) => (p.id === id ? (updatedProject as Project) : p)),
+        prev.map((p:any) => (p.id === id ? (updatedProject as Project) : p)),
       )
       return updatedProject
     }
@@ -104,16 +104,16 @@ export function useProjects(isDatabaseAvailable: boolean) {
     try {
       if (isDatabaseAvailable) {
         await deleteProject(parseInt(id))
-        setProjects((prev) => prev.filter((p) => p.id !== id))
+        setProjects((prev) => prev.filter((p:any) => p.id !== id))
       } else {
         localOps.deleteProject(id)
-        setProjects((prev) => prev.filter((p) => p.id !== id))
+        setProjects((prev) => prev.filter((p:any) => p.id !== id))
       }
     } catch (err) {
       console.error("Error removing project:", err)
       setError(err instanceof Error ? err : new Error("Unknown error occurred"))
       localOps.deleteProject(id)
-      setProjects((prev) => prev.filter((p) => p.id !== id))
+      setProjects((prev) => prev.filter((p:any) => p.id !== id))
     }
   }
 

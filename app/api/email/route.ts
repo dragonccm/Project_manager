@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { emailService } from '@/lib/api/email'
+import { withAuth, AuthenticatedRequest } from '@/lib/auth-session'
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request: AuthenticatedRequest) => {
   try {
     const body = await request.json()
     const { type, data, recipients } = body
@@ -22,7 +23,8 @@ export async function POST(request: NextRequest) {
         await emailService.sendTaskNotification('completed', data, recipients)
         break
       
-      case 'project_update':        await emailService.sendProjectUpdate(data, recipients)
+      case 'project_update':
+        await emailService.sendProjectUpdate(data, recipients)
         break
       
       case 'custom':
@@ -53,9 +55,9 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
 
-export async function GET() {
+export const GET = withAuth(async (request: AuthenticatedRequest) => {
   try {
     const isConnected = await emailService.testConnection()
     
@@ -80,4 +82,4 @@ export async function GET() {
       { status: 500 }
     )
   }
-}
+})

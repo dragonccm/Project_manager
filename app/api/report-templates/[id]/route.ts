@@ -4,7 +4,7 @@ import {
   deleteReportTemplate,
   duplicateReportTemplate,
   testDatabaseConnection 
-} from "@/lib/database"
+} from "@/lib/mongo-database"
 
 export async function PUT(
   request: NextRequest,
@@ -19,7 +19,7 @@ export async function PUT(
       )
     }
 
-    const id = parseInt(params.id)
+    const id = params.id
     const templateData = await request.json()
     
     const template = await updateReportTemplate(id, templateData)
@@ -46,7 +46,7 @@ export async function DELETE(
       )
     }
 
-    const id = parseInt(params.id)
+    const id = params.id
     await deleteReportTemplate(id)
     return NextResponse.json({ success: true })
   } catch (error: any) {
@@ -71,7 +71,7 @@ export async function POST(
       )
     }
 
-    const id = parseInt(params.id)
+    const id = params.id
     const { newName } = await request.json()
     
     if (!newName) {

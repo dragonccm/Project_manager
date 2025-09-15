@@ -17,6 +17,9 @@ interface GestureState {
   rotation: number
   center: { x: number, y: number }
   velocity: { x: number, y: number }
+  doubleTap?: boolean
+  longPress?: boolean
+  swipe?: { direction: 'left' | 'right' | 'up' | 'down', velocity: number }
 }
 
 interface MobileGestureProps {
@@ -42,9 +45,9 @@ export function useMobileGestures() {
   const touchHistory = useRef<TouchPoint[]>([])
   const lastTouchTime = useRef<number>(0)
   const tapCount = useRef<number>(0)
-  const longPressTimer = useRef<NodeJS.Timeout>()
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null)
   
-  const handleTouchStart = (e: TouchEvent) => {
+  const handleTouchStart = (e: React.TouchEvent) => {
     const touches = Array.from(e.touches)
     const now = Date.now()
     
@@ -95,7 +98,7 @@ export function useMobileGestures() {
     }
   }
   
-  const handleTouchMove = (e: TouchEvent) => {
+  const handleTouchMove = (e: React.TouchEvent) => {
     const touches = Array.from(e.touches)
     const now = Date.now()
     
@@ -153,7 +156,7 @@ export function useMobileGestures() {
     }
   }
   
-  const handleTouchEnd = (e: TouchEvent) => {
+  const handleTouchEnd = (e: React.TouchEvent) => {
     const now = Date.now()
     
     if (longPressTimer.current) {

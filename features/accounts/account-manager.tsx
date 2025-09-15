@@ -13,7 +13,6 @@ import { Eye, EyeOff, Copy, Mail, RefreshCw, Plus, User, Search, Grid3X3, List, 
 import { useLanguage } from "@/hooks/use-language"
 import { getLocalDateString } from "@/lib/date-utils"
 import { generateStrongPassword } from "@/lib/password-generator"
-import { useDatabase } from "@/hooks/use-database"
 // Import mobile utilities and components
 import {
   getMobileButtonClasses,
@@ -48,7 +47,7 @@ interface AccountManagerProps {
   projects: any[]
   accounts: any[]
   onAddAccount: (accountData: any) => Promise<any>
-  onDeleteAccount: (id: number) => Promise<any>
+  onDeleteAccount: (id: string) => Promise<any>
 }
 
 export function AccountManager({
@@ -139,7 +138,7 @@ export function AccountManager({
     }
   }
 
-  const handleDelete = async (accountId: number) => {
+  const handleDelete = async (accountId: string) => {
     if (confirm("Bạn có chắc chắn muốn xóa tài khoản này?")) {
       try {
         await onDeleteAccount(accountId)
@@ -489,7 +488,7 @@ export function AccountManager({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleDelete(Number(account.id))}
+                              onClick={() => handleDelete(account.id)}
                               className="text-red-600 hover:text-red-700"
                               title="Delete account"
                             >
@@ -561,7 +560,7 @@ export function AccountManager({
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleDelete(Number(account.id))}
+                                onClick={() => handleDelete(account.id)}
                                 className="text-red-600 hover:text-red-700"
                                 title="Delete account"
                               >

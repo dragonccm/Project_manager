@@ -39,6 +39,15 @@ export interface FeedbackState {
   showParticles: boolean;
 }
 
+export interface VisualFeedbackContextType {
+  feedbackState: FeedbackState;
+  showParticles: (origin: { x: number; y: number }, type?: 'success' | 'drop' | 'error' | 'magic') => void;
+  showNotification: (notification: Omit<Notification, 'id'>) => void;
+  dismissNotification: (id: string) => void;
+  showSuccess: (message: string) => void;
+  showError: (message: string) => void;
+}
+
 // Particle Effect Component
 export const ParticleEffect: React.FC<{
   isActive: boolean;
@@ -392,7 +401,7 @@ export const LoadingShimmer: React.FC<{
 };
 
 // Visual Feedback Provider Context
-const VisualFeedbackContext = createContext(null);
+const VisualFeedbackContext = createContext<VisualFeedbackContextType | null>(null);
 
 export const VisualFeedbackProvider: React.FC<{
   children: React.ReactNode;

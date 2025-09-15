@@ -17,39 +17,23 @@ import { DashboardOverview } from "@/features/dashboard/dashboard-overview"
 import { EmailComposer } from "@/features/emails/email-composer"
 import { EmailSettings } from "@/features/emails/email-settings"
 import { DatabaseStatus } from "@/features/database/database-status"
-import { useDatabase } from "@/hooks/use-database"
+import { useApi } from "@/hooks/use-api"
+import { UserMenu } from "@/components/auth/user-menu"
+import { useAuth } from "@/hooks/use-auth"
+import { AuthModal } from "@/components/auth/auth-modal"
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState("dashboard")
-  const [showDatabaseStatus, setShowDatabaseStatus] = useState(false)
+  // All hooks called unconditionally at the top
+  const { user, loading: authLoading, clearCookie } = useAuth();
+  const { t } = useLanguage();
+  const { theme } = useTheme();
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [showDatabaseStatus, setShowDatabaseStatus] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [emailNotificationSettings, setEmailNotificationSettings] = useState({
     enabled: false,
     recipients: []
-  })
-  const { t } = useLanguage()
-  const { theme } = useTheme()
-
-  // Load email notification settings on mount
-  useEffect(() => {
-    const savedSettings = localStorage.getItem("emailNotificationSettings")
-    if (savedSettings) {
-      const parsed = JSON.parse(savedSettings)
-      setEmailNotificationSettings({
-        enabled: parsed.enabled,
-        recipients: parsed.recipients
-      })
-    }
-  }, [])
-
-  // Handle email settings changes
-  const handleEmailSettingsChange = useCallback((settings: any) => {
-    setEmailNotificationSettings({
-      enabled: settings.enabled,
-      recipients: settings.recipients
-    })
-  }, [])
-
-  // Replace projects state with database hook
+  });
   const {
     projects,
     accounts,
@@ -58,7 +42,7 @@ export default function Dashboard() {
     settings,
     loading,
     error,
-    isDatabaseAvailable,
+    isApiAvailable,
     addProject,
     editProject,
     removeProject,
@@ -71,7 +55,81 @@ export default function Dashboard() {
     addEmailTemplate,
     removeEmailTemplate,
     updateUserSettings,
-  } = useDatabase()
+  } = useApi();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      setShowAuthModal(true);
+    }
+  }, [user, authLoading]);
+
+  useEffect(() => {
+    const savedSettings = localStorage.getItem("emailNotificationSettings");
+    if (savedSettings) {
+      const parsed = JSON.parse(savedSettings);
+      setEmailNotificationSettings({
+        enabled: parsed.enabled,
+        recipients: parsed.recipients
+      });
+    }
+  }, []);
+
+  const handleEmailSettingsChange = useCallback((settings: any) => {
+    setEmailNotificationSettings({
+      enabled: settings.enabled,
+      recipients: settings.recipients
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      setShowAuthModal(true);
+    }
+  }, [user, authLoading]);
+
+  useEffect(() => {
+    const savedSettings = localStorage.getItem("emailNotificationSettings");
+    if (savedSettings) {
+      const parsed = JSON.parse(savedSettings);
+      setEmailNotificationSettings({
+        enabled: parsed.enabled,
+        recipients: parsed.recipients
+      });
+    }
+  }, []);
+
+  // Conditional returns after all hooks
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Đang kiểm tra xác thực...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <AuthModal
+        open={showAuthModal}
+        onOpenChange={setShowAuthModal}
+        defaultTab="login"
+      />
+    );
+  }
+
+  // Don't render main content if user is not authenticated
+  if (!user) {
+    return (
+      <AuthModal
+        open={showAuthModal}
+        onOpenChange={setShowAuthModal}
+        defaultTab="login"
+      />
+    )
+  }
 
   const menuItems = [
     { id: "dashboard", label: t("dashboard"), icon: BarChart3 },
@@ -201,8 +259,9 @@ export default function Dashboard() {
       <div className="lg:hidden flex items-center justify-between p-4 border-b border-border bg-card">
         <h2 className="text-lg font-bold">Project Manager</h2>
         <div className="flex items-center gap-2">
+          <UserMenu />
           <ThemeToggle />
-          {!isDatabaseAvailable && (
+          {!isApiAvailable && (
             <Badge variant="outline" className="text-xs">
               Offline
             </Badge>
@@ -217,24 +276,40 @@ export default function Dashboard() {
             <div className="mb-8">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold">Project Manager</h2>
-                <ThemeToggle />
+                <div className="flex items-center gap-2">
+                  <UserMenu />
+                  <ThemeToggle />
+                </div>
               </div>
               {!loading && (
                 <div className="flex items-center justify-between mt-2">
                   <p className="text-sm text-muted-foreground">
                     {projects.length} {t("projects")} • {tasks.filter((t) => !t.completed).length} {t("pending")}
                   </p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowDatabaseStatus(!showDatabaseStatus)}
-                    className="p-1 h-6 w-6"
-                  >
-                    <Database className="h-3 w-3" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    {process.env.NODE_ENV === 'development' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearCookie}
+                        className="p-1 h-6 w-6"
+                        title="Clear Auth Cookie (Dev)"
+                      >
+                        🍪
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowDatabaseStatus(!showDatabaseStatus)}
+                      className="p-1 h-6 w-6"
+                    >
+                      <Database className="h-3 w-3" />
+                    </Button>
+                  </div>
                 </div>
               )}
-              {!isDatabaseAvailable && (
+              {!isApiAvailable && (
                 <Badge variant="outline" className="mt-2 text-xs">
                   Offline Mode
                 </Badge>

@@ -10,8 +10,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { useDatabase } from "@/hooks/use-database"
-import { CodeComponent, CreateCodeComponentInput } from "@/types/database"
+import { useApi } from "@/hooks/use-api"
+import { CodeComponent } from "@/types/database"
+
+// Define CreateCodeComponentInput locally to match component expectations
+interface CreateCodeComponentInput {
+  name: string
+  description?: string
+  component_type: "element" | "section" | "template" | "widget" | "global"
+  content_type?: "code" | "text" | "link" | "file" | "webpage" | "mixed"
+  code?: string
+  content?: object
+  props?: object
+  dependencies?: string[]
+  tags?: string[]
+  preview_image?: string
+  category?: string // For backward compatibility
+  code_json?: object
+  elementor_data?: object
+  project_id?: string
+}
 
 // Utility functions for safe JSON handling
 const safeStringify = (obj: any, spaces = 2) => {
@@ -31,7 +49,20 @@ const safeParse = (jsonString: string) => {
 };
 
 export function CodeComponentManager() {
-  const { codeComponents, projects, addCodeComponent, editCodeComponent, removeCodeComponent } = useDatabase()
+  const { projects } = useApi()
+  
+  // Mock code component operations until they're implemented in useApi
+  const codeComponents: CodeComponent[] = []
+  const addCodeComponent = async (data: CreateCodeComponentInput) => {
+    console.log('addCodeComponent not implemented yet', data)
+    return {} as CodeComponent
+  }
+  const editCodeComponent = async (id: string, data: Partial<CreateCodeComponentInput>) => {
+    console.log('editCodeComponent not implemented yet', id, data)
+  }
+  const removeCodeComponent = async (id: string) => {
+    console.log('removeCodeComponent not implemented yet', id)
+  }
   const [searchTerm, setSearchTerm] = useState("")
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
   const [projectFilter, setProjectFilter] = useState<string>("all")
@@ -43,11 +74,11 @@ export function CodeComponentManager() {
   const [formData, setFormData] = useState<CreateCodeComponentInput>({
     name: "",
     description: "",
-    category: "element",
+    component_type: "element",
     tags: [],
     code_json: {},
     elementor_data: {},
-    project_id: 1,
+    project_id: "1",
   })
   const categories = ["element", "section", "template", "widget", "global"] as const
 
@@ -90,9 +121,9 @@ export function CodeComponentManager() {
     return codeComponents.filter((component) => {
       const matchesSearch = component.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            component.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           component.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-      const matchesCategory = categoryFilter === "all" || component.category === categoryFilter
-      const matchesProject = projectFilter === "all" || component.project_id?.toString() === projectFilter
+                           component.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+      const matchesCategory = categoryFilter === "all" || component.component_type === categoryFilter
+      const matchesProject = projectFilter === "all" // project_id not available in current schema
       
       return matchesSearch && matchesCategory && matchesProject
     })
@@ -114,11 +145,11 @@ export function CodeComponentManager() {
       setFormData({
         name: "",
         description: "",
-        category: "element",
+        component_type: "element",
         tags: [],
-        code_json: {},
-        elementor_data: {},
-        project_id: 1,
+        code: "",
+        content: {},
+        project_id: "1",
       })
     } catch (error) {
       console.error("Error saving component:", error)
@@ -128,11 +159,11 @@ export function CodeComponentManager() {
     setFormData({
       name: component.name,
       description: component.description || "",
-      category: component.category,
-      tags: component.tags,
-      code_json: component.code_json,
-      elementor_data: component.elementor_data,
-      project_id: component.project_id || 1,
+      component_type: component.component_type,
+      tags: component.tags || [],
+      code: component.code || "",
+      content: component.content || {},
+      project_id: "",
     })
     setEditingComponent(component)
   }, [])
@@ -151,10 +182,10 @@ export function CodeComponentManager() {
     const exportData = {
       name: component.name,
       description: component.description,
-      category: component.category,
+      component_type: component.component_type,
       tags: component.tags,
-      code_json: component.code_json,
-      elementor_data: component.elementor_data,
+      code: component.code,
+      content: component.content,
     }
     
     const blob = new Blob([safeStringify(exportData, 2)], { type: "application/json" })
@@ -173,8 +204,8 @@ export function CodeComponentManager() {
     const elementorData = {
       version: "0.4",
       title: component.name,
-      type: component.category === "section" ? "section" : "widget",
-      content: (component.elementor_data as any)?.elements || [component.elementor_data]
+      type: component.component_type === "section" ? "section" : "widget",
+      content: (component.content as any)?.elements || [component.content]
     }
     
     const blob = new Blob([safeStringify(elementorData, 2)], { type: "application/json" })
@@ -206,10 +237,10 @@ export function CodeComponentManager() {
           setFormData({
             name: imported.title || "Imported Component",
             description: `Imported from Elementor (${imported.type})`,
-            category: imported.type === "section" ? "section" : "element",
+            component_type: imported.type === "section" ? "section" : "element",
             tags: ["imported", "elementor"],
-            code_json: {},
-            elementor_data: imported.content[0] || imported.content,
+            code: "",
+            content: imported.content[0] || imported.content,
             project_id: formData.project_id,
           })
         } else {
@@ -278,10 +309,10 @@ export function CodeComponentManager() {
                             setFormData({
                               name: imported.title || "Imported Component",
                               description: `Imported from Elementor (${imported.type})`,
-                              category: imported.type === "section" ? "section" : "element",
+                              component_type: imported.type === "section" ? "section" : "element",
                               tags: ["imported", "elementor"],
-                              code_json: {},
-                              elementor_data: imported.content[0] || imported.content,
+                              code: "",
+                              content: imported.content[0] || imported.content,
                               project_id: formData.project_id,
                             })
                             alert("✅ File Elementor đã được import thành công!")
@@ -290,10 +321,10 @@ export function CodeComponentManager() {
                             setFormData({
                               name: imported.name || "",
                               description: imported.description || "",
-                              category: imported.category || "element",
+                              component_type: imported.category || "element",
                               tags: imported.tags || [],
-                              code_json: imported.code_json || {},
-                              elementor_data: imported.elementor_data || {},
+                              code: imported.code_json || "",
+                              content: imported.elementor_data || {},
                               project_id: formData.project_id,
                             })
                             alert("✅ File JSON đã được tải thành công!")
@@ -327,11 +358,11 @@ export function CodeComponentManager() {
                       setFormData({
                         name: "",
                         description: "",
-                        category: "element",
+                        component_type: "element",
                         tags: [],
-                        code_json: {},
-                        elementor_data: {},
-                        project_id: 1,
+                        code: "",
+                        content: {},
+                        project_id: "1",
                       })
                     }}
                     className="text-xs"
@@ -377,7 +408,7 @@ export function CodeComponentManager() {
                     <Label htmlFor="project">Dự án</Label>
                     <Select
                       value={formData.project_id?.toString()}
-                      onValueChange={(value) => setFormData({ ...formData, project_id: parseInt(value) })}
+                      onValueChange={(value) => setFormData({ ...formData, project_id: value })}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -540,13 +571,13 @@ export function CodeComponentManager() {
                   <CardTitle className="text-lg">{component.name}</CardTitle>
                   <CardDescription>{component.description}</CardDescription>
                 </div>
-                <Badge variant="secondary">{component.category}</Badge>
+                <Badge variant="secondary">{component.component_type}</Badge>
               </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="flex flex-wrap gap-1">
-                  {component.tags.map((tag, index) => (
+                  {component.tags?.map((tag, index) => (
                     <Badge key={index} variant="outline" className="text-xs">
                       {tag}
                     </Badge>
@@ -554,7 +585,7 @@ export function CodeComponentManager() {
                 </div>
                 
                 <div className="text-sm text-muted-foreground">
-                  Project: {component.project_name || "Unknown"}
+                  Project: N/A
                 </div>
                 
                 <div className="flex items-center justify-between pt-2">
@@ -634,10 +665,10 @@ export function CodeComponentManager() {
                       setFormData({
                         name: imported.name || formData.name,
                         description: imported.description || formData.description,
-                        category: imported.category || formData.category,
+                        component_type: imported.category || formData.component_type,
                         tags: imported.tags || formData.tags,
-                        code_json: imported.code_json || formData.code_json,
-                        elementor_data: imported.elementor_data || formData.elementor_data,
+                        code: imported.code_json || formData.code,
+                        content: imported.elementor_data || formData.content,
                         project_id: formData.project_id,
                       })
                       alert("✅ File JSON đã được cập nhật!")
@@ -699,7 +730,7 @@ export function CodeComponentManager() {
                 <Label htmlFor="edit-project">Dự án</Label>
                 <Select
                   value={formData.project_id?.toString()}
-                  onValueChange={(value) => setFormData({ ...formData, project_id: parseInt(value) })}
+                  onValueChange={(value) => setFormData({ ...formData, project_id: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -816,9 +847,9 @@ export function CodeComponentManager() {
           <DialogHeader>
             <DialogTitle>Xem trước: {previewComponent?.name}</DialogTitle>
             <div className="flex gap-2 items-center text-sm text-muted-foreground">
-              <Badge variant="outline">{previewComponent?.category}</Badge>
+              <Badge variant="outline">{previewComponent?.component_type}</Badge>
               <span>•</span>
-              <span>Dự án: {previewComponent?.project_name || "Không xác định"}</span>
+              <span>Dự án: N/A</span>
               {previewComponent?.tags && previewComponent.tags.length > 0 && (
                 <>
                   <span>•</span>
@@ -852,12 +883,12 @@ export function CodeComponentManager() {
                     <h4 className="font-semibold">Code JSON</h4>                    <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => copyToClipboard(safeStringify(previewComponent.code_json, 2), "JSON đã được sao chép!")}
+                      onClick={() => copyToClipboard(safeStringify(previewComponent.code, 2), "JSON đã được sao chép!")}
                     >
                       Sao chép
                     </Button>
                   </div>                  <pre className="bg-muted p-4 rounded-md text-xs overflow-auto max-h-80 font-mono">
-                    {safeStringify(previewComponent.code_json, 2)}
+                    {safeStringify(previewComponent.code, 2)}
                   </pre>
                 </div>
                 <div>
@@ -865,12 +896,12 @@ export function CodeComponentManager() {
                     <h4 className="font-semibold">Elementor Data</h4>                    <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => copyToClipboard(safeStringify(previewComponent.elementor_data, 2), "Elementor data đã được sao chép!")}
+                      onClick={() => copyToClipboard(safeStringify(previewComponent.content, 2), "Elementor data đã được sao chép!")}
                     >
                       Sao chép
                     </Button>
                   </div>                  <pre className="bg-muted p-4 rounded-md text-xs overflow-auto max-h-80 font-mono">
-                    {safeStringify(previewComponent.elementor_data, 2)}
+                    {safeStringify(previewComponent.content, 2)}
                   </pre>
                 </div>
               </div>

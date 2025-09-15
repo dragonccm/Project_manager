@@ -36,9 +36,9 @@ interface TrelloTasksProps {
   projects: any[]
   tasks: any[]
   onAddTask?: (taskData: any) => Promise<any>
-  onEditTask?: (id: number, taskData: any) => Promise<any>
-  onDeleteTask?: (id: number) => Promise<void>
-  onToggleTask?: (id: number, completed: boolean) => Promise<any>
+  onEditTask?: (id: string, taskData: any) => Promise<any>
+  onDeleteTask?: (id: string) => Promise<void>
+  onToggleTask?: (id: string, completed: boolean) => Promise<any>
   emailNotifications?: {
     enabled: boolean
     recipients: string[]
@@ -304,7 +304,7 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
         
         // Cập nhật trạng thái task
         if (onEditTask) {
-          await onEditTask(Number(taskId), {
+          await onEditTask(taskId, {
             status: newStatus,
             completed
           });
@@ -338,7 +338,7 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
     }
 
     try {
-      await onToggleTask(Number.parseInt(taskId), !completed);
+      await onToggleTask(taskId, !completed);
       
       // Gửi email thông báo khi task hoàn thành
       if (!completed && emailNotifications?.enabled && emailNotifications.recipients.length > 0) {

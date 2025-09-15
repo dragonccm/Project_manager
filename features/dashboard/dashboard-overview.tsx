@@ -28,7 +28,7 @@ interface DashboardOverviewProps {
   projects: any[]
   tasks: any[]
   accounts: any[]
-  onToggleTask: (id: number, completed: boolean) => Promise<any>
+  onToggleTask: (id: string, completed: boolean) => Promise<any>
 }
 
 export function DashboardOverview({
@@ -94,9 +94,9 @@ export function DashboardOverview({
             <FolderOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{projects.length}</div>
+            <div className="text-2xl font-bold">{Array.isArray(projects) ? projects.length : 0}</div>
             <p className="text-xs text-muted-foreground">
-              {projects.filter((p) => p.status === "active").length} {t("active")}
+              {Array.isArray(projects) ? projects.filter((p) => p.status === "active").length : 0} {t("active")}
             </p>
           </CardContent>
         </Card>
@@ -134,9 +134,9 @@ export function DashboardOverview({
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{accounts.length}</div>
+            <div className="text-2xl font-bold">{Array.isArray(accounts) ? accounts.length : 0}</div>
             <p className="text-xs text-muted-foreground">
-              {projects.length} {t("projects")}
+              {Array.isArray(projects) ? projects.length : 0} {t("projects")}
             </p>
           </CardContent>
         </Card>
@@ -196,7 +196,7 @@ export function DashboardOverview({
                   </div>
                 )
               })}
-              {projects.length === 0 && (
+              {Array.isArray(projects) && projects.length === 0 && (
                 <p className="text-center text-muted-foreground py-4">{t("noActiveProjects")}</p>
               )}
             </div>
@@ -248,7 +248,7 @@ export function DashboardOverview({
           <CardContent>
             <div className="space-y-3">
               {todayTasks.map((task: any) => {
-                const project = projects.find((p) => p.id == task.projectId)
+                const project = Array.isArray(projects) ? projects.find((p) => p.id == task.projectId) : null
                 return (
                   <div key={task.id} className="flex items-start gap-3">
                     <Checkbox checked={task.completed} onCheckedChange={() => toggleTask(task.id)} className="mt-1" />

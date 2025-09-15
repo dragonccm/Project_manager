@@ -74,16 +74,16 @@ export function useAccounts(isDatabaseAvailable: boolean) {
     try {
       if (isDatabaseAvailable) {
         await deleteAccount(parseInt(id))
-        setAccounts((prev) => prev.filter((acc) => acc.id !== id))
+        setAccounts((prev) => prev.filter((acc) => acc.id !== parseInt(id)))
       } else {
         localOps.deleteAccount(id)
-        setAccounts((prev) => prev.filter((acc) => acc.id !== id))
+        setAccounts((prev) => prev.filter((acc) => acc.id !== parseInt(id)))
       }
     } catch (err) {
       console.error("Error removing account:", err)
       setError(err instanceof Error ? err : new Error("Unknown error occurred"))
       localOps.deleteAccount(id)
-      setAccounts((prev) => prev.filter((acc) => acc.id !== id))
+      setAccounts((prev) => prev.filter((acc) => acc.id !== parseInt(id)))
     }
   }
 

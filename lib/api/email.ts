@@ -198,6 +198,9 @@ ${data.progress !== undefined ? `Tiến độ: ${data.progress}%` : ''}
 // Email service functions
 export class EmailService {
   private transporter: nodemailer.Transporter | null = null
+  private lastConnectionTest: number = 0
+  private connectionTestResult: boolean | null = null
+  private static CONNECTION_TEST_CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
   constructor() {
     try {
@@ -332,13 +335,25 @@ export class EmailService {
     })  }
 
   async testConnection(): Promise<boolean> {
+    // Check if we have a cached result that's still valid
+    const now = Date.now()
+    if (this.connectionTestResult !== null && 
+        now - this.lastConnectionTest < EmailService.CONNECTION_TEST_CACHE_DURATION) {
+      console.log(`📝 Using cached SMTP connection result: ${this.connectionTestResult ? 'connected' : 'failed'}`)
+      return this.connectionTestResult
+    }
+
     try {
       const transporter = this.ensureTransporter()
       await transporter.verify()
       console.log('✅ SMTP connection verified successfully')
+      this.connectionTestResult = true
+      this.lastConnectionTest = now
       return true
     } catch (error) {
       console.error('❌ SMTP connection failed:', error)
+      this.connectionTestResult = false
+      this.lastConnectionTest = now
       return false
     }
   }

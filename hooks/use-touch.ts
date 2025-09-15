@@ -39,7 +39,7 @@ export function useTouch(options: TouchOptions = {}) {
   })
   
   const startTime = useRef<number>(0)
-  const rafId = useRef<number>()
+  const rafId = useRef<number | null>(null)
   
   const updateTouchState = (current: { x: number, y: number }) => {
     setTouchState(prev => {

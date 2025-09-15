@@ -14,7 +14,6 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Plus, Edit, Trash2, ExternalLink, Eye, Grid3X3, List, Search, Download, Calendar, Users } from "lucide-react"
 import { useLanguage } from "@/hooks/use-language"
-import { useDatabase } from "@/hooks/use-database"
 
 interface Project {
   id: string
@@ -30,8 +29,8 @@ interface Project {
 interface ProjectFormProps {
   projects: any[]
   onAddProject: (projectData: any) => Promise<any>
-  onEditProject: (id: number, projectData: any) => Promise<any>
-  onDeleteProject: (id: number) => Promise<any>
+  onEditProject: (id: string, projectData: any) => Promise<any>
+  onDeleteProject: (id: string) => Promise<any>
 }
 
 export function ProjectForm({ 
@@ -39,7 +38,8 @@ export function ProjectForm({
   onAddProject, 
   onEditProject, 
   onDeleteProject 
-}: ProjectFormProps) {  const [isEditing, setIsEditing] = useState(false)
+}: ProjectFormProps) {
+  const [isEditing, setIsEditing] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | null>(null)
   const [showForm, setShowForm] = useState(false) // New state to control form visibility
   const [viewingProject, setViewingProject] = useState<Project | null>(null)
@@ -103,7 +103,7 @@ export function ProjectForm({
       }
 
       if (isEditing && editingProject) {
-        await onEditProject(Number(editingProject.id), apiProjectData)
+        await onEditProject(editingProject.id, apiProjectData)
       } else {
         await onAddProject(apiProjectData)
       }
@@ -136,7 +136,7 @@ export function ProjectForm({
     setShowProjectDetails(true)
   }
 
-  const handleDelete = async (projectId: number) => {
+  const handleDelete = async (projectId: string) => {
     if (confirm("Are you sure you want to delete this project?")) {
       try {
         await onDeleteProject(projectId)
@@ -346,7 +346,7 @@ export function ProjectForm({
                           <Button variant="ghost" size="sm" onClick={() => handleEdit(project)}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleDelete(Number(project.id))}>
+                          <Button variant="ghost" size="sm" onClick={() => handleDelete(project.id)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -461,7 +461,7 @@ export function ProjectForm({
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleDelete(Number(project.id))}
+                            onClick={() => handleDelete(project.id)}
                             className="text-xs px-2 h-7 text-destructive hover:text-destructive"
                           >
                             <Trash2 className="h-3 w-3" />

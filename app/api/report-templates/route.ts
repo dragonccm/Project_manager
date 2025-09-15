@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server"
 import { 
   getReportTemplates, 
   createReportTemplate, 
-  initializeTables,
   testDatabaseConnection 
-} from "@/lib/database"
+} from "@/lib/mongo-database"
+import { withAuth, AuthenticatedRequest } from '@/lib/auth-session'
 
-export async function GET() {
+export const GET = withAuth(async (request: AuthenticatedRequest) => {
   try {
     const connectionTest = await testDatabaseConnection()
     if (!connectionTest.success) {
@@ -16,7 +16,7 @@ export async function GET() {
       )
     }
 
-    const templates = await getReportTemplates()
+    const templates = await getReportTemplates(request.user.id)
     return NextResponse.json({ success: true, data: templates })
   } catch (error: any) {
     console.error("Error fetching report templates:", error)
@@ -25,9 +25,9 @@ export async function GET() {
       { status: 500 }
     )
   }
-}
+})
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request: AuthenticatedRequest) => {
   try {
     const connectionTest = await testDatabaseConnection()
     if (!connectionTest.success) {
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const template = await createReportTemplate(templateData)
+    const template = await createReportTemplate({ ...templateData, user_id: request.user.id })
     return NextResponse.json({ success: true, data: template })
   } catch (error: any) {
     console.error("Error creating report template:", error)
@@ -56,4 +56,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
