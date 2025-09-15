@@ -10,6 +10,7 @@ import { TrelloTasks } from "@/features/tasks/trello-tasks"
 import { TaskOverview } from "@/features/tasks/task-overview"
 import { TaskReports } from "@/features/tasks/task-reports"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { LanguageToggle } from "@/components/language-toggle"
 import { SettingsPanel } from "@/features/settings/settings-panel"
 import { CodeComponentManager } from "@/features/code-components/code-component-manager"
 import { useLanguage } from "@/hooks/use-language"
@@ -137,12 +138,12 @@ export default function Dashboard() {
     { id: "projects", label: t("projects"), icon: FolderOpen },
     { id: "accounts", label: t("accounts"), icon: Users },
     { id: "tasks", label: t("dailyTasks"), icon: CheckSquare },
-    { id: "tasksOverview", label: "Task Overview", icon: BarChart3 },
-    { id: "reports", label: "Báo Cáo", icon: FileText },
-    { id: "components", label: "Code Components", icon: Code },
+    { id: "tasksOverview", label: t("taskOverview"), icon: BarChart3 },
+    { id: "reports", label: t("reports"), icon: FileText },
+    { id: "components", label: t("codeComponents"), icon: Code },
     { id: "settings", label: t("settings"), icon: Settings },
     { id: "email", label: t("emailComposer"), icon: Mail },
-    { id: "emailSettings", label: "Email Settings", icon: Settings },
+    { id: "emailSettings", label: t("emailSettings"), icon: Settings },
   ]
 
   const renderContent = () => {
@@ -246,7 +247,7 @@ export default function Dashboard() {
       <div className={`min-h-screen bg-background ${theme} flex items-center justify-center`}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading...</p>
+          <p className="mt-4 text-muted-foreground">{t("loading")}</p>
         </div>
       </div>
     )
@@ -256,7 +257,7 @@ export default function Dashboard() {
     return (
       <div className={`min-h-screen bg-background ${theme} flex items-center justify-center`}>
         <div className="text-center">
-          <p className="text-destructive">Error loading data. Please refresh the page.</p>
+          <p className="text-destructive">{t("errorLoading")}</p>
         </div>
       </div>
     )
@@ -266,13 +267,14 @@ export default function Dashboard() {
     <div className={`min-h-screen bg-background ${theme}`}>
       {/* Mobile Header */}
       <div className="lg:hidden flex items-center justify-between p-4 border-b border-border bg-card">
-        <h2 className="text-lg font-bold">Project Manager</h2>
+  <h2 className="text-lg font-bold">{t("projectManager")}</h2>
         <div className="flex items-center gap-2">
           <UserMenu />
+          <LanguageToggle />
           <ThemeToggle />
           {!isApiAvailable && (
             <Badge variant="outline" className="text-xs">
-              Offline
+              {t("offline")}
             </Badge>
           )}
         </div>
@@ -284,9 +286,10 @@ export default function Dashboard() {
           <div className="p-4">
             <div className="mb-8">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold">Project Manager</h2>
+                <h2 className="text-xl font-bold">{t("projectManager")}</h2>
                 <div className="flex items-center gap-2">
                   <UserMenu />
+                  <LanguageToggle />
                   <ThemeToggle />
                 </div>
               </div>
@@ -320,7 +323,7 @@ export default function Dashboard() {
               )}
               {!isApiAvailable && (
                 <Badge variant="outline" className="mt-2 text-xs">
-                  Offline Mode
+                  {t("offline")}
                 </Badge>
               )}
             </div>

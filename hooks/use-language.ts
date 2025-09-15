@@ -16,6 +16,16 @@ const translations = {
     pendingTasks: "Pending Tasks",
     recentProjects: "Recent Projects",
     todayTasks: "Today's Tasks",
+  projectManager: "Project Manager",
+  taskOverview: "Task Overview",
+  reports: "Reports",
+  codeComponents: "Code Components",
+  emailSettings: "Email Settings",
+  offline: "Offline",
+  loading: "Loading...",
+  errorLoading: "Error loading data. Please refresh the page.",
+  today: "Today",
+  cancel: "Cancel",
 
     // Dashboard enhancements
     avgRating: "Avg Rating",
@@ -157,6 +167,27 @@ const translations = {
     nextSteps: "Next Steps",
     noEmailTemplatesYet: "No email templates created yet",
     useTemplate: "Use Template",
+    viewDetails: "View details",
+    noDescription: "No description",
+    taskDetails: "Task details",
+    taskDetailsDescription: "Full information about this task",
+    taskDate: "Task date",
+    actualTime: "Actual Time",
+    createdAt: "Created at",
+    updatedAt: "Updated at",
+    noTasksInList: "No tasks in this list",
+    noDate: "No date",
+    databaseConnectionError: "Cannot connect to database or no data available. Please check database connection.",
+    databaseConnected: "Database connected successfully",
+    total: "total",
+    todayHasTasks: "Today has",
+    todo: "To Do",
+    inProgress: "In Progress", 
+    notEstimated: "Not estimated",
+    notCompleted: "Not completed",
+    noInformation: "No information",
+    taskCompleted: "Task completed",
+    taskNotCompleted: "Task not completed",
   },
   vi: {
     // Dashboard
@@ -171,6 +202,16 @@ const translations = {
     pendingTasks: "Công việc chờ xử lý",
     recentProjects: "Dự án gần đây",
     todayTasks: "Công việc hôm nay",
+  projectManager: "Quản lý dự án",
+  taskOverview: "Tổng quan Task",
+  reports: "Báo cáo",
+  codeComponents: "Thành phần Code",
+  emailSettings: "Cài đặt Email",
+  offline: "Ngoại tuyến",
+  loading: "Đang tải...",
+  errorLoading: "Lỗi tải dữ liệu. Vui lòng tải lại trang.",
+  today: "Hôm nay",
+  cancel: "Hủy",
 
     // Dashboard enhancements
     avgRating: "Đánh giá TB",
@@ -312,6 +353,27 @@ const translations = {
     nextSteps: "Bước tiếp theo",
     noEmailTemplatesYet: "Chưa có mẫu email nào được tạo",
     useTemplate: "Sử dụng mẫu",
+    viewDetails: "Xem chi tiết",
+    noDescription: "Không có mô tả",
+    taskDetails: "Chi tiết Task",
+    taskDetailsDescription: "Thông tin đầy đủ về task này",
+    taskDate: "Ngày thực hiện",
+    actualTime: "Thời gian thực tế",
+    createdAt: "Ngày tạo",
+    updatedAt: "Cập nhật lần cuối",
+    noTasksInList: "Không có task nào trong danh sách này",
+    noDate: "Chưa có ngày",
+    databaseConnectionError: "Không thể kết nối đến database hoặc chưa có dữ liệu. Vui lòng kiểm tra kết nối database.",
+    databaseConnected: "Đã kết nối database thành công",
+    total: "tổng cộng",
+    todayHasTasks: "Hôm nay có",
+    todo: "Cần làm",
+    inProgress: "Đang làm",
+    notEstimated: "Chưa ước tính", 
+    notCompleted: "Chưa hoàn thành",
+    noInformation: "Không có thông tin",
+    taskCompleted: "Task đã hoàn thành",
+    taskNotCompleted: "Task chưa hoàn thành",
   },
 }
 
@@ -319,9 +381,17 @@ export function useLanguage() {
   const [language, setLanguage] = useState<"en" | "vi">("en")
 
   useEffect(() => {
-    const savedLanguage = localStorage.getItem("language") as "en" | "vi"
+    const savedLanguage = (typeof window !== 'undefined' && localStorage.getItem("language")) as "en" | "vi" | null
     if (savedLanguage) {
       setLanguage(savedLanguage)
+      return
+    }
+    // Auto-detect from browser if not saved
+    const nav = typeof navigator !== 'undefined' ? navigator.language || "en" : "en"
+    if (nav.toLowerCase().startsWith("vi")) {
+      setLanguage("vi")
+    } else {
+      setLanguage("en")
     }
   }, [])
 

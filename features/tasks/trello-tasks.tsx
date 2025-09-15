@@ -68,6 +68,7 @@ interface DroppableColumnProps {
 }
 
 function DraggableTaskCard({ task, project, onToggle, getPriorityColor, onViewDetails }: DraggableTaskCardProps) {
+  const { t } = useLanguage()
   const {
     attributes,
     listeners,
@@ -116,7 +117,7 @@ function DraggableTaskCard({ task, project, onToggle, getPriorityColor, onViewDe
               {task.estimated_time || task.estimatedTime}min
             </span>
             <span className="text-xs">
-              {task.date ? getLocalDateString(new Date(task.date)) : 'Chưa có ngày'}
+              {task.date ? getLocalDateString(new Date(task.date)) : t("noDate") || 'Chưa có ngày'}
             </span>
           </div>
           <div className="flex justify-end mt-2">
@@ -130,7 +131,7 @@ function DraggableTaskCard({ task, project, onToggle, getPriorityColor, onViewDe
               className="h-6 px-2 text-xs"
             >
               <Eye className="h-3 w-3 mr-1" />
-              Xem chi tiết
+              {t("viewDetails") || "Xem chi tiết"}
             </Button>
           </div>
         </div>
@@ -140,6 +141,7 @@ function DraggableTaskCard({ task, project, onToggle, getPriorityColor, onViewDe
 }
 
 function DroppableColumn({ id, title, icon, tasks, bgColor, onToggle, getPriorityColor, projects, onViewDetails }: DroppableColumnProps) {
+  const { t } = useLanguage()
   const { setNodeRef } = useDroppable({
     id: id,
   });
@@ -171,7 +173,7 @@ function DroppableColumn({ id, title, icon, tasks, bgColor, onToggle, getPriorit
           })}
           {tasks.length === 0 && (
             <div className="text-center py-8 text-muted-foreground text-sm italic">
-              Không có task nào trong danh sách này
+              {t("noTasksInList") || "Không có task nào trong danh sách này"}
             </div>
           )}
         </SortableContext>
@@ -456,11 +458,11 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
               size="sm"
               onClick={() => setSelectedDate(getLocalDateString(new Date()))}
             >
-              Hôm nay
+              {t("today")}
             </Button>
           </div>
           <Button onClick={() => setShowAddForm(!showAddForm)}>
-            {showAddForm ? 'Hủy' : (
+            {showAddForm ? t("cancel") : (
               <>
                 <Plus className="h-4 w-4 mr-2" />
                 {t("addTask")}
@@ -473,19 +475,20 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
       {/* Thông báo trạng thái kết nối */}
       {(!projects || projects.length === 0) && (!tasks || tasks.length === 0) ? (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800 dark:bg-yellow-900/30 dark:border-yellow-800 dark:text-yellow-200">
-          ⚠️ Không thể kết nối đến database hoặc chưa có dữ liệu. Vui lòng kiểm tra kết nối database.
+          ⚠️ {t("databaseConnectionError") || "Không thể kết nối đến database hoặc chưa có dữ liệu. Vui lòng kiểm tra kết nối database."}
         </div>
       ) : (
         <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-200">
-          ✅ Đã kết nối database thành công - {projects?.length || 0} project(s), {tasks?.length || 0} task(s) tổng cộng.          {tasks.filter((task: any) => {
+          ✅ {t("databaseConnected") || "Đã kết nối database thành công"} - {projects?.length || 0} project(s), {tasks?.length || 0} task(s) {t("total") || "tổng cộng"}.
+          {tasks.filter((task: any) => {
             const taskDate = task.date ? getLocalDateString(new Date(task.date)) : null;
             return taskDate === selectedDate;
           }).length > 0 ? 
-            ` Hôm nay có ${tasks.filter((task: any) => {
+            ` ${t("todayHasTasks") || "Hôm nay có"} ${tasks.filter((task: any) => {
               const taskDate = task.date ? getLocalDateString(new Date(task.date)) : null;
               return taskDate === selectedDate;
             }).length} task(s).` : 
-            " Hôm nay chưa có task nào."}
+            ` ${t("noTasksToday") || "Hôm nay chưa có task nào"}.`}
         </div>
       )}
 
@@ -540,7 +543,8 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="taskDate">Ngày thực hiện</Label>                  <Input
+                  <Label htmlFor="taskDate">{t("taskDate") || "Ngày thực hiện"}</Label>
+                  <Input
                     id="taskDate"
                     type="date"
                     value={selectedDate}
@@ -568,7 +572,7 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="status">Trạng thái</Label>
+                  <Label htmlFor="status">{t("status")}</Label>
                   <Select
                     value={formData.status}
                     onValueChange={(value: any) => setFormData({ ...formData, status: value })}
@@ -577,9 +581,9 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="todo">Cần làm</SelectItem>
-                      <SelectItem value="in-progress">Đang làm</SelectItem>
-                      <SelectItem value="done">Hoàn thành</SelectItem>
+                      <SelectItem value="todo">{t("todo") || "Cần làm"}</SelectItem>
+                      <SelectItem value="in-progress">{t("inProgress") || "Đang làm"}</SelectItem>
+                      <SelectItem value="done">{t("completed") || "Hoàn thành"}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -604,7 +608,7 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
                 </Button>
                 <Button type="button" variant="outline" onClick={() => setShowAddForm(false)} className="flex-1">
                   <X className="h-4 w-4 mr-2" />
-                  Hủy
+                  {t("cancel")}
                 </Button>
               </div>
             </form>
@@ -615,7 +619,7 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">          {/* Todo Column */}
           <DroppableColumn
             id="todo"
-            title="Cần làm"
+            title={t("todo") || "Cần làm"}
             icon={<Inbox className="h-4 w-4 mr-2" />}
             tasks={tasksByStatus.todo}
             bgColor="bg-slate-50"
@@ -628,7 +632,7 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
           {/* In Progress Column */}
           <DroppableColumn
             id="in-progress"
-            title="Đang làm"
+            title={t("inProgress") || "Đang làm"}
             icon={<Loader className="h-4 w-4 mr-2" />}
             tasks={tasksByStatus["in-progress"]}
             bgColor="bg-blue-50"
@@ -641,7 +645,7 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
           {/* Done Column */}
           <DroppableColumn
             id="done"
-            title="Hoàn thành"
+            title={t("completed") || "Hoàn thành"}
             icon={<Check className="h-4 w-4 mr-2" />}
             tasks={tasksByStatus.done}
             bgColor="bg-green-50"
@@ -656,20 +660,20 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
       <Dialog open={showTaskDetails} onOpenChange={setShowTaskDetails}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Chi tiết Task</DialogTitle>
+            <DialogTitle>{t("taskDetails") || "Chi tiết Task"}</DialogTitle>
             <DialogDescription>
-              Thông tin đầy đủ về task này
+              {t("taskDetailsDescription") || "Thông tin đầy đủ về task này"}
             </DialogDescription>
           </DialogHeader>
           {viewingTask && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium">Tiêu đề</Label>
+                  <Label className="text-sm font-medium">{t("taskTitle")}</Label>
                   <p className="mt-1 p-2 bg-muted text-muted-foreground/90 rounded border">{viewingTask.title}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Độ ưu tiên</Label>
+                  <Label className="text-sm font-medium">{t("priority")}</Label>
                   <div className="mt-1">
                     <Badge variant={getPriorityColor(viewingTask.priority) as any}>
                       {viewingTask.priority}
@@ -679,68 +683,68 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
               </div>
               
               <div>
-                <Label className="text-sm font-medium">Mô tả</Label>
+                <Label className="text-sm font-medium">{t("description")}</Label>
                 <p className="mt-1 p-2 bg-muted text-muted-foreground/90 rounded border min-h-[60px]">
-                  {viewingTask.description || "Không có mô tả"}
+                  {viewingTask.description || t("noDescription") || "Không có mô tả"}
                 </p>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium">Project</Label>
+                  <Label className="text-sm font-medium">{t("project")}</Label>
                   <p className="mt-1 p-2 bg-muted text-muted-foreground/90 rounded border">
                     {(() => {
                       const taskProjectId = viewingTask.projectId || viewingTask.project_id?.toString();
                       const project = projects.find((p) => p.id == taskProjectId);
-                      return project?.name || "Chưa chọn project";
+                      return project?.name || t("noProject") || "Chưa chọn project";
                     })()}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Trạng thái</Label>
+                  <Label className="text-sm font-medium">{t("status")}</Label>
                   <div className="mt-1">
                     <Badge variant={
                       viewingTask.status === 'done' || viewingTask.completed ? 'default' :
                       viewingTask.status === 'in-progress' ? 'secondary' : 'outline'
                     }>
-                      {viewingTask.status === 'done' || viewingTask.completed ? 'Hoàn thành' :
-                       viewingTask.status === 'in-progress' ? 'Đang làm' : 'Cần làm'}
+                      {viewingTask.status === 'done' || viewingTask.completed ? t("completed") || 'Hoàn thành' :
+                       viewingTask.status === 'in-progress' ? t("inProgress") || 'Đang làm' : t("todo") || 'Cần làm'}
                     </Badge>
                   </div>
                 </div>
               </div>
               
-              <div className="grid grid-cols-3 gap-4">                <div>
-                  <Label className="text-sm font-medium">Ngày thực hiện</Label>
+        <div className="grid grid-cols-3 gap-4">                <div>
+          <Label className="text-sm font-medium">{t("taskDate") || "Ngày thực hiện"}</Label>
                   <p className="mt-1 p-2 bg-muted text-muted-foreground/90 rounded border">
-                    {viewingTask.date ? getLocalDateString(new Date(viewingTask.date)) : 'Chưa có ngày'}
+                    {viewingTask.date ? getLocalDateString(new Date(viewingTask.date)) : t("noDate") || 'Chưa có ngày'}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Thời gian dự kiến (phút)</Label>
+                  <Label className="text-sm font-medium">{t("estimatedTime")} (min)</Label>
                   <p className="mt-1 p-2 bg-muted text-muted-foreground/90 rounded border">
-                    {viewingTask.estimated_time || viewingTask.estimatedTime || 'Chưa ước tính'}
+                    {viewingTask.estimated_time || viewingTask.estimatedTime || t("notEstimated") || 'Chưa ước tính'}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Thời gian thực tế (phút)</Label>
+                  <Label className="text-sm font-medium">{t("actualTime") || "Thời gian thực tế (phút)"}</Label>
                   <p className="mt-1 p-2 bg-muted text-muted-foreground/90 rounded border">
-                    {viewingTask.actual_time || viewingTask.actualTime || 'Chưa hoàn thành'}
+                    {viewingTask.actual_time || viewingTask.actualTime || t("notCompleted") || 'Chưa hoàn thành'}
                   </p>
                 </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium">Ngày tạo</Label>
+                  <Label className="text-sm font-medium">{t("createdAt") || "Ngày tạo"}</Label>
                   <p className="mt-1 p-2 bg-muted text-muted-foreground/90 rounded border">
-                    {viewingTask.created_at ? new Date(viewingTask.created_at).toLocaleString('vi-VN') : 'Không có thông tin'}
+                    {viewingTask.created_at ? new Date(viewingTask.created_at).toLocaleString('vi-VN') : t("noInformation") || 'Không có thông tin'}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Cập nhật lần cuối</Label>
+                  <Label className="text-sm font-medium">{t("updatedAt") || "Cập nhật lần cuối"}</Label>
                   <p className="mt-1 p-2 bg-muted text-muted-foreground/90 rounded border">
-                    {viewingTask.updated_at ? new Date(viewingTask.updated_at).toLocaleString('vi-VN') : 'Không có thông tin'}
+                    {viewingTask.updated_at ? new Date(viewingTask.updated_at).toLocaleString('vi-VN') : t("noInformation") || 'Không có thông tin'}
                   </p>
                 </div>
               </div>
@@ -748,7 +752,7 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
               <div className="flex items-center gap-2">
                 <Checkbox checked={viewingTask.completed} disabled />
                 <Label className="text-sm">
-                  {viewingTask.completed ? 'Task đã hoàn thành' : 'Task chưa hoàn thành'}
+                  {viewingTask.completed ? t("taskCompleted") || 'Task đã hoàn thành' : t("taskNotCompleted") || 'Task chưa hoàn thành'}
                 </Label>
               </div>
             </div>
