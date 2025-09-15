@@ -304,13 +304,13 @@ export function AccountManager({
         {/* Search and Filter Controls */}
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div className="flex-1 relative px-6">
+            <Search className="ml-3 absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder={vietnameseText.search}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-12"
             />
           </div>
 

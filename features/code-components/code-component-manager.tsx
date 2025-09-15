@@ -524,13 +524,13 @@ export function CodeComponentManager() {
 
       {/* Filters */}
       <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <div className="relative flex-1 max-w-md px-6">
+          <Search className="ml-3 absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search components..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
+            className="pl-12"
           />
         </div>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
