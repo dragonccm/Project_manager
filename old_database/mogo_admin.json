@@ -1,0 +1,16 @@
+{
+  "_id": {
+    "$oid": "68c797e350f47cd77aa1fc24"
+  },
+  "username": "admin",
+  "email": "nguyenngoclong5511@gmail.com",
+  "full_name": "dragonccm",
+  "role": "admin",
+  "password_hash": "$2b$10$ayuXg5xQ7nKrAOqwdQwSmOrDMXj4/VS/6SBkOruM1FSJoSyYshhQK",
+  "created_at": {
+    "$date": "2025-09-15T04:36:51.753Z"
+  },
+  "updated_at": {
+    "$date": "2025-09-15T04:36:51.753Z"
+  }
+}

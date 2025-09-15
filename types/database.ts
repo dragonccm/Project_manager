@@ -98,11 +98,26 @@ export interface EmailTemplate {
   updated_at: string
 }
 
+export interface FieldLayout {
+  id: string
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+export interface ReportTemplateData {
+  fields: string[]
+  layout: "table" | "custom"
+  fieldLayout?: FieldLayout[]
+  created_at: string
+}
+
 export interface ReportTemplate {
   id: string
   name: string
   description?: string
-  template_data: object
+  template_data: ReportTemplateData
   category: "standard" | "custom"
   is_default: boolean
   created_by?: string
@@ -206,7 +221,7 @@ export interface CreateEmailTemplateInput {
 export interface CreateReportTemplateInput {
   name: string
   description?: string
-  template_data: object
+  template_data: ReportTemplateData
   category?: "standard" | "custom"
   is_default?: boolean
   created_by?: string

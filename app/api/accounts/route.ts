@@ -18,6 +18,15 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
 export const POST = withAuth(async (request: AuthenticatedRequest) => {
   try {
     const accountData = await request.json()
+    // Validate required fields (email optional per types, website required)
+    const requiredFields = ['username', 'password', 'website', 'project_id']
+    const missingFields = requiredFields.filter(field => !accountData[field] || accountData[field] === "")
+    if (missingFields.length > 0) {
+      return NextResponse.json(
+        { error: `Missing required fields: ${missingFields.join(', ')}` },
+        { status: 400 }
+      )
+    }
     const newAccount = await createAccount({ ...accountData, user_id: request.user.id })
     return NextResponse.json(newAccount)
   } catch (error) {

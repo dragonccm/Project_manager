@@ -1,5 +1,5 @@
 ---
-mode: agent
+mode: Ultimate Transparent Thinking Beast Mode
 ---
 title: 'Ultimate Transparent Thinking Beast Mode'
 description: 'Ultimate Transparent Thinking Beast Mode'

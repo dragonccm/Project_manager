@@ -13,7 +13,7 @@ import { Eye, EyeOff, Copy, Mail, RefreshCw, Plus, User, Search, Grid3X3, List, 
 import { useLanguage } from "@/hooks/use-language"
 import { getLocalDateString } from "@/lib/date-utils"
 import { generateStrongPassword } from "@/lib/password-generator"
-// Import mobile utilities and components
+// Mobile utilities and components
 import {
   getMobileButtonClasses,
   getMobileCardClasses,
@@ -56,10 +56,9 @@ export function AccountManager({
   onAddAccount,
   onDeleteAccount
 }: AccountManagerProps) {
-  // Remove useDatabase since functions are passed via props
-  // const { addAccount, removeAccount } = useDatabase()
+  // ...existing code...
   const [showPasswords, setShowPasswords] = useState<{ [key: string]: boolean }>({})
-  const [showForm, setShowForm] = useState(false) // Control form visibility
+  const [showForm, setShowForm] = useState(false)
 
   // Grid view states
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
@@ -76,19 +75,20 @@ export function AccountManager({
   })
   const { t } = useLanguage()
 
-  // Filter accounts based on search and project
+  // Filter accounts by search and project
   const filteredAccounts = accounts.filter(account => {
     const matchesSearch = account.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       account.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       account.website?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       account.notes?.toLowerCase().includes(searchQuery.toLowerCase())
 
-    const matchesProject = projectFilter === 'all' || account.projectId === projectFilter
+    const accountProjectId = account.projectId || account.project_id
+    const matchesProject = projectFilter === 'all' || accountProjectId === projectFilter
 
     return matchesSearch && matchesProject
   })
 
-  // Vietnamese text
+  // Vietnamese UI text
   const vietnameseText = {
     accounts: 'Tài Khoản',
     search: 'Tìm kiếm tài khoản...',
@@ -113,9 +113,27 @@ export function AccountManager({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+  // Validate required fields
+    if (!formData.projectId || formData.projectId.trim() === "") {
+      alert("Dự án là bắt buộc.")
+      return
+    }
+    if (!formData.username || formData.username.trim() === "") {
+      alert("Tên đăng nhập là bắt buộc.")
+      return
+    }
+    if (!formData.password || formData.password.trim() === "") {
+      alert("Mật khẩu là bắt buộc.")
+      return
+    }
+    if (!formData.website || formData.website.trim() === "") {
+      alert("Website là bắt buộc.")
+      return
+    }
+
     try {
       await onAddAccount({
-        project_id: Number.parseInt(formData.projectId),
+        project_id: formData.projectId,
         username: formData.username,
         password: formData.password,
         email: formData.email,
@@ -131,28 +149,13 @@ export function AccountManager({
         website: "",
         notes: "",
       })
-      setShowForm(false) // Hide form after submit
+      setShowForm(false)
     } catch (error) {
       console.error("Error saving account:", error)
       alert("Error saving account. Please try again.")
     }
   }
-
-  const handleDelete = async (accountId: string) => {
-    if (confirm("Bạn có chắc chắn muốn xóa tài khoản này?")) {
-      try {
-        await onDeleteAccount(accountId)
-      } catch (error) {
-        console.error("Error deleting account:", error)
-        alert("Error deleting account. Please try again.")
-      }
-    }
-  }
-
-  const generatePassword = () => {
-    const password = generateStrongPassword()
-    setFormData({ ...formData, password })
-  }
+// ...existing code...
 
   const autoFillFromWebsite = async () => {
     if (formData.website && formData.username) {
@@ -351,7 +354,7 @@ export function AccountManager({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div className={`grid grid-cols-1 ${showForm ? 'lg:grid-cols-2' : 'lg:grid-cols-1'} gap-6`}>
         {/* Form Card - Conditionally render based on showForm */}
         {showForm && (
           <Card>
@@ -418,7 +421,7 @@ export function AccountManager({
                       placeholder={t("enterPassword")}
                       required
                     />
-                    <Button type="button" variant="outline" onClick={generatePassword}>
+                    <Button type="button" variant="outline" onClick={() => setFormData({ ...formData, password: generateStrongPassword() })}>
                       <RefreshCw className="h-4 w-4" />
                     </Button>
                   </div>
@@ -460,7 +463,7 @@ export function AccountManager({
         )}
 
         {/* Accounts Display */}
-        <div className={showForm ? "lg:col-span-1" : "lg:col-span-2"}>
+  <div>
           <Card>
             <CardHeader>
               <CardTitle>{t("savedAccounts")}</CardTitle>
@@ -471,7 +474,8 @@ export function AccountManager({
               {viewMode === 'list' ? (
                 <div className="space-y-4 max-h-96 overflow-y-auto">
                   {filteredAccounts.map((account) => {
-                    const project = projects.find((p) => p.id == account.projectId)
+                    const accountProjectId = account.projectId || account.project_id
+                    const project = projects.find((p) => p.id == accountProjectId)
                     return (
                       <div key={account.id} className="border rounded-lg p-4">
                         <div className="flex items-start justify-between mb-2">
@@ -488,7 +492,7 @@ export function AccountManager({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleDelete(account.id)}
+                              onClick={() => onDeleteAccount(account.id)}
                               className="text-red-600 hover:text-red-700"
                               title="Delete account"
                             >
@@ -560,7 +564,7 @@ export function AccountManager({
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleDelete(account.id)}
+                                onClick={() => onDeleteAccount(account.id)}
                                 className="text-red-600 hover:text-red-700"
                                 title="Delete account"
                               >
@@ -606,10 +610,10 @@ export function AccountManager({
                                 <span className="font-mono truncate text-right max-w-[120px]">{account.email}</span>
                               </div>
                             )}
-                            {account.createdAt && (
+                            { (account.createdAt || account.created_at) && (
                               <div className="flex justify-between items-center">
                                 <span className="text-muted-foreground">{vietnameseText.created}:</span>
-                                <span className="text-right">{getLocalDateString(account.createdAt)}</span>
+                                <span className="text-right">{getLocalDateString(account.createdAt || account.created_at)}</span>
                               </div>
                             )}
                             {account.website && (

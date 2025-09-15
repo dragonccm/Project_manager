@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Download, FileText, FileSpreadsheet, Calendar, Filter, BarChart3, PaintBucket } from "lucide-react"
+import { exportTasksToPDF, exportTemplateReportToPDF } from "@/lib/pdf-export"
 import { useLanguage } from "@/hooks/use-language"
 import { getLocalDateString } from "@/lib/date-utils"
 import { ReportDesigner } from "@/components/report-designer"
@@ -514,6 +515,20 @@ export function TaskReports({ projects, tasks }: TaskReportsProps) {
                   <FileText className="h-4 w-4" />
                   Xuất JSON
                 </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    const data = getFilteredTasks().map((t:any) => ({
+                      ...t,
+                      project_name: projects.find((p:any)=>p.id==(t.projectId||t.project_id))?.name || ''
+                    }))
+                    exportTasksToPDF(data, { title: 'Báo cáo Task' })
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Xuất PDF
+                </Button>
               </div>
             </div>
 
@@ -541,6 +556,20 @@ export function TaskReports({ projects, tasks }: TaskReportsProps) {
                   >
                     <FileText className="h-4 w-4" />
                     Xuất JSON theo Template
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      if (selectedTemplateId === 'none') return;
+                      const template = reportTemplates.find((t:any)=> t.id.toString() === selectedTemplateId)
+                      if (!template) return;
+                      const data = getFilteredTasks();
+                      exportTemplateReportToPDF(template, data, { title: template.name })
+                    }}
+                    disabled={selectedTemplateId === "none"}
+                    className="flex items-center gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    Xuất PDF theo Template
                   </Button>
                 </div>
                 {selectedTemplateId === "none" && (

@@ -7,6 +7,7 @@ import { Bell, Settings, BarChart3, Users, FolderOpen, CheckSquare, Mail, Databa
 import { ProjectForm } from "@/features/projects/project-form"
 import { AccountManager } from "@/features/accounts/account-manager"
 import { TrelloTasks } from "@/features/tasks/trello-tasks"
+import { TaskOverview } from "@/features/tasks/task-overview"
 import { TaskReports } from "@/features/tasks/task-reports"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { SettingsPanel } from "@/features/settings/settings-panel"
@@ -136,6 +137,7 @@ export default function Dashboard() {
     { id: "projects", label: t("projects"), icon: FolderOpen },
     { id: "accounts", label: t("accounts"), icon: Users },
     { id: "tasks", label: t("dailyTasks"), icon: CheckSquare },
+    { id: "tasksOverview", label: "Task Overview", icon: BarChart3 },
     { id: "reports", label: "Báo Cáo", icon: FileText },
     { id: "components", label: "Code Components", icon: Code },
     { id: "settings", label: t("settings"), icon: Settings },
@@ -173,6 +175,13 @@ export default function Dashboard() {
             onDeleteTask={removeTask}
             onToggleTask={toggleTask}
             emailNotifications={emailNotificationSettings}
+          />
+        )
+      case "tasksOverview":
+        return (
+          <TaskOverview
+            projects={projects}
+            tasks={tasks}
           />
         )
       case "reports":

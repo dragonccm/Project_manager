@@ -331,7 +331,8 @@ export function useApi() {
         method: 'POST',
         body: JSON.stringify(templateData)
       })
-      const newTemplate = await safeJsonParse(response)
+      const raw = await safeJsonParse(response)
+      const newTemplate = raw?.data ?? raw
       setReportTemplates((prev) => Array.isArray(prev) ? [newTemplate, ...prev] : [newTemplate])
       return newTemplate
     } catch (err) {
@@ -347,7 +348,8 @@ export function useApi() {
         method: 'PUT',
         body: JSON.stringify(templateData)
       })
-      const updatedTemplate = await safeJsonParse(response)
+      const raw = await safeJsonParse(response)
+      const updatedTemplate = raw?.data ?? raw
       setReportTemplates((prev) => Array.isArray(prev) ? prev.map((t) => (t.id === id ? updatedTemplate : t)) : [updatedTemplate])
       return updatedTemplate
     } catch (err) {
@@ -374,7 +376,8 @@ export function useApi() {
         method: 'POST',
         body: JSON.stringify({ newName })
       })
-      const duplicatedTemplate = await safeJsonParse(response)
+      const raw = await safeJsonParse(response)
+      const duplicatedTemplate = raw?.data ?? raw
       setReportTemplates((prev) => Array.isArray(prev) ? [duplicatedTemplate, ...prev] : [duplicatedTemplate])
       return duplicatedTemplate
     } catch (err) {

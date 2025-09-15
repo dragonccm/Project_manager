@@ -51,15 +51,29 @@ const DEFAULT_PDF_OPTIONS: Required<PDFExportOptions> = {
  * For production, this should be loaded from external font files
  */
 const VIETNAMESE_FONTS = {
-  'NotoSansVN-Regular': {
-    data: '', // Base64 font data would go here
-    loaded: false
-  },
-  'RobotoVN-Regular': {
-    data: '', // Base64 font data would go here  
+  'NotoSans-Regular': {
+    vfsName: 'NotoSans-Regular.ttf',
+    family: 'NotoSans',
+    style: 'normal',
+    url: '/fonts/NotoSans-Regular.ttf',
     loaded: false
   }
-};
+} as const;
+
+// Track loaded fonts to avoid mutating readonly structures
+const loadedFontKeys = new Set<string>();
+
+async function fetchFontAsBase64(url: string): Promise<string> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed to fetch font: ${url}`);
+  const arrayBuf = await res.arrayBuffer();
+  // Convert to base64
+  let binary = '';
+  const bytes = new Uint8Array(arrayBuf);
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
 
 /**
  * Initialize PDF with Vietnamese font support
@@ -73,12 +87,13 @@ async function initializePDFWithVietnameseFont(options: Required<PDFExportOption
 
   // Add Vietnamese font support
   try {
-    // For now, use built-in fonts with Unicode support
-    // In production, you would load custom Vietnamese fonts:
-    // await loadVietnameseFont(doc, 'NotoSansVN-Regular');
-    
-    // Set font for Vietnamese text
-    doc.setFont('helvetica', 'normal');
+    // Try loading NotoSans from public/fonts
+    await loadVietnameseFont(doc, 'NotoSans-Regular');
+    if (loadedFontKeys.has('NotoSans-Regular')) {
+      doc.setFont('NotoSans', 'normal');
+    } else {
+      doc.setFont('helvetica', 'normal');
+    }
     doc.setFontSize(options.fontSize);
   } catch (error) {
     console.warn('Vietnamese font loading failed, using fallback font:', error);
@@ -92,19 +107,17 @@ async function initializePDFWithVietnameseFont(options: Required<PDFExportOption
  * Load Vietnamese font into PDF document
  * This is a placeholder - in production, implement actual font loading
  */
-async function loadVietnameseFont(doc: jsPDF, fontName: string): Promise<void> {
-  if (VIETNAMESE_FONTS[fontName as keyof typeof VIETNAMESE_FONTS] && !VIETNAMESE_FONTS[fontName as keyof typeof VIETNAMESE_FONTS].loaded) {
-    // In production:
-    // 1. Load font file from server or CDN
-    // 2. Convert to base64
-    // 3. Add to jsPDF using doc.addFileToVFS() and doc.addFont()
-    // 4. Set as current font
-    
-    // Placeholder implementation:
-    console.log(`Loading Vietnamese font: ${fontName}`);
-    // doc.addFileToVFS('NotoSansVN-Regular.ttf', fontData);
-    // doc.addFont('NotoSansVN-Regular.ttf', 'NotoSansVN', 'normal');
-    VIETNAMESE_FONTS[fontName as keyof typeof VIETNAMESE_FONTS].loaded = true;
+async function loadVietnameseFont(doc: jsPDF, fontKey: keyof typeof VIETNAMESE_FONTS): Promise<void> {
+  const font = VIETNAMESE_FONTS[fontKey];
+  if (!font) return;
+  if (loadedFontKeys.has(fontKey)) return;
+  try {
+    const base64 = await fetchFontAsBase64(font.url);
+    (doc as any).addFileToVFS(font.vfsName, base64);
+    (doc as any).addFont(font.vfsName, font.family, font.style);
+    loadedFontKeys.add(fontKey);
+  } catch (e) {
+    console.warn('Could not load Vietnamese font from public/fonts. Falling back to built-in font.', e);
   }
 }
 
@@ -118,6 +131,7 @@ export async function exportToPDF(
 ): Promise<void> {
   const opts = { ...DEFAULT_PDF_OPTIONS, ...options };
   const doc = await initializePDFWithVietnameseFont(opts);
+  const useVNFont = loadedFontKeys.has('NotoSans-Regular');
 
   // Add title and header
   if (opts.includeHeader) {
@@ -139,7 +153,7 @@ export async function exportToPDF(
     margin: opts.margins,
     styles: {
       fontSize: opts.fontSize,
-      font: 'helvetica', // Use font that supports Vietnamese
+      font: useVNFont ? 'NotoSans' : 'helvetica',
       cellPadding: 3,
       overflow: 'linebreak',
       halign: 'left'
@@ -177,6 +191,111 @@ export async function exportToPDF(
   }
 
   // Download the PDF
+  doc.save(opts.filename);
+}
+
+type TemplateLike = {
+  name: string;
+  description?: string;
+  template_data: {
+    layout?: 'custom' | 'table';
+    fields?: string[];
+    fieldLayout?: Array<{ id: string; x: number; y: number; width: number; height: number }>;
+  };
+  created_at?: string;
+};
+
+export async function exportTemplateReportToPDF(
+  template: TemplateLike,
+  records: Array<Record<string, any>>,
+  options: PDFExportOptions = {}
+): Promise<void> {
+  const opts = { ...DEFAULT_PDF_OPTIONS, ...options, title: template.name };
+  const doc = await initializePDFWithVietnameseFont(opts);
+  const useVNFont = loadedFontKeys.has('NotoSans-Regular');
+
+  if (opts.includeHeader) {
+    addPDFHeader(doc, opts);
+  }
+
+  const startY = opts.includeHeader ? 40 : 20;
+  let currentY = startY;
+  const pageWidth = doc.internal.pageSize.width;
+  const pageHeight = doc.internal.pageSize.height;
+  const left = opts.margins.left;
+  const right = opts.margins.right;
+  const bottom = opts.margins.bottom;
+  const usableWidth = pageWidth - left - right;
+
+  const PX_TO_MM = 0.264583; // CSS px to mm
+
+  const td = template.template_data || {} as any;
+  const layoutType = td.layout || (td.fieldLayout && td.fieldLayout.length ? 'custom' : 'table');
+
+  // When no records
+  if (!records || records.length === 0) {
+    doc.setFontSize(12);
+    doc.setFont(useVNFont ? 'NotoSans' : 'helvetica', 'normal');
+    doc.text('Không có dữ liệu', left, currentY);
+    doc.save(opts.filename);
+    return;
+  }
+
+  if (layoutType === 'custom' && td.fieldLayout && td.fieldLayout.length) {
+    // Render each record respecting absolute positions
+    const labelFontSize = Math.max(8, opts.fontSize - 2);
+    const valueFontSize = Math.max(9, opts.fontSize);
+    for (let idx = 0; idx < records.length; idx++) {
+      const rec = records[idx];
+
+      // Add page if near bottom
+      const neededHeight = 120; // heuristic per record
+      if (currentY + neededHeight > pageHeight - bottom) {
+        doc.addPage();
+        currentY = startY;
+      }
+
+      // Record header
+      doc.setFontSize(12);
+      doc.setFont(useVNFont ? 'NotoSans' : 'helvetica', 'bold');
+      doc.text(`Record ${idx + 1}`, left, currentY);
+      currentY += 6;
+
+      // Draw fields
+      td.fieldLayout.forEach((fl: any) => {
+        const x = left + fl.x * PX_TO_MM;
+        const y = currentY + fl.y * PX_TO_MM;
+        const w = Math.min(fl.width * PX_TO_MM, usableWidth);
+        const h = fl.height * PX_TO_MM;
+        const val = rec[fl.id] != null ? String(rec[fl.id]) : 'N/A';
+
+        // Label
+        doc.setFontSize(labelFontSize);
+        doc.setTextColor(120, 120, 120);
+        doc.setFont(useVNFont ? 'NotoSans' : 'helvetica', 'normal');
+        doc.text(`${fl.id}:`, x, y);
+
+        // Value (wrap inside width)
+        doc.setFontSize(valueFontSize);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont(useVNFont ? 'NotoSans' : 'helvetica', 'bold');
+        const lines = doc.splitTextToSize(val, Math.max(20, w));
+        doc.text(lines, x, y + 4);
+      });
+
+      // Move down after record
+      currentY += 10 +  (Math.max(...td.fieldLayout.map((fl: any) => (fl.y + fl.height))) * PX_TO_MM);
+    }
+  } else {
+    // Simple table per selected fields
+    const fields: string[] = td.fields && td.fields.length ? td.fields : Object.keys(records[0]);
+    const columns = fields.map((f) => ({ header: f, dataKey: f }));
+    await exportToPDF(records, columns, opts);
+    return;
+  }
+
+  if (opts.includeFooter) addPDFFooter(doc, opts);
+  if (opts.pageNumbers) addPageNumbers(doc, opts);
   doc.save(opts.filename);
 }
 
@@ -492,5 +611,6 @@ export default {
   exportToPDF,
   exportTasksToPDF, 
   exportProjectsToPDF,
-  exportComprehensiveReport
+  exportComprehensiveReport,
+  exportTemplateReportToPDF
 }

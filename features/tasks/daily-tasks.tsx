@@ -301,11 +301,11 @@ export function DailyTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTas
 
       {/* Show connection status */}
       {(!projects || projects.length === 0) && (!tasks || tasks.length === 0) ? (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800 dark:bg-yellow-900/30 dark:border-yellow-800 dark:text-yellow-200">
           ⚠️ Không thể kết nối đến database hoặc chưa có dữ liệu. Vui lòng kiểm tra kết nối database.
         </div>
       ) : (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-200">
           ✅ Đã kết nối database thành công - {projects?.length || 0} project(s), {tasks?.length || 0} task(s) tổng cộng.
           {todayTasks.length > 0 ? ` Hôm nay có ${todayTasks.length} task(s).` : " Hôm nay chưa có task nào."}
         </div>
@@ -447,7 +447,7 @@ export function DailyTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTas
                 const project = displayProjects.find((p) => p.id == taskProjectId || p.id === taskProjectId)
                 
                 return (
-                  <div key={task.id} className={`border rounded-lg p-4 ${task.completed ? "opacity-60" : ""}`}>
+                  <div key={task.id} className={`border rounded-lg p-4 bg-card text-card-foreground ${task.completed ? "opacity-60" : ""}`}>
                     <div className="flex items-start gap-3">
                       <Checkbox
                         checked={task.completed}

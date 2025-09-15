@@ -90,7 +90,7 @@ function DraggableTaskCard({ task, project, onToggle, getPriorityColor, onViewDe
       style={style} 
       {...attributes} 
       {...listeners}
-      className={`border rounded-lg p-4 mb-2 bg-card shadow hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing ${task.completed ? "opacity-60" : ""}`}
+  className={`border rounded-lg p-4 mb-2 bg-card text-card-foreground shadow hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing ${task.completed ? "opacity-60" : ""}`}
     >
       <div className="flex items-start gap-3">
         <Checkbox
@@ -146,7 +146,7 @@ function DroppableColumn({ id, title, icon, tasks, bgColor, onToggle, getPriorit
 
   return (
     <Card>
-      <CardHeader className={`${bgColor} rounded-t-lg`}>
+      <CardHeader className={`${bgColor} dark:bg-muted rounded-t-lg`}>
         <CardTitle className="text-sm font-medium flex items-center">
           {icon}
           {title}
@@ -472,11 +472,11 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
 
       {/* Thông báo trạng thái kết nối */}
       {(!projects || projects.length === 0) && (!tasks || tasks.length === 0) ? (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800 dark:bg-yellow-900/30 dark:border-yellow-800 dark:text-yellow-200">
           ⚠️ Không thể kết nối đến database hoặc chưa có dữ liệu. Vui lòng kiểm tra kết nối database.
         </div>
       ) : (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-200">
           ✅ Đã kết nối database thành công - {projects?.length || 0} project(s), {tasks?.length || 0} task(s) tổng cộng.          {tasks.filter((task: any) => {
             const taskDate = task.date ? getLocalDateString(new Date(task.date)) : null;
             return taskDate === selectedDate;
@@ -666,7 +666,7 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-sm font-medium">Tiêu đề</Label>
-                  <p className="mt-1 p-2 bg-gray-50 rounded border">{viewingTask.title}</p>
+                  <p className="mt-1 p-2 bg-muted text-muted-foreground/90 rounded border">{viewingTask.title}</p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Độ ưu tiên</Label>
@@ -680,7 +680,7 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
               
               <div>
                 <Label className="text-sm font-medium">Mô tả</Label>
-                <p className="mt-1 p-2 bg-gray-50 rounded border min-h-[60px]">
+                <p className="mt-1 p-2 bg-muted text-muted-foreground/90 rounded border min-h-[60px]">
                   {viewingTask.description || "Không có mô tả"}
                 </p>
               </div>
@@ -688,7 +688,7 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-sm font-medium">Project</Label>
-                  <p className="mt-1 p-2 bg-gray-50 rounded border">
+                  <p className="mt-1 p-2 bg-muted text-muted-foreground/90 rounded border">
                     {(() => {
                       const taskProjectId = viewingTask.projectId || viewingTask.project_id?.toString();
                       const project = projects.find((p) => p.id == taskProjectId);
@@ -712,19 +712,19 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
               
               <div className="grid grid-cols-3 gap-4">                <div>
                   <Label className="text-sm font-medium">Ngày thực hiện</Label>
-                  <p className="mt-1 p-2 bg-gray-50 rounded border">
+                  <p className="mt-1 p-2 bg-muted text-muted-foreground/90 rounded border">
                     {viewingTask.date ? getLocalDateString(new Date(viewingTask.date)) : 'Chưa có ngày'}
                   </p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Thời gian dự kiến (phút)</Label>
-                  <p className="mt-1 p-2 bg-gray-50 rounded border">
+                  <p className="mt-1 p-2 bg-muted text-muted-foreground/90 rounded border">
                     {viewingTask.estimated_time || viewingTask.estimatedTime || 'Chưa ước tính'}
                   </p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Thời gian thực tế (phút)</Label>
-                  <p className="mt-1 p-2 bg-gray-50 rounded border">
+                  <p className="mt-1 p-2 bg-muted text-muted-foreground/90 rounded border">
                     {viewingTask.actual_time || viewingTask.actualTime || 'Chưa hoàn thành'}
                   </p>
                 </div>
@@ -733,13 +733,13 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-sm font-medium">Ngày tạo</Label>
-                  <p className="mt-1 p-2 bg-gray-50 rounded border">
+                  <p className="mt-1 p-2 bg-muted text-muted-foreground/90 rounded border">
                     {viewingTask.created_at ? new Date(viewingTask.created_at).toLocaleString('vi-VN') : 'Không có thông tin'}
                   </p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Cập nhật lần cuối</Label>
-                  <p className="mt-1 p-2 bg-gray-50 rounded border">
+                  <p className="mt-1 p-2 bg-muted text-muted-foreground/90 rounded border">
                     {viewingTask.updated_at ? new Date(viewingTask.updated_at).toLocaleString('vi-VN') : 'Không có thông tin'}
                   </p>
                 </div>

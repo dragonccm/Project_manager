@@ -62,10 +62,17 @@ export function ProjectForm({
   // const { addProject, editProject, removeProject } = useDatabase()
 
   // Filter projects based on search and status
-  const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         project.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         project.domain?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredProjects = (projects || []).filter(project => {
+    if (!project) return false
+    
+    const name = project.name || ''
+    const description = project.description || ''
+    const domain = project.domain || ''
+    const query = searchQuery.toLowerCase()
+    
+    const matchesSearch = name.toLowerCase().includes(query) ||
+                         description.toLowerCase().includes(query) ||
+                         domain.toLowerCase().includes(query)
     
     const matchesStatus = statusFilter === 'all' || project.status === statusFilter
     
@@ -93,6 +100,11 @@ export function ProjectForm({
     e.preventDefault()
 
     try {
+      // Kiểm tra bắt buộc trường name
+      if (!formData.name || formData.name.trim() === "") {
+        alert("Tên dự án là bắt buộc.")
+        return
+      }
       // Map form data to match API expectations
       const apiProjectData = {
         name: formData.name,
@@ -222,7 +234,7 @@ export function ProjectForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div className={`grid grid-cols-1 ${showForm ? 'lg:grid-cols-2' : 'lg:grid-cols-1'} gap-6`}>
         {/* Form Card - Conditionally render based on showForm */}
         {showForm && (
           <Card>
@@ -307,7 +319,7 @@ export function ProjectForm({
           </Card>
         )}        {/* Projects Display with Grid/List Toggle */}
         {viewMode === 'list' ? (
-          <Card className={showForm ? "lg:col-span-1" : "lg:col-span-2"}>
+          <Card>
             <CardHeader>
               <CardTitle>{t("existingProjects")}</CardTitle>
               <CardDescription>{t("manageYourProjects")}</CardDescription>
@@ -317,8 +329,8 @@ export function ProjectForm({
                 {filteredProjects.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">{vietnameseText.noResults}</div>
                 ) : (
-                  filteredProjects.map((project) => (
-                    <div key={project.id} className="border rounded-lg p-4">
+                  filteredProjects.map((project, index) => (
+                    <div key={project.id || `project-${index}`} className="border rounded-lg p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <h3 className="font-semibold">{project.name}</h3>
@@ -359,10 +371,10 @@ export function ProjectForm({
           </Card>
         ) : (
           /* Vietnamese Grid View */
-          <div className={`space-y-4 ${showForm ? "lg:col-span-1" : "lg:col-span-2"}`}>
+          <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredProjects.map((project) => (
-                <Card key={project.id} className="group hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/20">
+              {filteredProjects.map((project, index) => (
+                <Card key={project.id || `card-project-${index}`} className="group hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/20">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getProjects, createProject, updateProject, deleteProject } from '@/lib/mongo-database'
 import { withAuth, AuthenticatedRequest } from '@/lib/auth-session'
-import { createSuccessResponse, handleApiError, validateRequired } from '@/lib/api-base'
+import { handleApiError, validateRequired } from '@/lib/api-base'
 
 export const GET = withAuth(async (request: AuthenticatedRequest) => {
   try {
     const projects = await getProjects(request.user.id)
-    return createSuccessResponse(projects)
+    return NextResponse.json(projects)
   } catch (error) {
     return handleApiError(error, 'fetching projects')
   }
@@ -26,7 +26,7 @@ export const POST = withAuth(async (request: AuthenticatedRequest) => {
     }
     
     const newProject = await createProject({ ...projectData, user_id: request.user.id })
-    return createSuccessResponse(newProject)
+    return NextResponse.json(newProject)
   } catch (error) {
     return handleApiError(error, 'creating project')
   }
