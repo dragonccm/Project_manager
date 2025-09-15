@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Eye, EyeOff, UserPlus, CheckCircle, XCircle } from "lucide-react"
 
 interface RegisterFormProps {
@@ -23,7 +22,7 @@ export function RegisterForm({ onSwitchToLogin, onRegisterSuccess }: RegisterFor
     password: '',
     confirmPassword: '',
     full_name: '',
-    role: 'user' as 'admin' | 'user' | 'viewer'
+    role: 'user' as const
   })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -253,24 +252,6 @@ export function RegisterForm({ onSwitchToLogin, onRegisterSuccess }: RegisterFor
                 )}
               </div>
             )}
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="role">Vai trò</Label>
-            <Select
-              value={formData.role}
-              onValueChange={(value: 'admin' | 'user' | 'viewer') => handleInputChange('role', value)}
-              disabled={loading}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn vai trò" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="user">User - Người dùng thường</SelectItem>
-                <SelectItem value="admin">Admin - Quản trị viên</SelectItem>
-                <SelectItem value="viewer">Viewer - Chỉ xem</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </CardContent>
         

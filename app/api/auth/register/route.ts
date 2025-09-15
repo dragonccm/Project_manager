@@ -5,7 +5,10 @@ import { isValidEmail, isValidUsername, isValidPassword } from '@/lib/auth-utils
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { username, email, password, full_name, role = 'user' } = body
+    const { username, email, password, full_name } = body
+
+    // Force role to be 'user' - admin accounts should not be created through public registration
+    const role = 'user'
 
     // Validation
     if (!username || !email || !password || !full_name) {
