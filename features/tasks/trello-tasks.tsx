@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Plus, Clock, Circle, Inbox, Loader, Check, X, Eye } from "lucide-react"
+import { Plus, Clock, Circle, Inbox, Loader, Check, X, Eye, Trash2 } from "lucide-react"
 import { useLanguage } from "@/hooks/use-language"
 import { useEmail } from "@/hooks/use-email"
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, useDroppable } from '@dnd-kit/core'
@@ -52,6 +52,7 @@ interface DraggableTaskCardProps {
   onToggle: (taskId: string, completed: boolean) => void;
   getPriorityColor: (priority: string) => string;
   onViewDetails: (task: any) => void;
+  onDeleteTask?: (id: string) => Promise<void>;
 }
 
 // Component cho cột droppable
@@ -65,16 +66,18 @@ interface DroppableColumnProps {
   getPriorityColor: (priority: string) => string;
   projects: any[];
   onViewDetails: (task: any) => void;
+  onDeleteTask?: (id: string) => Promise<void>;
 }
 
-function DraggableTaskCard({ task, project, onToggle, getPriorityColor, onViewDetails }: DraggableTaskCardProps) {
+function DraggableTaskCard({ task, project, onToggle, getPriorityColor, onViewDetails, onDeleteTask }: DraggableTaskCardProps) {
   const { t } = useLanguage()
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
-    transition
+    transition,
+    isDragging
   } = useSortable({
     id: task.id,
     data: { ...task }
@@ -82,7 +85,8 @@ function DraggableTaskCard({ task, project, onToggle, getPriorityColor, onViewDe
   
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition
+    transition,
+    opacity: isDragging ? 0.5 : 1
   };
 
   return (
@@ -91,7 +95,9 @@ function DraggableTaskCard({ task, project, onToggle, getPriorityColor, onViewDe
       style={style} 
       {...attributes} 
       {...listeners}
-  className={`border rounded-lg p-4 mb-2 bg-card text-card-foreground shadow hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing ${task.completed ? "opacity-60" : ""}`}
+      className={`border rounded-lg p-4 mb-2 bg-card text-card-foreground shadow hover:shadow-md cursor-grab active:cursor-grabbing ${
+        task.completed ? "opacity-60" : ""
+      }`}
     >
       <div className="flex items-start gap-3">
         <Checkbox
@@ -121,18 +127,35 @@ function DraggableTaskCard({ task, project, onToggle, getPriorityColor, onViewDe
             </span>
           </div>
           <div className="flex justify-end mt-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onViewDetails(task);
-              }}
-              className="h-6 px-2 text-xs"
-            >
-              <Eye className="h-3 w-3 mr-1" />
-              {t("viewDetails") || "Xem chi tiết"}
-            </Button>
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onViewDetails(task);
+                }}
+                className="h-6 px-2 text-xs"
+              >
+                <Eye className="h-3 w-3 mr-1" />
+                {t("viewDetails") || "Xem chi tiết"}
+              </Button>
+              {onDeleteTask && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (window.confirm(t("confirmDeleteTask") || "Bạn có chắc chắn muốn xóa task này?")) {
+                      onDeleteTask(task.id);
+                    }
+                  }}
+                  className="h-6 px-2 text-xs text-destructive hover:text-destructive"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -140,9 +163,9 @@ function DraggableTaskCard({ task, project, onToggle, getPriorityColor, onViewDe
   );
 }
 
-function DroppableColumn({ id, title, icon, tasks, bgColor, onToggle, getPriorityColor, projects, onViewDetails }: DroppableColumnProps) {
+function DroppableColumn({ id, title, icon, tasks, bgColor, onToggle, getPriorityColor, projects, onViewDetails, onDeleteTask }: DroppableColumnProps) {
   const { t } = useLanguage()
-  const { setNodeRef } = useDroppable({
+  const { setNodeRef, isOver } = useDroppable({
     id: id,
   });
 
@@ -155,7 +178,7 @@ function DroppableColumn({ id, title, icon, tasks, bgColor, onToggle, getPriorit
           <Badge variant="outline" className="ml-2">{tasks.length}</Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent ref={setNodeRef} className="p-2 min-h-[200px] max-h-[500px] overflow-y-auto">
+      <CardContent ref={setNodeRef} className={`p-2 min-h-[200px] max-h-[500px] overflow-y-auto ${isOver ? 'bg-blue-50' : ''}`}>
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map(task => {
             const taskProjectId = task.projectId || task.project_id?.toString();
@@ -168,6 +191,7 @@ function DroppableColumn({ id, title, icon, tasks, bgColor, onToggle, getPriorit
                 onToggle={onToggle}
                 getPriorityColor={getPriorityColor}
                 onViewDetails={onViewDetails}
+                onDeleteTask={onDeleteTask}
               />
             );
           })}
@@ -221,7 +245,7 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 3,
       },
     })
   );
@@ -615,7 +639,10 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
           </CardContent>
         </Card>
       )}      {/* Trello-style Kanban Board */}
-      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+      <DndContext 
+        sensors={sensors} 
+        onDragEnd={handleDragEnd}
+      >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">          {/* Todo Column */}
           <DroppableColumn
             id="todo"
@@ -627,6 +654,7 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
             getPriorityColor={getPriorityColor}
             projects={displayProjects}
             onViewDetails={handleViewTaskDetails}
+            onDeleteTask={onDeleteTask}
           />
           
           {/* In Progress Column */}
@@ -640,6 +668,7 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
             getPriorityColor={getPriorityColor}
             projects={displayProjects}
             onViewDetails={handleViewTaskDetails}
+            onDeleteTask={onDeleteTask}
           />
           
           {/* Done Column */}
@@ -653,6 +682,7 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
             getPriorityColor={getPriorityColor}
             projects={displayProjects}
             onViewDetails={handleViewTaskDetails}
+            onDeleteTask={onDeleteTask}
           />        </div>
       </DndContext>
 
@@ -754,6 +784,47 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
                 <Label className="text-sm">
                   {viewingTask.completed ? t("taskCompleted") || 'Task đã hoàn thành' : t("taskNotCompleted") || 'Task chưa hoàn thành'}
                 </Label>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowTaskDetails(false)}
+                >
+                  {t("close") || "Đóng"}
+                </Button>
+                {onEditTask && (
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      // TODO: Implement edit functionality
+                      console.log("Edit task:", viewingTask.id)
+                    }}
+                  >
+                    {t("edit") || "Chỉnh sửa"}
+                  </Button>
+                )}
+                {onDeleteTask && (
+                  <Button
+                    variant="destructive"
+                    onClick={async () => {
+                      if (window.confirm(t("confirmDeleteTask") || "Bạn có chắc chắn muốn xóa task này?")) {
+                        try {
+                          await onDeleteTask(viewingTask.id)
+                          setShowTaskDetails(false)
+                          console.log("Task deleted successfully:", viewingTask.id)
+                        } catch (error) {
+                          console.error("Error deleting task:", error)
+                          alert(t("deleteTaskError") || "Có lỗi xảy ra khi xóa task")
+                        }
+                      }
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    {t("delete") || "Xóa"}
+                  </Button>
+                )}
               </div>
             </div>
           )}

@@ -60,7 +60,7 @@ export function TaskReports({ projects, tasks }: TaskReportsProps) {
     const filteredTasks = getFilteredTasks()
     
     if (format === "csv") {
-      let csv = "Task ID,Title,Description,Project,Priority,Status,Created Date,Due Date,Estimated Time (min),Actual Time (min),Completion Status,Last Updated\n"
+      let csv = "Task ID,Title,Description,Project,Priority,Status,Created By,Created Date,Due Date,Estimated Time (min),Actual Time (min),Completion Status,Last Updated\n"
       
       filteredTasks.forEach((task: any) => {
         const project = projects.find((p) => p.id == (task.projectId || task.project_id))
@@ -68,7 +68,11 @@ export function TaskReports({ projects, tasks }: TaskReportsProps) {
                      task.status === "in-progress" ? "In Progress" : 
                      task.status === "done" ? "Done" : "To Do"
         
-        csv += `${task.id},"${task.title}","${task.description || ''}","${project?.name || 'No Project'}",${task.priority},${status},${task.created_at || ''},${task.date || ''},${task.estimated_time || task.estimatedTime || ''},${task.actual_time || task.actualTime || ''},${task.completed ? 'Yes' : 'No'},${task.updated_at || ''}\n`
+        const createdBy = task.created_by_user ? 
+          (task.created_by_user.full_name || task.created_by_user.username) : 
+          'Unknown'
+        
+        csv += `${task.id},"${task.title}","${task.description || ''}","${project?.name || 'No Project'}",${task.priority},${status},"${createdBy}",${task.created_at || ''},${task.date || ''},${task.estimated_time || task.estimatedTime || ''},${task.actual_time || task.actualTime || ''},${task.completed ? 'Yes' : 'No'},${task.updated_at || ''}\n`
       })
       
       downloadFile(csv, `task_execution_report_${Date.now()}.csv`, "text/csv")
@@ -101,6 +105,11 @@ export function TaskReports({ projects, tasks }: TaskReportsProps) {
             },
             priority: task.priority,
             status: task.completed ? "completed" : (task.status || "todo"),
+            created_by: {
+              id: task.created_by,
+              username: task.created_by_user?.username,
+              full_name: task.created_by_user?.full_name
+            },
             created_date: task.created_at,
             due_date: task.date,
             estimated_time_minutes: task.estimated_time || task.estimatedTime,

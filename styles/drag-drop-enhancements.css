@@ -8,47 +8,19 @@
   user-select: none;
 }
 
-/* Enhanced drag overlay styles */
-.drag-overlay {
-  position: fixed;
-  pointer-events: none;
-  z-index: 999999;
-  transform-origin: center;
-  animation: dragOverlayEnter 0.15s ease-out;
+/* Simple drag styles */
+.task-card {
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
-@keyframes dragOverlayEnter {
-  from {
-    opacity: 0;
-    transform: scale(0.8) rotate(0deg);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1.05) rotate(2deg);
-  }
+.task-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-@keyframes dragOverlayPulse {
-  0%, 100% {
-    transform: rotate(2deg) scale(1.05);
-  }
-  50% {
-    transform: rotate(3deg) scale(1.08);
-  }
-}
-
-/* Dragging state indicators */
-.dragging-source {
-  opacity: 0 !important;
-  transform: scale(0.95);
-  transition: all 0.2s ease;
-}
-
-.drag-ghost {
-  opacity: 0.3;
-  transform: scale(0.98);
-  border: 2px dashed rgba(var(--primary), 0.5);
-  background: rgba(var(--primary), 0.05);
+/* Clean drop zone highlighting */
+.drop-zone-active {
+  background-color: rgba(59, 130, 246, 0.1) !important;
 }
 
 /* Drop zone enhancements */

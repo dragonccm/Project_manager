@@ -86,6 +86,12 @@ export interface Task {
   completed: boolean
   created_at: string
   updated_at: string
+  created_by?: string // User ID who created the task
+  created_by_user?: {
+    id: string
+    username: string
+    full_name?: string
+  } // User details populated from database
 }
 
 export interface EmailTemplate {

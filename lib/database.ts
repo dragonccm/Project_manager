@@ -259,6 +259,7 @@ export async function createProject(projectData: Omit<Project, 'id' | 'created_a
       figma_link: project.figma_link,
       description: project.description,
       status: project.status,
+      user_id: project.user_id?.toString() || projectData.user_id,
       created_at: project.created_at?.toISOString() || new Date().toISOString(),
       updated_at: project.updated_at?.toISOString() || new Date().toISOString()
     }
@@ -286,6 +287,7 @@ export async function updateProject(id: string, updates: Partial<Project>): Prom
       figma_link: updated.figma_link,
       description: updated.description,
       status: updated.status,
+      user_id: updated.user_id?.toString(),
       created_at: updated.created_at?.toISOString() || new Date().toISOString(),
       updated_at: updated.updated_at?.toISOString() || new Date().toISOString()
     }
@@ -311,7 +313,9 @@ export async function deleteProject(id: string): Promise<void> {
 export async function getTasks(): Promise<Task[]> {
   try {
     const models = await prepareDatabase()
-    const tasks = await models.Task.find().sort({ created_at: -1 })
+    const tasks = await models.Task.find()
+      .populate('user_id', 'username full_name')
+      .sort({ created_at: -1 })
     
     return tasks.map((t: any) => ({
       id: t._id.toString(),
@@ -326,7 +330,13 @@ export async function getTasks(): Promise<Task[]> {
       estimated_time: t.estimated_time,
       actual_time: t.actual_time,
       created_at: t.created_at?.toISOString() || new Date().toISOString(),
-      updated_at: t.updated_at?.toISOString() || new Date().toISOString()
+      updated_at: t.updated_at?.toISOString() || new Date().toISOString(),
+      created_by: t.user_id?._id?.toString() || t.user_id?.toString(),
+      created_by_user: t.user_id && typeof t.user_id === 'object' ? {
+        id: t.user_id._id?.toString() || t.user_id.toString(),
+        username: t.user_id.username,
+        full_name: t.user_id.full_name
+      } : undefined
     }))
   } catch (error) {
     console.error('Error fetching tasks:', error)

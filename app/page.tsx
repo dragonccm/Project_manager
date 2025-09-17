@@ -3,16 +3,17 @@
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Bell, Settings, BarChart3, Users, FolderOpen, CheckSquare, Mail, Database, Code, FileText } from "lucide-react"
+import { Bell, Settings, BarChart3, Users, FolderOpen, CheckSquare, Mail, Database, Code, FileText, PieChart, Cog, Activity } from "lucide-react"
 import { ProjectForm } from "@/features/projects/project-form"
 import { AccountManager } from "@/features/accounts/account-manager"
 import { TrelloTasks } from "@/features/tasks/trello-tasks"
 import { TaskOverview } from "@/features/tasks/task-overview"
+import { EnhancedTaskOverview } from "@/features/tasks/enhanced-task-overview"
 import { TaskReports } from "@/features/tasks/task-reports"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { LanguageToggle } from "@/components/language-toggle"
 import { SettingsPanel } from "@/features/settings/settings-panel"
-import { CodeComponentManager } from "@/features/code-components/code-component-manager"
+import { NotesManager } from "@/features/notes/notes-manager"
 import { useLanguage } from "@/hooks/use-language"
 import { useTheme } from "@/hooks/use-theme"
 import { DashboardOverview } from "@/features/dashboard/dashboard-overview"
@@ -23,7 +24,7 @@ import { useApi } from "@/hooks/use-api"
 import { UserMenu } from "@/components/auth/user-menu"
 import { useAuth } from "@/hooks/use-auth"
 import { AuthModal } from "@/components/auth/auth-modal"
-
+import { LifeLine } from "react-loading-indicators"
 export default function Dashboard() {
   // All hooks called unconditionally at the top
   const { user, loading: authLoading, clearCookie } = useAuth();
@@ -103,10 +104,10 @@ export default function Dashboard() {
   // Conditional returns after all hooks
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Đang kiểm tra xác thực...</p>
+      <div className="min-h-screen flex items-center justify-center loading-backdrop loading-fade-in">
+        <div className="loading-container">
+          <LifeLine color="#32cd32" size="medium" text="" textColor="" />
+          <p className="loading-text text-foreground">Đang kiểm tra xác thực...</p>
         </div>
       </div>
     );
@@ -114,23 +115,14 @@ export default function Dashboard() {
 
   if (!user) {
     return (
-      <AuthModal
-        open={showAuthModal}
-        onOpenChange={setShowAuthModal}
-        defaultTab="login"
-      />
+      <>
+        <AuthModal
+          open={showAuthModal}
+          onOpenChange={setShowAuthModal}
+          defaultTab="login"
+        />
+      </>
     );
-  }
-
-  // Don't render main content if user is not authenticated
-  if (!user) {
-    return (
-      <AuthModal
-        open={showAuthModal}
-        onOpenChange={setShowAuthModal}
-        defaultTab="login"
-      />
-    )
   }
 
   const menuItems = [
@@ -138,12 +130,12 @@ export default function Dashboard() {
     { id: "projects", label: t("projects"), icon: FolderOpen },
     { id: "accounts", label: t("accounts"), icon: Users },
     { id: "tasks", label: t("dailyTasks"), icon: CheckSquare },
-    { id: "tasksOverview", label: t("taskOverview"), icon: BarChart3 },
+    { id: "tasksOverview", label: t("taskOverview"), icon: PieChart },
     { id: "reports", label: t("reports"), icon: FileText },
-    { id: "components", label: t("codeComponents"), icon: Code },
+    { id: "components", label: "Notes", icon: Code },
     { id: "settings", label: t("settings"), icon: Settings },
     { id: "email", label: t("emailComposer"), icon: Mail },
-    { id: "emailSettings", label: t("emailSettings"), icon: Settings },
+    { id: "emailSettings", label: t("emailSettings"), icon: Cog },
   ]
 
   const renderContent = () => {
@@ -180,9 +172,10 @@ export default function Dashboard() {
         )
       case "tasksOverview":
         return (
-          <TaskOverview
+          <EnhancedTaskOverview
             projects={projects}
             tasks={tasks}
+            accounts={accounts}
           />
         )
       case "reports":
@@ -193,7 +186,7 @@ export default function Dashboard() {
           />
         )
       case "components":
-        return <CodeComponentManager />
+        return <NotesManager />
       case "settings":
         return (
           <SettingsPanel
@@ -244,10 +237,10 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className={`min-h-screen bg-background ${theme} flex items-center justify-center`}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">{t("loading")}</p>
+      <div className={`min-h-screen bg-background ${theme} flex items-center justify-center loading-backdrop loading-fade-in`}>
+        <div className="loading-container">
+          <LifeLine color="#32cd32" size="medium" text="" textColor="" />
+          <p className="loading-text text-muted-foreground">{t("loading")}</p>
         </div>
       </div>
     )
@@ -267,7 +260,7 @@ export default function Dashboard() {
     <div className={`min-h-screen bg-background ${theme}`}>
       {/* Mobile Header */}
       <div className="lg:hidden flex items-center justify-between p-4 border-b border-border bg-card">
-  <h2 className="text-lg font-bold">{t("projectManager")}</h2>
+        <h2 className="text-lg font-bold">{t("projectManager")}</h2>
         <div className="flex items-center gap-2">
           <UserMenu />
           <LanguageToggle />
@@ -350,31 +343,79 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col">
-          {/* Mobile Navigation */}
-          <div className="lg:hidden bg-card border-b border-border">
-            <div className="overflow-x-auto">
-              <div className="flex min-w-max">
-                {menuItems.map((item) => (
-                  <Button
-                    key={item.id}
-                    variant={activeTab === item.id ? "default" : "ghost"}
-                    size="sm"
-                    className="shrink-0 m-2"
-                    onClick={() => setActiveTab(item.id)}
-                  >
-                    <item.icon className="h-4 w-4 mr-2" />
-                    <span className="text-xs">{item.label}</span>
-                  </Button>
-                ))}
-              </div>
+        {/* Desktop Main Content */}
+        <div className="hidden lg:flex flex-1 flex-col">
+          <div className="flex-1 p-4 lg:p-6 overflow-auto">
+            {renderContent()}
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Layout - Content first, sticky navigation at bottom */}
+      <div className="lg:hidden flex flex-col h-screen">
+        {/* Mobile Main Content */}
+        <div className="flex-1 mobile-scroll-container p-4 mobile-content-with-nav">
+          {renderContent()}
+        </div>
+
+        {/* Mobile Navigation - Sticky Bottom */}
+        <div className="mobile-sticky-nav fixed bottom-0 left-0 right-0 border-t border-border z-50">
+          <div className="overflow-x-auto">
+            <div className="flex min-w-max">
+              {menuItems.map((item) => (
+                <Button
+                  key={item.id}
+                  variant={activeTab === item.id ? "default" : "ghost"}
+                  size="sm"
+                  className="mobile-nav-button shrink-0 m-2 min-w-[80px] flex-col h-12 px-2"
+                  onClick={() => setActiveTab(item.id)}
+                >
+                  <item.icon className="h-4 w-4 mb-1" />
+                  <span className="text-xs leading-tight text-center">{item.label}</span>
+                </Button>
+              ))}
             </div>
           </div>
 
-          {/* Content Area */}
-          <div className="flex-1 p-4 lg:p-6 overflow-auto">
-            {renderContent()}
+          {/* Mobile Status and Database Controls */}
+          <div className="px-4 pb-2">
+            {!loading && (
+              <p className="text-xs text-muted-foreground text-center mb-2">
+                {projects.length} {t("projects")} • {tasks.filter((t) => !t.completed).length} {t("pending")}
+                {!isApiAvailable && ` • ${t("offline")}`}
+              </p>
+            )}
+
+            {/* Mobile Database Status Toggle */}
+            <div className="flex justify-center gap-2 mb-2">
+              {process.env.NODE_ENV === 'development' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearCookie}
+                  className="h-6 px-2 text-xs"
+                  title="Clear Auth Cookie (Dev)"
+                >
+                  🍪 Dev
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowDatabaseStatus(!showDatabaseStatus)}
+                className="h-6 px-2 text-xs"
+              >
+                <Database className="h-3 w-3 mr-1" />
+                DB Status
+              </Button>
+            </div>
+
+            {/* Mobile Database Status */}
+            {showDatabaseStatus && (
+              <div className="mb-2">
+                <DatabaseStatus />
+              </div>
+            )}
           </div>
         </div>
       </div>

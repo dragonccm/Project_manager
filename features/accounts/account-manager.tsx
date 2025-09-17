@@ -13,6 +13,7 @@ import { Eye, EyeOff, Copy, Mail, RefreshCw, Plus, User, Search, Grid3X3, List, 
 import { useLanguage } from "@/hooks/use-language"
 import { getLocalDateString } from "@/lib/date-utils"
 import { generateStrongPassword } from "@/lib/password-generator"
+import { LazyLoadList } from "@/components/ui/lazy-load"
 // Mobile utilities and components
 import {
   getMobileButtonClasses,
@@ -472,8 +473,10 @@ export function AccountManager({
             <CardContent>
               {/* Conditional rendering based on view mode */}
               {viewMode === 'list' ? (
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {filteredAccounts.map((account) => {
+                <LazyLoadList
+                  items={filteredAccounts}
+                  batchSize={8}
+                  renderItem={(account, index) => {
                     const accountProjectId = account.projectId || account.project_id
                     const project = projects.find((p) => p.id == accountProjectId)
                     return (
@@ -534,17 +537,16 @@ export function AccountManager({
                         </div>
                       </div>
                     )
-                  })}
-                  {filteredAccounts.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      {searchQuery || projectFilter !== 'all' ? vietnameseText.noResults : t("noAccountsYet")}
-                    </div>
-                  )}
-                </div>
+                  }}
+                  loadingText="Đang tải thêm tài khoản..."
+                  noMoreText="Đã hiển thị tất cả tài khoản"
+                />
               ) : (
                 /* Grid View */
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {filteredAccounts.map((account) => {
+                <LazyLoadList
+                  items={filteredAccounts}
+                  batchSize={12}
+                  renderItem={(account, index) => {
                     const project = projects.find((p) => p.id == account.projectId)
                     return (
                       <Card key={account.id} className="hover:shadow-md transition-shadow">
@@ -646,12 +648,16 @@ export function AccountManager({
                         </CardContent>
                       </Card>
                     )
-                  })}
-                  {filteredAccounts.length === 0 && (
-                    <div className="col-span-full text-center py-8 text-muted-foreground">
-                      {searchQuery || projectFilter !== 'all' ? vietnameseText.noResults : t("noAccountsYet")}
-                    </div>
-                  )}
+                  }}
+                  className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
+                  loadingText="Đang tải thêm tài khoản..."
+                  noMoreText="Đã hiển thị tất cả tài khoản"
+                />
+              )}
+              
+              {filteredAccounts.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  {searchQuery || projectFilter !== 'all' ? vietnameseText.noResults : t("noAccountsYet")}
                 </div>
               )}
             </CardContent>

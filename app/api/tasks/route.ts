@@ -4,10 +4,15 @@ import { withAuth, AuthenticatedRequest } from '@/lib/auth-session'
 
 export const GET = withAuth(async (request: AuthenticatedRequest) => {
   try {
+    console.log('GET /api/tasks - User ID:', request.user.id)
     const tasks = await getTasks(request.user.id)
+    console.log('Tasks retrieved successfully:', tasks.length, 'tasks')
     return NextResponse.json(tasks)
   } catch (error) {
-    console.error('Error fetching tasks:', error)
+    console.error('Error fetching tasks - Full error:', error)
+    console.error('Error name:', error instanceof Error ? error.name : 'Unknown')
+    console.error('Error message:', error instanceof Error ? error.message : String(error))
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack')
     return NextResponse.json(
       { error: 'Failed to fetch tasks' },
       { status: 500 }

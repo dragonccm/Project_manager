@@ -38,6 +38,7 @@ export const API_ENDPOINTS = {
   EMAIL: "/api/email",
   REPORT_TEMPLATES: "/api/report-templates",
   SETTINGS: "/api/settings",
+  NOTES: "/api/notes",
   AUTH: {
     LOGIN: "/api/auth/login",
     LOGOUT: "/api/auth/logout",

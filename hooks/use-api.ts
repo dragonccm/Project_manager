@@ -64,6 +64,22 @@ const safeJsonParse = async (response: Response) => {
   }
 }
 
+// Helper function that handles authentication errors gracefully
+const safeParseOrEmpty = async (response: Response) => {
+  try {
+    return await safeJsonParse(response)
+  } catch (error) {
+    // Handle authentication errors silently
+    if (response.status === 401) {
+      console.log('Authentication required - returning empty data')
+      return null
+    }
+    // Log other errors but don't throw them to prevent breaking the entire loadData
+    console.warn('API response error:', error)
+    return null
+  }
+}
+
 export function useApi() {
   const [projects, setProjects] = useState<Project[]>([])
   const [accounts, setAccounts] = useState<Account[]>([])
@@ -117,22 +133,22 @@ export function useApi() {
 
       // Process responses and handle authentication errors gracefully
       const projectsData = projectsResponse.status === 'fulfilled' 
-        ? (await safeJsonParse(projectsResponse.value)) || []
+        ? await safeParseOrEmpty(projectsResponse.value)
         : []
       const accountsData = accountsResponse.status === 'fulfilled'
-        ? (await safeJsonParse(accountsResponse.value)) || []
+        ? await safeParseOrEmpty(accountsResponse.value)
         : []
       const tasksData = tasksResponse.status === 'fulfilled'
-        ? (await safeJsonParse(tasksResponse.value)) || []
+        ? await safeParseOrEmpty(tasksResponse.value)
         : []
       const emailTemplatesData = emailTemplatesResponse.status === 'fulfilled'
-        ? (await safeJsonParse(emailTemplatesResponse.value)) || []
+        ? await safeParseOrEmpty(emailTemplatesResponse.value)
         : []
       const reportTemplatesData = reportTemplatesResponse.status === 'fulfilled'
-        ? (await safeJsonParse(reportTemplatesResponse.value)) || { data: [] }
+        ? await safeParseOrEmpty(reportTemplatesResponse.value) || { data: [] }
         : { data: [] }
       const settingsData = settingsResponse.status === 'fulfilled'
-        ? await safeJsonParse(settingsResponse.value)
+        ? await safeParseOrEmpty(settingsResponse.value)
         : null
 
       console.log("API data loaded successfully")

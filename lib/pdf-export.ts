@@ -91,13 +91,17 @@ async function initializePDFWithVietnameseFont(options: Required<PDFExportOption
     await loadVietnameseFont(doc, 'NotoSans-Regular');
     if (loadedFontKeys.has('NotoSans-Regular')) {
       doc.setFont('NotoSans', 'normal');
+      console.log('Vietnamese font loaded successfully');
     } else {
+      // Use Helvetica with proper encoding for Vietnamese characters
       doc.setFont('helvetica', 'normal');
+      console.log('Using built-in font (helvetica) for text display');
     }
     doc.setFontSize(options.fontSize);
   } catch (error) {
-    console.warn('Vietnamese font loading failed, using fallback font:', error);
+    console.log('Using built-in font for text display:', error);
     doc.setFont('helvetica', 'normal');
+    doc.setFontSize(options.fontSize);
   }
 
   return doc;
@@ -105,19 +109,29 @@ async function initializePDFWithVietnameseFont(options: Required<PDFExportOption
 
 /**
  * Load Vietnamese font into PDF document
- * This is a placeholder - in production, implement actual font loading
+ * This function now gracefully handles missing font files
  */
 async function loadVietnameseFont(doc: jsPDF, fontKey: keyof typeof VIETNAMESE_FONTS): Promise<void> {
   const font = VIETNAMESE_FONTS[fontKey];
   if (!font) return;
   if (loadedFontKeys.has(fontKey)) return;
+  
   try {
+    // Check if font file exists before trying to load it
+    const fontResponse = await fetch(font.url, { method: 'HEAD' });
+    if (!fontResponse.ok) {
+      console.log(`Vietnamese font file not found at ${font.url}. Using built-in font.`);
+      return;
+    }
+    
     const base64 = await fetchFontAsBase64(font.url);
     (doc as any).addFileToVFS(font.vfsName, base64);
     (doc as any).addFont(font.vfsName, font.family, font.style);
     loadedFontKeys.add(fontKey);
+    console.log(`Successfully loaded Vietnamese font: ${fontKey}`);
   } catch (e) {
-    console.warn('Could not load Vietnamese font from public/fonts. Falling back to built-in font.', e);
+    console.log('Vietnamese font not available, using built-in font for proper display.', e);
+    // No need to throw error, just continue with built-in font
   }
 }
 

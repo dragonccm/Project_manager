@@ -18,7 +18,17 @@ export async function connectToDatabase() {
   }
 
   try {
-    client = new MongoClient(MONGODB_URI!)
+    // Enhanced MongoDB connection with UTF-8 support
+    client = new MongoClient(MONGODB_URI!, {
+      // Ensure proper UTF-8 handling
+      compressors: ['zlib'],
+      readPreference: 'primary',
+      maxPoolSize: 10,
+      minPoolSize: 1,
+      maxIdleTimeMS: 30000,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    })
     await client.connect()
     db = client.db()
     
@@ -131,26 +141,105 @@ export async function deleteAccount(id: string, userId: string) {
 
 // Task operations
 export async function getTasks(userId: string) {
-  const { db } = await connectToDatabase()
-  const tasks = await db.collection('tasks').find({ user_id: userId }).sort({ created_at: -1 }).toArray()
-  return tasks.map(task => ({
-    ...task,
-    id: task._id.toString(),
-    _id: undefined
-  }))
+  console.log('getTasks called with userId:', userId)
+  try {
+    const { db } = await connectToDatabase()
+    console.log('Database connected successfully')
+    
+    const objectId = require('mongodb').ObjectId
+    console.log('ObjectId imported, converting userId to ObjectId')
+    
+    const userObjectId = new objectId(userId)
+    console.log('User ObjectId created:', userObjectId)
+    
+    // Use aggregation to populate user information for task creators
+    const tasks = await db.collection('tasks').aggregate([
+      { $match: { user_id: userObjectId } },
+      { $lookup: {
+          from: 'users',
+          localField: 'user_id',
+          foreignField: '_id',
+          as: 'created_by_user'
+        }
+      },
+      { $unwind: { path: '$created_by_user', preserveNullAndEmptyArrays: true } },
+      { $project: {
+          _id: 1,
+          title: 1,
+          description: 1,
+          project_id: 1,
+          assigned_to: 1,
+          status: 1,
+          priority: 1,
+          date: 1,
+          estimated_time: 1,
+          actual_time: 1,
+          completed: 1,
+          created_at: 1,
+          updated_at: 1,
+          user_id: 1,
+          created_by: '$user_id',
+          'created_by_user.id': '$created_by_user._id',
+          'created_by_user.username': '$created_by_user.username',
+          'created_by_user.full_name': { $ifNull: ['$created_by_user.full_name', '$created_by_user.username'] }
+        }
+      },
+      { $sort: { created_at: -1 } }
+    ]).toArray()
+    console.log('Tasks aggregation completed, found:', tasks.length, 'tasks')
+    
+    const transformedTasks = tasks.map(task => ({
+      ...task,
+      id: task._id.toString(),
+      created_by: task.created_by.toString(),
+      created_by_user: task.created_by_user && task.created_by_user.id ? {
+        id: task.created_by_user.id.toString(),
+        username: task.created_by_user.username,
+        full_name: task.created_by_user.full_name
+      } : undefined,
+      _id: undefined
+    }))
+    
+    console.log('Tasks transformed successfully with user information')
+    return transformedTasks
+  } catch (error) {
+    console.error('Error in getTasks:', error)
+    throw error
+  }
 }
 
 export async function createTask(taskData: any) {
+  console.log('createTask called with data:', taskData)
+  
+  // Debug UTF-8 encoding for Vietnamese characters
+  if (taskData.title) {
+    console.log('Title encoding check:', {
+      original: taskData.title,
+      length: taskData.title.length,
+      bytes: Buffer.byteLength(taskData.title, 'utf8'),
+      encoded: encodeURIComponent(taskData.title)
+    })
+  }
+  
   const { db } = await connectToDatabase()
+  console.log('Database connected for task creation')
+  
+  const objectId = require('mongodb').ObjectId
   const newTask = {
     ...taskData,
+    user_id: new objectId(taskData.user_id), // Convert user_id to ObjectId
     created_at: new Date(),
     updated_at: new Date()
   }
+  console.log('Creating task with ObjectId user_id:', newTask.user_id)
+  
   const result = await db.collection('tasks').insertOne(newTask)
+  console.log('Task created successfully with ID:', result.insertedId)
+  
   return {
     ...newTask,
     id: result.insertedId.toString(),
+    user_id: taskData.user_id, // Return original string format for client
     _id: undefined
   }
 }
@@ -159,7 +248,7 @@ export async function updateTask(id: string, userId: string, taskData: any) {
   const { db } = await connectToDatabase()
   const objectId = require('mongodb').ObjectId
   const result = await db.collection('tasks').findOneAndUpdate(
-    { _id: new objectId(id), user_id: userId },
+    { _id: new objectId(id), user_id: new objectId(userId) }, // Convert userId to ObjectId
     { 
       $set: { 
         ...taskData, 
@@ -174,6 +263,7 @@ export async function updateTask(id: string, userId: string, taskData: any) {
   return {
     ...result,
     id: result._id.toString(),
+    user_id: userId, // Return original string format
     _id: undefined
   }
 }
@@ -181,7 +271,7 @@ export async function updateTask(id: string, userId: string, taskData: any) {
 export async function deleteTask(id: string, userId: string) {
   const { db } = await connectToDatabase()
   const objectId = require('mongodb').ObjectId
-  const result = await db.collection('tasks').deleteOne({ _id: new objectId(id), user_id: userId })
+  const result = await db.collection('tasks').deleteOne({ _id: new objectId(id), user_id: new objectId(userId) }) // Convert userId to ObjectId
   if (result.deletedCount === 0) throw new Error('Task not found')
 }
 
@@ -235,6 +325,40 @@ export async function createCodeComponent(componentData: any) {
     id: result.insertedId.toString(),
     _id: undefined
   }
+}
+
+export async function updateCodeComponent(id: string, componentData: any) {
+  const { db } = await connectToDatabase()
+  const { ObjectId } = await import('mongodb')
+  
+  const updateData = {
+    ...componentData,
+    updated_at: new Date()
+  }
+  
+  const result = await db.collection('code_components').updateOne(
+    { _id: new ObjectId(id) },
+    { $set: updateData }
+  )
+  
+  if (result.matchedCount === 0) {
+    return null
+  }
+  
+  const updatedComponent = await db.collection('code_components').findOne({ _id: new ObjectId(id) })
+  return {
+    ...updatedComponent,
+    id: updatedComponent?._id.toString(),
+    _id: undefined
+  }
+}
+
+export async function deleteCodeComponent(id: string) {
+  const { db } = await connectToDatabase()
+  const { ObjectId } = await import('mongodb')
+  
+  const result = await db.collection('code_components').deleteOne({ _id: new ObjectId(id) })
+  return result.deletedCount > 0
 }
 
 // Link operations

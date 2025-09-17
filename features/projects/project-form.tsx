@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Plus, Edit, Trash2, ExternalLink, Eye, Grid3X3, List, Search, Download, Calendar, Users } from "lucide-react"
 import { useLanguage } from "@/hooks/use-language"
+import { LazyLoadList } from "@/components/ui/lazy-load"
 
 interface Project {
   id: string
@@ -325,55 +326,58 @@ export function ProjectForm({
               <CardDescription>{t("manageYourProjects")}</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                {filteredProjects.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">{vietnameseText.noResults}</div>
-                ) : (
-                  filteredProjects.map((project, index) => (
-                    <div key={project.id || `project-${index}`} className="border rounded-lg p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h3 className="font-semibold">{project.name}</h3>
-                          <p className="text-sm text-muted-foreground">{project.description || 'Chưa có mô tả'}</p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="outline">
-                              {project.status === 'active' ? vietnameseText.active :
-                               project.status === 'completed' ? vietnameseText.completed :
-                               project.status === 'paused' ? vietnameseText.paused :
-                               vietnameseText.cancelled}
-                            </Badge>
-                            {project.domain && (
-                              <Button variant="ghost" size="sm" asChild>
-                                <a href={project.domain} target="_blank" rel="noopener noreferrer">
-                                  <ExternalLink className="h-3 w-3" />
-                                </a>
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="ghost" size="sm" onClick={() => handleViewDetails(project)}>
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleEdit(project)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleDelete(project.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+              <LazyLoadList
+                items={filteredProjects}
+                batchSize={6}
+                renderItem={(project, index) => (
+                  <div key={project.id || `project-${index}`} className="border rounded-lg p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-semibold">{project.name}</h3>
+                        <p className="text-sm text-muted-foreground">{project.description || 'Chưa có mô tả'}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="outline">
+                            {project.status === 'active' ? vietnameseText.active :
+                             project.status === 'completed' ? vietnameseText.completed :
+                             project.status === 'paused' ? vietnameseText.paused :
+                             vietnameseText.cancelled}
+                          </Badge>
+                          {project.domain && (
+                            <Button variant="ghost" size="sm" asChild>
+                              <a href={project.domain} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            </Button>
+                          )}
                         </div>
                       </div>
+                      <div className="flex gap-2">
+                        <Button variant="ghost" size="sm" onClick={() => handleViewDetails(project)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(project)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleDelete(project.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                  ))
+                  </div>
                 )}
-              </div>
+                emptyMessage={searchQuery || statusFilter !== 'all' ? vietnameseText.noResults : 'Chưa có dự án nào'}
+                loadingText="Đang tải thêm dự án..."
+                noMoreText="Đã hiển thị tất cả dự án"
+              />
             </CardContent>
           </Card>
         ) : (
           /* Vietnamese Grid View */
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredProjects.map((project, index) => (
+            <LazyLoadList
+              items={filteredProjects}
+              batchSize={8}
+              renderItem={(project, index) => (
                 <Card key={project.id || `card-project-${index}`} className="group hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/20">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
@@ -483,10 +487,14 @@ export function ProjectForm({
                     </div>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
+              )}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+              emptyMessage={searchQuery || statusFilter !== 'all' ? vietnameseText.noResults : 'Chưa có dự án nào'}
+              loadingText="Đang tải thêm dự án..."
+              noMoreText="Đã hiển thị tất cả dự án"
+            />
             
-            {/* Empty State for Grid */}
+            {/* Empty State for Grid when no lazy loading visible */}
             {filteredProjects.length === 0 && (
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-12">
