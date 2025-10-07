@@ -358,3 +358,76 @@ body {
   outline: 2px solid hsl(120 60% 50%);
   outline-offset: 2px;
 }
+
+/* Background Theme Utilities */
+.background-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Custom background patterns */
+.bg-pattern-dots {
+  background-image: radial-gradient(circle at 2px 2px, rgba(0,0,0,0.15) 1px, transparent 0);
+  background-size: 20px 20px;
+}
+
+.bg-pattern-grid {
+  background-image: 
+    linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.bg-pattern-waves {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+.bg-pattern-diagonal {
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.1) 10px, rgba(0,0,0,0.1) 20px);
+}
+
+/* Dark theme pattern adjustments */
+.dark .bg-pattern-dots {
+  background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.1) 1px, transparent 0);
+}
+
+.dark .bg-pattern-grid {
+  background-image: 
+    linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+}
+
+.dark .bg-pattern-waves {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+.dark .bg-pattern-diagonal {
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px);
+}
+
+/* Background transition effects */
+.background-transition {
+  transition: all 0.5s ease-in-out;
+}
+
+/* Content overlay for better readability */
+.content-overlay {
+  background: rgba(var(--background-rgb), 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius);
+}
+
+/* Gradient direction classes */
+.gradient-to-r { background: linear-gradient(to right, var(--gradient-start), var(--gradient-end)); }
+.gradient-to-br { background: linear-gradient(to bottom right, var(--gradient-start), var(--gradient-end)); }
+.gradient-to-b { background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end)); }
+.gradient-to-bl { background: linear-gradient(to bottom left, var(--gradient-start), var(--gradient-end)); }
+.gradient-to-l { background: linear-gradient(to left, var(--gradient-start), var(--gradient-end)); }
+.gradient-to-tl { background: linear-gradient(to top left, var(--gradient-start), var(--gradient-end)); }
+.gradient-to-t { background: linear-gradient(to top, var(--gradient-start), var(--gradient-end)); }
+.gradient-to-tr { background: linear-gradient(to top right, var(--gradient-start), var(--gradient-end)); }

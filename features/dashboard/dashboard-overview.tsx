@@ -20,7 +20,10 @@ import {
   Calendar,
   TrendingUp,
   Activity,
+  FileText,
+  Mail,
 } from "lucide-react"
+import AdvancedEmailComposer from "@/components/advanced-email-composer"
 import { useLanguage } from "@/hooks/use-language"
 import { getLocalDateString } from "@/lib/date-utils"
 
@@ -304,6 +307,45 @@ export function DashboardOverview({
               <BarChart3 className="h-6 w-6" />
               <span className="text-sm">{t("generateReport")}</span>
             </Button>
+            {/* Email Composer Triggers */}
+            <div className="col-span-2 md:col-span-4 flex flex-wrap gap-2 mt-4">
+              <AdvancedEmailComposer
+                initialEmailType="projectUpdate"
+                trigger={
+                  <Button variant="secondary" size="sm" className="gap-2">
+                    <Mail className="h-4 w-4" />
+                    Gửi Email Dự Án
+                  </Button>
+                }
+              />
+              <AdvancedEmailComposer
+                initialEmailType="taskNotification"
+                trigger={
+                  <Button variant="secondary" size="sm" className="gap-2">
+                    <CheckSquare className="h-4 w-4" />
+                    Gửi Email Nhiệm Vụ
+                  </Button>
+                }
+              />
+              <AdvancedEmailComposer
+                initialEmailType="accountUpdate"
+                trigger={
+                  <Button variant="secondary" size="sm" className="gap-2">
+                    <Users className="h-4 w-4" />
+                    Gửi Email Tài Khoản
+                  </Button>
+                }
+              />
+              <AdvancedEmailComposer
+                initialEmailType="reportEmail"
+                trigger={
+                  <Button variant="secondary" size="sm" className="gap-2">
+                    <FileText className="h-4 w-4" />
+                    Gửi Báo Cáo
+                  </Button>
+                }
+              />
+            </div>
           </div>
         </CardContent>
       </Card>

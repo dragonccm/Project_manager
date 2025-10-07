@@ -9,11 +9,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Eye, EyeOff, Copy, Mail, RefreshCw, Plus, User, Search, Grid3X3, List, ExternalLink, Calendar, Trash2 } from "lucide-react"
+import { Eye, EyeOff, Copy, Mail, RefreshCw, Plus, User, Search, Grid3X3, List, ExternalLink, Calendar, Trash2, Share2 } from "lucide-react"
+import { AdvancedEmailComposer } from "@/components/advanced-email-composer"
 import { useLanguage } from "@/hooks/use-language"
 import { getLocalDateString } from "@/lib/date-utils"
 import { generateStrongPassword } from "@/lib/password-generator"
 import { LazyLoadList } from "@/components/ui/lazy-load"
+import { ShareModal } from "@/features/share/ShareModal"
 // Mobile utilities and components
 import {
   getMobileButtonClasses,
@@ -60,11 +62,17 @@ export function AccountManager({
   // ...existing code...
   const [showPasswords, setShowPasswords] = useState<{ [key: string]: boolean }>({})
   const [showForm, setShowForm] = useState(false)
+  const [showEmailComposer, setShowEmailComposer] = useState(false)
+  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null)
 
   // Grid view states
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
   const [searchQuery, setSearchQuery] = useState('')
   const [projectFilter, setProjectFilter] = useState<string>('all')
+
+  // Share modal state
+  const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [selectedAccountForShare, setSelectedAccountForShare] = useState<Account | null>(null)
 
   const [formData, setFormData] = useState({
     projectId: "",
@@ -267,10 +275,8 @@ export function AccountManager({
   }
 
   const sendEmailWithCredentials = (account: Account) => {
-    const subject = `Account Credentials for ${account.website}`
-    const body = `Username: ${account.username}\nPassword: ${account.password}\nWebsite: ${account.website}`
-    const mailtoLink = `mailto:${account.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-    window.open(mailtoLink)
+    setSelectedAccount(account)
+    setShowEmailComposer(true)
   }
 
   const togglePasswordVisibility = (accountId: string) => {
@@ -476,6 +482,7 @@ export function AccountManager({
                 <LazyLoadList
                   items={filteredAccounts}
                   batchSize={8}
+                  getItemKey={(account) => account.id || account._id || `account-${account.username}-${account.website}`}
                   renderItem={(account, index) => {
                     const accountProjectId = account.projectId || account.project_id
                     const project = projects.find((p) => p.id == accountProjectId)
@@ -487,6 +494,18 @@ export function AccountManager({
                             <Badge variant="outline">{project?.name || "Unknown Project"}</Badge>
                           </div>
                           <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedAccountForShare(account)
+                                setShareModalOpen(true)
+                              }}
+                              className="text-blue-500 hover:text-blue-600"
+                              title="Share account"
+                            >
+                              <Share2 className="h-3 w-3" />
+                            </Button>
                             {account.email && (
                               <Button variant="ghost" size="sm" onClick={() => sendEmailWithCredentials(account)} title="Send email">
                                 <Mail className="h-3 w-3" />
@@ -546,6 +565,7 @@ export function AccountManager({
                 <LazyLoadList
                   items={filteredAccounts}
                   batchSize={12}
+                  getItemKey={(account) => account.id || account._id || `account-${account.username}-${account.website}`}
                   renderItem={(account, index) => {
                     const project = projects.find((p) => p.id == account.projectId)
                     return (
@@ -563,6 +583,18 @@ export function AccountManager({
                               </div>
                             </div>
                             <div className="flex gap-1 ml-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedAccountForShare(account)
+                                  setShareModalOpen(true)
+                                }}
+                                className="text-blue-500 hover:text-blue-600"
+                                title="Share account"
+                              >
+                                <Share2 className="h-3 w-3" />
+                              </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -664,6 +696,37 @@ export function AccountManager({
           </Card>
         </div>
       </div>
+      
+      {/* Advanced Email Composer for Account Credentials */}
+      {showEmailComposer && selectedAccount && (
+        <AdvancedEmailComposer
+          isOpen={showEmailComposer}
+          onClose={() => {
+            setShowEmailComposer(false)
+            setSelectedAccount(null)
+          }}
+          initialEmailType="accountCredentials"
+          contextData={{
+            accountId: selectedAccount.id,
+            website: selectedAccount.website,
+            username: selectedAccount.username,
+            password: selectedAccount.password,
+            email: selectedAccount.email,
+            projectName: projects.find(p => p.id === selectedAccount.projectId)?.name || "Unknown Project"
+          }}
+        />
+      )}
+
+      {/* Share Modal */}
+      {selectedAccountForShare && (
+        <ShareModal
+          open={shareModalOpen}
+          onOpenChange={setShareModalOpen}
+          resourceType="account"
+          resourceId={selectedAccountForShare.id || ''}
+          resourceName={selectedAccountForShare.website || 'Untitled Account'}
+        />
+      )}
     </div>
   )
 }

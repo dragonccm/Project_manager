@@ -11,8 +11,10 @@ interface LazyLoadListProps<T> {
   batchSize?: number
   loadingText?: string
   noMoreText?: string
+  emptyMessage?: string
   className?: string
   itemClassName?: string
+  getItemKey?: (item: T, index: number) => string | number
 }
 
 export function LazyLoadList<T>({
@@ -21,8 +23,10 @@ export function LazyLoadList<T>({
   batchSize = 10,
   loadingText = "Loading more...",
   noMoreText = "No more items",
+  emptyMessage = "No items to display",
   className,
-  itemClassName
+  itemClassName,
+  getItemKey
 }: LazyLoadListProps<T>) {
   const [displayedItems, setDisplayedItems] = useState<T[]>([])
   const [loading, setLoading] = useState(false)
@@ -54,7 +58,7 @@ export function LazyLoadList<T>({
   if (items.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
-        No items to display
+        {emptyMessage}
       </div>
     )
   }
@@ -62,7 +66,10 @@ export function LazyLoadList<T>({
   return (
     <>
       <div className={className}>
-        {displayedItems.map((item, index) => renderItem(item, index))}
+        {displayedItems.map((item, index) => {
+          const key = getItemKey ? getItemKey(item, index) : `item-${index}`
+          return <div key={key}>{renderItem(item, index)}</div>
+        })}
       </div>
       
       {hasMore && (

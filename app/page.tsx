@@ -3,11 +3,11 @@
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Bell, Settings, BarChart3, Users, FolderOpen, CheckSquare, Mail, Database, Code, FileText, PieChart, Cog, Activity } from "lucide-react"
+import { Bell, Settings, BarChart3, Users, FolderOpen, CheckSquare, Mail, Database, Code, FileText, PieChart, Cog, Activity, Shield } from "lucide-react"
 import { ProjectForm } from "@/features/projects/project-form"
 import { AccountManager } from "@/features/accounts/account-manager"
 import { TrelloTasks } from "@/features/tasks/trello-tasks"
-import { TaskOverview } from "@/features/tasks/task-overview"
+import { TaskOverview } from "@/features/tasks/improved-task-overview"
 import { EnhancedTaskOverview } from "@/features/tasks/enhanced-task-overview"
 import { TaskReports } from "@/features/tasks/task-reports"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -25,6 +25,9 @@ import { UserMenu } from "@/components/auth/user-menu"
 import { useAuth } from "@/hooks/use-auth"
 import { AuthModal } from "@/components/auth/auth-modal"
 import { LifeLine } from "react-loading-indicators"
+import AdvancedEmailComposer from "@/components/advanced-email-composer"
+import { ShareManagement } from "@/features/admin/share-management"
+
 export default function Dashboard() {
   // All hooks called unconditionally at the top
   const { user, loading: authLoading, clearCookie } = useAuth();
@@ -136,6 +139,7 @@ export default function Dashboard() {
     { id: "settings", label: t("settings"), icon: Settings },
     { id: "email", label: t("emailComposer"), icon: Mail },
     { id: "emailSettings", label: t("emailSettings"), icon: Cog },
+    { id: "admin", label: t("adminPanel"), icon: Shield },
   ]
 
   const renderContent = () => {
@@ -172,7 +176,7 @@ export default function Dashboard() {
         )
       case "tasksOverview":
         return (
-          <EnhancedTaskOverview
+          <TaskOverview
             projects={projects}
             tasks={tasks}
             accounts={accounts}
@@ -223,6 +227,8 @@ export default function Dashboard() {
         )
       case "emailSettings":
         return <EmailSettings onSettingsChange={handleEmailSettingsChange} />
+      case "admin":
+        return <ShareManagement />
       default:
         return (
           <DashboardOverview

@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Mail, Send, TestTube, Settings, Loader2, CheckCircle, XCircle } from "lucide-react"
+import { Mail, Send, TestTube, Settings, Loader2, CheckCircle, XCircle, RefreshCw, Eye } from "lucide-react"
 import { useLanguage } from "@/hooks/use-language"
 import { useEmail } from "@/hooks/use-email"
 
@@ -162,16 +162,16 @@ export function EmailComposer({ projects, tasks = [], accounts = [] }: EmailComp
   }
 
   const getEmailTypeOptions = () => [
-    { value: "custom", label: "📧 Email tùy chỉnh" },
-    { value: "task_created", label: "🆕 Thông báo task mới" },
-    { value: "task_completed", label: "✅ Thông báo task hoàn thành" },
-    { value: "project_update", label: "📊 Cập nhật dự án" },
+    { value: "custom", label: "📧 Email Tùy Chỉnh Cá Nhân" },
+    { value: "task_created", label: "🆕 Thông Báo Nhiệm Vụ Mới Được Tạo" },
+    { value: "task_completed", label: "✅ Thông Báo Nhiệm Vụ Đã Hoàn Thành" },
+    { value: "project_update", label: "📊 Cập Nhật Tiến Độ Dự Án" },
   ]
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Email Composer</h1>
+        <h1 className="text-3xl font-bold">Soạn Thảo và Gửi Email</h1>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -183,7 +183,7 @@ export function EmailComposer({ projects, tasks = [], accounts = [] }: EmailComp
             ) : (
               <TestTube className="h-4 w-4 mr-2" />
             )}
-            Test Connection
+            Kiểm Tra Kết Nối SMTP
           </Button>
           {connectionStatus.connected === true && (
             <Badge variant="default" className="bg-green-500">
@@ -217,8 +217,8 @@ export function EmailComposer({ projects, tasks = [], accounts = [] }: EmailComp
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="compose">Soạn Email</TabsTrigger>
-          <TabsTrigger value="settings">Cài đặt SMTP</TabsTrigger>
+          <TabsTrigger value="compose">Soạn Thảo Email</TabsTrigger>
+          <TabsTrigger value="settings">Cấu Hình SMTP</TabsTrigger>
         </TabsList>
 
         <TabsContent value="compose" className="space-y-6">
@@ -226,22 +226,22 @@ export function EmailComposer({ projects, tasks = [], accounts = [] }: EmailComp
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Mail className="h-5 w-5" />
-                Soạn Email
+                Soạn Thảo Email
               </CardTitle>
               <CardDescription>
-                Soạn và gửi email sử dụng SMTP server
+                Soạn thảo và gửi email thông báo sử dụng máy chủ SMTP
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Email Type Selection */}
               <div className="space-y-2">
-                <Label htmlFor="emailType">Loại Email</Label>
+                <Label htmlFor="emailType">Loại Thông Báo Email</Label>
                 <Select
                   value={emailData.emailType}
                   onValueChange={(value: any) => setEmailData({ ...emailData, emailType: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Chọn loại email thông báo..." />
                   </SelectTrigger>
                   <SelectContent>
                     {getEmailTypeOptions().map((option) => (
@@ -256,22 +256,22 @@ export function EmailComposer({ projects, tasks = [], accounts = [] }: EmailComp
               {/* Task Selection for task-related emails */}
               {(emailData.emailType === "task_created" || emailData.emailType === "task_completed") && (
                 <div className="space-y-2">
-                  <Label htmlFor="selectedTask">Chọn Task ({tasks.length} task có sẵn)</Label>
+                  <Label htmlFor="selectedTask">Chọn Nhiệm Vụ ({tasks.length} nhiệm vụ có sẵn)</Label>
                   {tasks.length === 0 && (
                     <Alert>
                       <AlertDescription>
-                        Không có task nào. Hãy tạo task trong mục "Daily Tasks" trước.
+                        Không có nhiệm vụ nào. Hãy tạo nhiệm vụ trong mục "Quản Lý Nhiệm Vụ Hàng Ngày" trước.
                       </AlertDescription>
                     </Alert>
                   )}
                   <Select value={selectedTask} onValueChange={setSelectedTask}>
                     <SelectTrigger>
-                      <SelectValue placeholder={tasks.length > 0 ? "Chọn task..." : "Không có task nào"} />
+                      <SelectValue placeholder={tasks.length > 0 ? "Chọn nhiệm vụ..." : "Không có nhiệm vụ nào"} />
                     </SelectTrigger>
                     <SelectContent>
                       {tasks.map((task) => (
                         <SelectItem key={task.id} value={task.id}>
-                          {task.title} - {projects.find(p => p.id === task.projectId)?.name || 'Không có project'}
+                          {task.title} - {projects.find(p => p.id === task.projectId)?.name || 'Không thuộc dự án nào'}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -282,15 +282,15 @@ export function EmailComposer({ projects, tasks = [], accounts = [] }: EmailComp
               {/* Project Selection for project updates */}
               {emailData.emailType === "project_update" && (
                 <div className="space-y-2">
-                  <Label htmlFor="selectedProject">Chọn Project</Label>
+                  <Label htmlFor="selectedProject">Chọn Dự Án</Label>
                   <Select value={selectedProject} onValueChange={setSelectedProject}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Chọn project..." />
+                      <SelectValue placeholder="Chọn dự án cần cập nhật..." />
                     </SelectTrigger>
                     <SelectContent>
                       {projects.map((project) => (
                         <SelectItem key={project.id} value={project.id}>
-                          {project.name}
+                          {project.name} - {project.domain || 'Chưa có tên miền'}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -301,58 +301,58 @@ export function EmailComposer({ projects, tasks = [], accounts = [] }: EmailComp
               {/* Recipients */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="to">Đến (To) *</Label>
+                  <Label htmlFor="to">Gửi Đến (Email Chính) *</Label>
                   <Input
                     id="to"
                     type="email"
                     value={emailData.to}
                     onChange={(e) => setEmailData({ ...emailData, to: e.target.value })}
-                    placeholder="client@example.com"
+                    placeholder="nguoidung@example.com"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="cc">CC</Label>
+                  <Label htmlFor="cc">Sao Chép (CC)</Label>
                   <Input
                     id="cc"
                     type="email"
                     value={emailData.cc}
                     onChange={(e) => setEmailData({ ...emailData, cc: e.target.value })}
-                    placeholder="manager@example.com"
+                    placeholder="quanly@example.com"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="bcc">BCC</Label>
+                  <Label htmlFor="bcc">Sao Chép Ẩn (BCC)</Label>
                   <Input
                     id="bcc"
                     type="email"
                     value={emailData.bcc}
                     onChange={(e) => setEmailData({ ...emailData, bcc: e.target.value })}
-                    placeholder="admin@example.com"
+                    placeholder="banthan@example.com"
                   />
                 </div>
               </div>
 
               {/* Subject */}
               <div className="space-y-2">
-                <Label htmlFor="subject">Tiêu đề *</Label>
+                <Label htmlFor="subject">Chủ Đề Email *</Label>
                 <Input
                   id="subject"
                   value={emailData.subject}
                   onChange={(e) => setEmailData({ ...emailData, subject: e.target.value })}
-                  placeholder="Nhập tiêu đề email..."
+                  placeholder="Nhập tiêu đề email tại đây..."
                   required
                 />
               </div>
 
               {/* Content */}
               <div className="space-y-2">
-                <Label htmlFor="content">Nội dung *</Label>
+                <Label htmlFor="content">Nội Dung Email *</Label>
                 <Textarea
                   id="content"
                   value={emailData.content}
                   onChange={(e) => setEmailData({ ...emailData, content: e.target.value })}
-                  placeholder="Nhập nội dung email..."
+                  placeholder="Nhập nội dung chi tiết của email tại đây..."
                   rows={8}
                   required
                 />
@@ -366,11 +366,16 @@ export function EmailComposer({ projects, tasks = [], accounts = [] }: EmailComp
                   disabled={status.loading || !emailData.to || !emailData.subject || !emailData.content}
                 >
                   {status.loading ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Đang Gửi Email...
+                    </>
                   ) : (
-                    <Send className="h-4 w-4 mr-2" />
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Gửi Email Ngay
+                    </>
                   )}
-                  Gửi Email
                 </Button>
                 <Button
                   variant="outline"
@@ -387,7 +392,8 @@ export function EmailComposer({ projects, tasks = [], accounts = [] }: EmailComp
                     setSelectedProject("")
                   }}
                 >
-                  Xóa
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Làm Mới Form
                 </Button>
               </div>
             </CardContent>
@@ -399,32 +405,32 @@ export function EmailComposer({ projects, tasks = [], accounts = [] }: EmailComp
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Settings className="h-5 w-5" />
-                Cài đặt SMTP
+                Cấu Hình Máy Chủ SMTP
               </CardTitle>
               <CardDescription>
-                Cấu hình thông tin SMTP server trong file .env
+                Thiết lập thông tin máy chủ email để gửi thông báo tự động
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="bg-muted p-4 rounded-lg">
-                <h4 className="font-medium mb-2">Biến môi trường cần thiết:</h4>
+                <h4 className="font-medium mb-2">Các Biến Môi Trường Cần Thiết:</h4>
                 <div className="space-y-2 text-sm font-mono">
                   <div>SMTP_HOST=smtp.mailersend.net</div>
                   <div>SMTP_PORT=587</div>
-                  <div>SMTP_USER=your_username</div>
-                  <div>SMTP_PASS=your_password</div>
-                  <div>SMTP_FROM=your_email@domain.com</div>
+                  <div>SMTP_USER=ten_dang_nhap_cua_ban</div>
+                  <div>SMTP_PASS=mat_khau_ung_dung_cua_ban</div>
+                  <div>SMTP_FROM=email_cua_ban@domain.com</div>
                 </div>
               </div>
               
               <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-medium mb-2 text-blue-900">Hướng dẫn cấu hình MailerSend:</h4>
+                <h4 className="font-medium mb-2 text-blue-900">Hướng Dẫn Cấu Hình MailerSend:</h4>
                 <ol className="text-sm text-blue-800 space-y-1">
-                  <li>1. Đăng ký tài khoản tại mailersend.com</li>
-                  <li>2. Tạo API token trong Settings → API Tokens</li>
-                  <li>3. Thêm domain và verify domain</li>
-                  <li>4. Sử dụng API token làm SMTP_PASS</li>
-                  <li>5. Restart ứng dụng sau khi cập nhật .env</li>
+                  <li>1. Đăng ký tài khoản tại trang web mailersend.com</li>
+                  <li>2. Tạo API token trong mục Settings → API Tokens</li>
+                  <li>3. Thêm tên miền và xác thực tên miền của bạn</li>
+                  <li>4. Sử dụng API token làm SMTP_PASS trong file .env</li>
+                  <li>5. Khởi động lại ứng dụng sau khi cập nhật file .env</li>
                 </ol>
               </div>
 
@@ -439,7 +445,7 @@ export function EmailComposer({ projects, tasks = [], accounts = [] }: EmailComp
                 ) : (
                   <TestTube className="h-4 w-4 mr-2" />
                 )}
-                Kiểm tra kết nối SMTP
+                Kiểm Tra Kết Nối Máy Chủ SMTP
               </Button>
             </CardContent>
           </Card>

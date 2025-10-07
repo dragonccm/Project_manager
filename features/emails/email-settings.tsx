@@ -9,8 +9,20 @@ import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
-import { Mail, Plus, Trash2, TestTube, CheckCircle, XCircle, Loader2 } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { 
+  Mail, 
+  TestTube, 
+  CheckCircle, 
+  XCircle, 
+  Loader2, 
+  Plus, 
+  Trash2,
+  Settings,
+  Palette 
+} from "lucide-react"
 import { useEmail } from "@/hooks/use-email"
+import { EmailDesigner } from "./email-designer"
 
 interface EmailSettingsProps {
   onSettingsChange?: (settings: EmailNotificationSettings) => void
@@ -115,7 +127,7 @@ export function EmailSettings({ onSettingsChange }: EmailSettingsProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Email Settings</h1>
+        <h1 className="text-3xl font-bold">Cài Đặt Hệ Thống Email</h1>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -127,19 +139,19 @@ export function EmailSettings({ onSettingsChange }: EmailSettingsProps) {
             ) : (
               <TestTube className="h-4 w-4 mr-2" />
             )}
-            Test Connection
+            Kiểm Tra Kết Nối SMTP
           </Button>
           {connectionStatus.tested && (
             <Badge variant={connectionStatus.connected ? "default" : "destructive"}>
               {connectionStatus.connected ? (
                 <>
                   <CheckCircle className="h-3 w-3 mr-1" />
-                  Connected
+                  Đã Kết Nối
                 </>
               ) : (
                 <>
                   <XCircle className="h-3 w-3 mr-1" />
-                  Disconnected
+                  Chưa Kết Nối
                 </>
               )}
             </Badge>
@@ -162,180 +174,206 @@ export function EmailSettings({ onSettingsChange }: EmailSettingsProps) {
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Main Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5" />
-              Email Notifications
-            </CardTitle>
-            <CardDescription>
-              Cấu hình thông báo email tự động
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Enable/Disable */}
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Bật thông báo email</Label>
-                <p className="text-sm text-muted-foreground">
-                  Gửi email tự động khi có sự kiện quan trọng
-                </p>
-              </div>
-              <Switch
-                checked={settings.enabled}
-                onCheckedChange={(checked) => setSettings({ ...settings, enabled: checked })}
-              />
-            </div>
+      {/* Main Tabs */}
+      <Tabs defaultValue="settings" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="settings" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Cấu Hình Email
+          </TabsTrigger>
+          <TabsTrigger value="designer" className="flex items-center gap-2">
+            <Palette className="h-4 w-4" />
+            Thiết Kế Email
+          </TabsTrigger>
+        </TabsList>
 
-            <Separator />
-
-            {/* Notification Types */}
-            <div className="space-y-3">
-              <Label className="text-base font-medium">Loại thông báo</Label>
-              
-              <div className="flex items-center justify-between">
-                <Label htmlFor="taskCreated" className="font-normal">
-                  Task được tạo mới
-                </Label>
-                <Switch
-                  id="taskCreated"
-                  checked={settings.notifyOnTaskCreated}
-                  onCheckedChange={(checked) => 
-                    setSettings({ ...settings, notifyOnTaskCreated: checked })
-                  }
-                  disabled={!settings.enabled}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Label htmlFor="taskCompleted" className="font-normal">
-                  Task được hoàn thành
-                </Label>
-                <Switch
-                  id="taskCompleted"
-                  checked={settings.notifyOnTaskCompleted}
-                  onCheckedChange={(checked) => 
-                    setSettings({ ...settings, notifyOnTaskCompleted: checked })
-                  }
-                  disabled={!settings.enabled}
-                />
-              </div>              <div className="flex items-center justify-between">
-                <Label htmlFor="projectUpdate" className="font-normal">
-                  Cập nhật dự án
-                </Label>
-                <Switch
-                  id="projectUpdate"
-                  checked={settings.notifyOnProjectUpdate}
-                  onCheckedChange={(checked) => 
-                    setSettings({ ...settings, notifyOnProjectUpdate: checked })
-                  }
-                  disabled={!settings.enabled}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recipients Management */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Người nhận email</CardTitle>
-            <CardDescription>
-              Quản lý danh sách người nhận thông báo email
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Add Recipient */}
-            <div className="flex gap-2">
-              <Input
-                type="email"
-                placeholder="email@example.com"
-                value={newRecipient}
-                onChange={(e) => setNewRecipient(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleAddRecipient()}
-              />
-              <Button onClick={handleAddRecipient} size="sm">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {/* Recipients List */}
-            <div className="space-y-2">
-              {settings.recipients.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Chưa có người nhận nào
-                </p>
-              ) : (
-                settings.recipients.map((email) => (
-                  <div
-                    key={email}
-                    className="flex items-center justify-between p-2 border rounded"
-                  >
-                    <span className="text-sm">{email}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveRecipient(email)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+        {/* Settings Tab */}
+        <TabsContent value="settings" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Main Settings */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="h-5 w-5" />
+                  Thông Báo Email Tự Động
+                </CardTitle>
+                <CardDescription>
+                  Cấu hình thông báo email tự động cho các sự kiện trong dự án
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Enable/Disable */}
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Bật Thông Báo Email</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Gửi email tự động khi có sự kiện quan trọng xảy ra
+                    </p>
                   </div>
-                ))
-              )}
-            </div>
+                  <Switch
+                    checked={settings.enabled}
+                    onCheckedChange={(checked) => setSettings({ ...settings, enabled: checked })}
+                  />
+                </div>
 
-            {/* Test Email */}
-            <Separator />
-            <Button
-              onClick={handleSendTestEmail}
-              variant="outline"
-              className="w-full"
-              disabled={settings.recipients.length === 0 || status.loading}
-            >
-              {status.loading ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <Mail className="h-4 w-4 mr-2" />
-              )}
-              Gửi email test
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+                <Separator />
 
-      {/* SMTP Configuration Guide */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Hướng dẫn cấu hình SMTP</CardTitle>
-          <CardDescription>
-            Cấu hình SMTP server để gửi email
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="bg-muted p-4 rounded-lg">
-            <h4 className="font-medium mb-2">Biến môi trường cần thiết (file .env):</h4>
-            <div className="space-y-1 text-sm font-mono">
-              <div>SMTP_HOST=smtp.mailersend.net</div>
-              <div>SMTP_PORT=587</div>
-              <div>SMTP_USER=your_username</div>
-              <div>SMTP_PASS=your_password</div>
-              <div>SMTP_FROM=your_email@domain.com</div>
-            </div>
+                {/* Notification Types */}
+                <div className="space-y-3">
+                  <Label className="text-base font-medium">Các Loại Thông Báo</Label>
+                  
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="taskCreated" className="font-normal">
+                      Nhiệm Vụ Được Tạo Mới
+                    </Label>
+                    <Switch
+                      id="taskCreated"
+                      checked={settings.notifyOnTaskCreated}
+                      onCheckedChange={(checked) => 
+                        setSettings({ ...settings, notifyOnTaskCreated: checked })
+                      }
+                      disabled={!settings.enabled}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="taskCompleted" className="font-normal">
+                      Nhiệm Vụ Được Hoàn Thành
+                    </Label>
+                    <Switch
+                      id="taskCompleted"
+                      checked={settings.notifyOnTaskCompleted}
+                      onCheckedChange={(checked) => 
+                        setSettings({ ...settings, notifyOnTaskCompleted: checked })
+                      }
+                      disabled={!settings.enabled}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="projectUpdate" className="font-normal">
+                      Cập Nhật Tiến Độ Dự Án
+                    </Label>
+                    <Switch
+                      id="projectUpdate"
+                      checked={settings.notifyOnProjectUpdate}
+                      onCheckedChange={(checked) => 
+                        setSettings({ ...settings, notifyOnProjectUpdate: checked })
+                      }
+                      disabled={!settings.enabled}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recipients Management */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Quản Lý Người Nhận Email</CardTitle>
+                <CardDescription>
+                  Quản lý danh sách người nhận thông báo email tự động
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Add Recipient */}
+                <div className="flex gap-2">
+                  <Input
+                    type="email"
+                    placeholder="nhapvao@example.com"
+                    value={newRecipient}
+                    onChange={(e) => setNewRecipient(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && handleAddRecipient()}
+                  />
+                  <Button onClick={handleAddRecipient} size="sm">
+                    <Plus className="h-4 w-4" />
+                    Thêm
+                  </Button>
+                </div>
+
+                {/* Recipients List */}
+                <div className="space-y-2">
+                  {settings.recipients.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      Chưa có người nhận nào được thêm vào danh sách
+                    </p>
+                  ) : (
+                    settings.recipients.map((email) => (
+                      <div
+                        key={email}
+                        className="flex items-center justify-between p-2 border rounded"
+                      >
+                        <span className="text-sm">{email}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveRecipient(email)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Test Email */}
+                <Separator />
+                <Button
+                  onClick={handleSendTestEmail}
+                  variant="outline"
+                  className="w-full"
+                  disabled={settings.recipients.length === 0 || status.loading}
+                >
+                  {status.loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Mail className="h-4 w-4 mr-2" />
+                  )}
+                  Gửi Email Kiểm Tra
+                </Button>
+              </CardContent>
+            </Card>
           </div>
-          
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h4 className="font-medium mb-2 text-blue-900">Hướng dẫn cấu hình MailerSend:</h4>
-            <ol className="text-sm text-blue-800 space-y-1">
-              <li>1. Đăng ký tài khoản tại <strong>mailersend.com</strong></li>
-              <li>2. Tạo API token trong Settings → API Tokens</li>
-              <li>3. Thêm domain và verify domain của bạn</li>
-              <li>4. Sử dụng API token làm SMTP_PASS</li>
-              <li>5. Restart ứng dụng sau khi cập nhật .env</li>
-            </ol>
-          </div>
-        </CardContent>
-      </Card>    </div>
+
+          {/* SMTP Configuration Guide */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Hướng Dẫn Cấu Hình SMTP</CardTitle>
+              <CardDescription>
+                Cấu hình máy chủ SMTP để gửi email thông báo
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="bg-muted p-4 rounded-lg">
+                <h4 className="font-medium mb-2">Biến Môi Trường Cần Thiết (file .env):</h4>
+                <div className="space-y-1 text-sm font-mono">
+                  <div>SMTP_HOST=smtp.mailersend.net</div>
+                  <div>SMTP_PORT=587</div>
+                  <div>SMTP_USER=ten_dang_nhap_cua_ban</div>
+                  <div>SMTP_PASS=mat_khau_ung_dung_cua_ban</div>
+                  <div>SMTP_FROM=email_cua_ban@domain.com</div>
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-medium mb-2 text-blue-900">Hướng Dẫn Cấu Hình MailerSend:</h4>
+                <ol className="text-sm text-blue-800 space-y-1">
+                  <li>1. Đăng ký tài khoản tại trang web <strong>mailersend.com</strong></li>
+                  <li>2. Tạo API token trong mục Settings → API Tokens</li>
+                  <li>3. Thêm tên miền và xác thực tên miền của bạn</li>
+                  <li>4. Sử dụng API token làm SMTP_PASS trong file .env</li>
+                  <li>5. Khởi động lại ứng dụng sau khi cập nhật file .env</li>
+                </ol>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Designer Tab */}
+        <TabsContent value="designer">
+          <EmailDesigner />
+        </TabsContent>
+      </Tabs>
+    </div>
   )
 }

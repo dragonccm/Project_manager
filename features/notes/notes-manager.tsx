@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo, useCallback, useEffect } from "react"
-import { Plus, Search, Filter, Download, Upload, Eye, Edit, Trash2, Link, FileText, Code, Image, Tag, Bookmark, Copy, ExternalLink, Check, LinkIcon, X } from "lucide-react"
+import { Plus, Search, Filter, Download, Upload, Eye, Edit, Trash2, Link, FileText, Code, Image, Tag, Bookmark, Copy, ExternalLink, Check, LinkIcon, X, Share2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,25 +15,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { CodeComponent } from "@/types/database"
 import { API_ENDPOINTS } from "@/lib/constants"
 import { useToast } from "@/hooks/use-toast"
+import { useLanguage } from "@/hooks/use-language"
+import { ShareModal } from "@/features/share/ShareModal"
 
-// Note types (simplified for CodeComponent compatibility)
-const NOTE_TYPES = [
-  { id: "text", label: "Text Note", icon: FileText, description: "Simple text notes" },
-  { id: "code", label: "Code Snippet", icon: Code, description: "Code snippets with syntax" },
-  { id: "link", label: "Link/Bookmark", icon: Link, description: "URL bookmarks and links" },
-  { id: "file", label: "File Note", icon: Image, description: "File-based notes" },
-  { id: "webpage", label: "Webpage", icon: ExternalLink, description: "Webpage references" },
-  { id: "mixed", label: "Mixed Content", icon: Bookmark, description: "Mixed content notes" }
-]
-
-// Note categories (match CodeComponent types)
-const NOTE_CATEGORIES = [
-  { id: "element", label: "Element", description: "UI elements and components" },
-  { id: "section", label: "Section", description: "Page sections and layouts" }, 
-  { id: "template", label: "Template", description: "Full page templates" },
-  { id: "widget", label: "Widget", description: "Interactive widgets" },
-  { id: "global", label: "Global", description: "Global components and notes" }
-]
+// Note types and categories moved inside component to use t() function
 
 // Utility functions for enhanced UX
 const formatCode = (code: string, language?: string) => {
@@ -103,6 +88,26 @@ interface NotesManagerProps {}
 
 export function NotesManager({}: NotesManagerProps) {
   const { toast } = useToast()
+  const { t } = useLanguage()
+  
+  // Note types (simplified for CodeComponent compatibility)
+  const NOTE_TYPES = [
+    { id: "text", label: t('textNote'), icon: FileText, description: t('simpleTextNotes') },
+    { id: "code", label: t('codeSnippet'), icon: Code, description: t('codeSnippetsWithSyntax') },
+    { id: "link", label: t('linkBookmark'), icon: Link, description: t('urlBookmarksAndLinks') },
+    { id: "file", label: t('fileNote'), icon: Image, description: t('fileBasedNotes') },
+    { id: "webpage", label: t('webpage'), icon: ExternalLink, description: t('webpageReferences') },
+    { id: "mixed", label: t('mixedContent'), icon: Bookmark, description: t('mixedContentNotes') }
+  ]
+
+  // Note categories (match CodeComponent types)
+  const NOTE_CATEGORIES = [
+    { id: "element", label: t('element'), description: t('uiElementsAndComponents') },
+    { id: "section", label: t('section'), description: t('pageSectionsAndLayouts') }, 
+    { id: "template", label: t('template'), description: t('fullPageTemplates') },
+    { id: "widget", label: t('widget'), description: t('interactiveWidgets') },
+    { id: "global", label: t('global'), description: t('globalComponentsAndNotes') }
+  ]
   
   // State
   const [notes, setNotes] = useState<CodeComponent[]>([])
@@ -128,6 +133,10 @@ export function NotesManager({}: NotesManagerProps) {
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false)
   const [editingNote, setEditingNote] = useState<CodeComponent | null>(null)
   const [previewNote, setPreviewNote] = useState<CodeComponent | null>(null)
+  
+  // Share states
+  const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [selectedNoteForShare, setSelectedNoteForShare] = useState<CodeComponent | null>(null)
   
   // Filter states
   const [searchTerm, setSearchTerm] = useState('')
@@ -234,8 +243,8 @@ export function NotesManager({}: NotesManagerProps) {
       setError(null)
       
       toast({
-        title: "✅ Thành công!",
-        description: editingNote ? "Ghi chú đã được cập nhật" : "Ghi chú đã được tạo",
+        title: `✅ ${t('success')}!`,
+        description: editingNote ? t('noteUpdated') : t('noteCreated'),
         duration: 2000,
       })
       
@@ -302,9 +311,20 @@ export function NotesManager({}: NotesManagerProps) {
 
       setNotes(prev => prev.filter(note => note.id !== noteId))
       setError(null)
+      toast({
+        title: `✅ ${t('success')}!`,
+        description: t('noteDeleted'),
+        duration: 2000,
+      })
     } catch (err) {
       console.error('Error deleting note:', err)
-      setError(err instanceof Error ? err.message : 'Lỗi không xác định')
+      setError(err instanceof Error ? err.message : t('error'))
+      toast({
+        title: `❌ ${t('error')}`,
+        description: err instanceof Error ? err.message : t('error'),
+        variant: "destructive",
+        duration: 3000,
+      })
     }
   }
 
@@ -321,14 +341,14 @@ export function NotesManager({}: NotesManagerProps) {
     
     if (success) {
       toast({
-        title: "📋 Đã sao chép!",
-        description: noteType === 'code' ? "Code đã được format và sao chép" : "Nội dung đã được sao chép",
+        title: `📋 ${t('contentCopied')}!`,
+        description: noteType === 'code' ? t('codeCopiedAndFormatted') : t('contentCopied'),
         duration: 2000,
       })
     } else {
       toast({
-        title: "❌ Lỗi sao chép",
-        description: "Không thể sao chép nội dung",
+        title: `❌ ${t('error')}`,
+        description: t('contentCopied'),
         variant: "destructive",
         duration: 3000,
       })
@@ -491,7 +511,7 @@ export function NotesManager({}: NotesManagerProps) {
                             <Label htmlFor="name" className="text-sm font-medium">Tên ghi chú *</Label>
                             <Input
                               id="name"
-                              placeholder="Nhập tên ghi chú..."
+                              placeholder={t('enterNoteName')}
                               value={formData.name}
                               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                               required
@@ -507,7 +527,7 @@ export function NotesManager({}: NotesManagerProps) {
                               }
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder="Chọn danh mục" />
+                                <SelectValue placeholder={t('noteCategory')} />
                               </SelectTrigger>
                               <SelectContent>
                                 {NOTE_CATEGORIES.map(category => (
@@ -530,7 +550,7 @@ export function NotesManager({}: NotesManagerProps) {
                               }
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder="Chọn loại" />
+                                <SelectValue placeholder={t('noteType')} />
                               </SelectTrigger>
                               <SelectContent>
                                 {NOTE_TYPES.map(type => (
@@ -549,7 +569,7 @@ export function NotesManager({}: NotesManagerProps) {
                             <Label htmlFor="description" className="text-sm font-medium">Mô tả ngắn</Label>
                             <Input
                               id="description"
-                              placeholder="Mô tả ngắn về ghi chú..."
+                              placeholder={t('noteDescription')}
                               value={formData.description}
                               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                             />
@@ -566,7 +586,7 @@ export function NotesManager({}: NotesManagerProps) {
                           <Label htmlFor="code" className="text-sm font-medium">Nội dung chính</Label>
                           <Textarea
                             id="code"
-                            placeholder="Nhập nội dung ghi chú, code snippet, hoặc text..."
+                            placeholder={t('enterCode')}
                             value={formData.code}
                             onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
                             rows={12}
@@ -583,7 +603,7 @@ export function NotesManager({}: NotesManagerProps) {
                         <div className="space-y-3">
                           <div className="flex gap-2">
                             <Input
-                              placeholder="Nhập tag và nhấn Enter"
+                              placeholder={t('enterTag')}
                               value={tagInput}
                               onChange={(e) => setTagInput(e.target.value)}
                               onKeyPress={(e) => {
@@ -662,7 +682,7 @@ export function NotesManager({}: NotesManagerProps) {
                                 <div className="space-y-2">
                                   <Input
                                     id="image-url"
-                                    placeholder="https://example.com/image.jpg"
+                                    placeholder={t('enterImageUrl')}
                                     value={imageUrl}
                                     onChange={(e) => handleImageUrlChange(e.target.value)}
                                   />
@@ -759,7 +779,7 @@ export function NotesManager({}: NotesManagerProps) {
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder="Tìm kiếm ghi chú theo tên, mô tả hoặc nội dung..."
+                  placeholder={t('typeToSearch')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 bg-background/80 border-muted"
@@ -769,7 +789,7 @@ export function NotesManager({}: NotesManagerProps) {
               <div className="flex gap-2">
                 <Select value={selectedType} onValueChange={setSelectedType}>
                   <SelectTrigger className="w-40 bg-background/80">
-                    <SelectValue placeholder="Loại" />
+                    <SelectValue placeholder={t('noteType')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tất cả loại</SelectItem>
@@ -786,7 +806,7 @@ export function NotesManager({}: NotesManagerProps) {
                 
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger className="w-40 bg-background/80">
-                    <SelectValue placeholder="Danh mục" />
+                    <SelectValue placeholder={t('noteCategory')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tất cả danh mục</SelectItem>
@@ -886,7 +906,7 @@ export function NotesManager({}: NotesManagerProps) {
                     {/* Content based on type */}
                     {note.content_type === 'code' ? (
                       <div className="relative">
-                        <pre className="text-xs font-mono text-muted-foreground line-clamp-3 whitespace-pre-wrap">
+                        <pre className="text-xs font-mono text-muted-foreground whitespace-pre-wrap break-words overflow-x-auto max-h-40 p-2 rounded bg-neutral-100 dark:bg-neutral-900">
                           {formatCode(contentText, 'javascript')}
                         </pre>
                         <TooltipProvider>
@@ -902,7 +922,7 @@ export function NotesManager({}: NotesManagerProps) {
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Copy formatted code</p>
+                              <p>{t('copy')} {t('formattedCode')}</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
@@ -931,7 +951,7 @@ export function NotesManager({}: NotesManagerProps) {
                                   </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  <p>Copy links</p>
+                                  <p>{t('copy')} {t('links')}</p>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
@@ -959,7 +979,7 @@ export function NotesManager({}: NotesManagerProps) {
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>Copy text</p>
+                                <p>{t('copy')} {t('content')}</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -1005,11 +1025,31 @@ export function NotesManager({}: NotesManagerProps) {
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Copy {note.content_type === 'code' ? 'formatted code' : 'content'}</p>
+                            <p>{t('copy')} {note.content_type === 'code' ? t('formattedCode') : t('content')}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     )}
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedNoteForShare(note)
+                              setShareModalOpen(true)
+                            }}
+                            className="h-8 w-8 p-0 hover:bg-blue-500/10 hover:text-blue-500"
+                          >
+                            <Share2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{t('shareLink')}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -1154,14 +1194,14 @@ export function NotesManager({}: NotesManagerProps) {
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Copy {previewNote.content_type === 'code' ? 'formatted code' : 'content'}</p>
+                              <p>{t('copy')} {previewNote.content_type === 'code' ? t('formattedCode') : t('content')}</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
                       </div>
                       <div className="bg-muted/30 rounded-lg p-4">
                         {previewNote.content_type === 'code' ? (
-                          <pre className="whitespace-pre-wrap font-mono text-sm">
+                          <pre className="whitespace-pre-wrap font-mono text-sm break-words overflow-x-auto max-h-60 p-3 rounded bg-neutral-100 dark:bg-neutral-900">
                             {formatCode(getContentText(previewNote), 'javascript')}
                           </pre>
                         ) : previewNote.content_type === 'link' ? (
@@ -1371,6 +1411,17 @@ export function NotesManager({}: NotesManagerProps) {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Share Modal */}
+      {selectedNoteForShare && (
+        <ShareModal
+          open={shareModalOpen}
+          onOpenChange={setShareModalOpen}
+          resourceType="note"
+          resourceId={selectedNoteForShare.id || ''}
+          resourceName={selectedNoteForShare.name || 'Untitled Note'}
+        />
+      )}
     </div>
   )
 }

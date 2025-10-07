@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { REPORT_FIELDS, API_ENDPOINTS, SUCCESS_MESSAGES, ERROR_MESSAGES } from "@/lib/constants"
+import { ShareModal } from "@/features/share/ShareModal"
 import {
   Plus,
   Trash2,
@@ -18,6 +19,7 @@ import {
   Eye,
   GripVertical,
   LayoutGrid,
+  Share2,
 } from "lucide-react"
 interface FieldLayout {
   id: string
@@ -64,6 +66,8 @@ export function ReportDesigner({
   const [draggedField, setDraggedField] = useState<string | null>(null)
   const [dragPreview, setDragPreview] = useState<{ x: number; y: number; width: number; height: number } | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [selectedTemplateForShare, setSelectedTemplateForShare] = useState<any | null>(null)
 
   // Load saved templates on mount
   useEffect(() => {
@@ -730,7 +734,7 @@ export function ReportDesigner({
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {savedTemplates.map(template => (
-                <div key={template.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div key={template.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow group">
                   <div className="flex items-start justify-between mb-2">
                     <h4 className="font-medium text-sm">{template.name}</h4>
                     <Badge variant="outline" className="text-xs">
@@ -749,14 +753,39 @@ export function ReportDesigner({
                     Layout: {template.template_data?.layout === 'custom' ? 'Custom Design' : 'Table View'}
                   </div>
                   
-                  <div className="mt-2 text-xs text-muted-foreground">
-                    {new Date(template.created_at).toLocaleDateString()}
+                  <div className="mt-2 flex items-center justify-between">
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(template.created_at).toLocaleDateString()}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedTemplateForShare(template)
+                        setShareModalOpen(true)
+                      }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500 hover:text-blue-600 h-7 px-2"
+                    >
+                      <Share2 className="h-3 w-3 mr-1" />
+                      Share
+                    </Button>
                   </div>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Share Modal */}
+      {selectedTemplateForShare && (
+        <ShareModal
+          open={shareModalOpen}
+          onOpenChange={setShareModalOpen}
+          resourceType="report"
+          resourceId={selectedTemplateForShare.id || selectedTemplateForShare._id || ''}
+          resourceName={selectedTemplateForShare.name || 'Untitled Report'}
+        />
       )}
     </div>
   )

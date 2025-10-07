@@ -12,9 +12,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { getLocalDateString } from "@/lib/date-utils"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Edit, Trash2, ExternalLink, Eye, Grid3X3, List, Search, Download, Calendar, Users } from "lucide-react"
+import { Plus, Edit, Trash2, ExternalLink, Eye, Grid3X3, List, Search, Download, Calendar, Users, Mail, Share2 } from "lucide-react"
 import { useLanguage } from "@/hooks/use-language"
 import { LazyLoadList } from "@/components/ui/lazy-load"
+import AdvancedEmailComposer from "@/components/advanced-email-composer"
+import { ShareModal } from "@/features/share/ShareModal"
 
 interface Project {
   id: string
@@ -50,6 +52,10 @@ export function ProjectForm({
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+
+  // Share modal state
+  const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [selectedProjectForShare, setSelectedProjectForShare] = useState<Project | null>(null)
   
   const [formData, setFormData] = useState({
     name: "",
@@ -329,6 +335,7 @@ export function ProjectForm({
               <LazyLoadList
                 items={filteredProjects}
                 batchSize={6}
+                getItemKey={(project) => project.id || project._id || `project-${project.name}`}
                 renderItem={(project, index) => (
                   <div key={project.id || `project-${index}`} className="border rounded-lg p-4">
                     <div className="flex items-start justify-between">
@@ -352,9 +359,29 @@ export function ProjectForm({
                         </div>
                       </div>
                       <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedProjectForShare(project)
+                            setShareModalOpen(true)
+                          }}
+                          className="text-blue-500 hover:text-blue-600"
+                        >
+                          <Share2 className="h-4 w-4" />
+                        </Button>
                         <Button variant="ghost" size="sm" onClick={() => handleViewDetails(project)}>
                           <Eye className="h-4 w-4" />
                         </Button>
+                        <AdvancedEmailComposer
+                          initialEmailType="projectUpdate"
+                          contextData={project}
+                          trigger={
+                            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+                              <Mail className="h-4 w-4" />
+                            </Button>
+                          }
+                        />
                         <Button variant="ghost" size="sm" onClick={() => handleEdit(project)}>
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -377,6 +404,7 @@ export function ProjectForm({
             <LazyLoadList
               items={filteredProjects}
               batchSize={8}
+              getItemKey={(project) => project.id || project._id || `project-${project.name}`}
               renderItem={(project, index) => (
                 <Card key={project.id || `card-project-${index}`} className="group hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/20">
                   <CardHeader className="pb-3">
@@ -456,15 +484,43 @@ export function ProjectForm({
                       
                       {/* Action Buttons */}
                       <div className="flex justify-between items-center pt-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewDetails(project)}
-                          className="text-xs px-2 h-7"
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          {vietnameseText.view}
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedProjectForShare(project)
+                              setShareModalOpen(true)
+                            }}
+                            className="text-xs px-2 h-7 text-blue-500 hover:text-blue-600"
+                          >
+                            <Share2 className="h-3 w-3 mr-1" />
+                            Share
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewDetails(project)}
+                            className="text-xs px-2 h-7"
+                          >
+                            <Eye className="h-3 w-3 mr-1" />
+                            {vietnameseText.view}
+                          </Button>
+                          <AdvancedEmailComposer
+                            initialEmailType="projectUpdate"
+                            contextData={project}
+                            trigger={
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-xs px-2 h-7 text-blue-600 hover:text-blue-700"
+                              >
+                                <Mail className="h-3 w-3 mr-1" />
+                                Email
+                              </Button>
+                            }
+                          />
+                        </div>
                         <div className="flex gap-1">
                           <Button
                             variant="ghost"
@@ -605,6 +661,17 @@ export function ProjectForm({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Share Modal */}
+      {selectedProjectForShare && (
+        <ShareModal
+          open={shareModalOpen}
+          onOpenChange={setShareModalOpen}
+          resourceType="project"
+          resourceId={selectedProjectForShare.id || ''}
+          resourceName={selectedProjectForShare.name || 'Untitled Project'}
+        />
+      )}
     </div>
   )
 }

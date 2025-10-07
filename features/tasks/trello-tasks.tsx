@@ -10,14 +10,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Plus, Clock, Circle, Inbox, Loader, Check, X, Eye, Trash2 } from "lucide-react"
+import { Plus, Clock, Circle, Inbox, Loader, Check, X, Eye, Trash2, Mail, Share2 } from "lucide-react"
 import { useLanguage } from "@/hooks/use-language"
 import { useEmail } from "@/hooks/use-email"
+import AdvancedEmailComposer from "@/components/advanced-email-composer"
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, useDroppable } from '@dnd-kit/core'
 import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Textarea } from "@/components/ui/textarea"
+import { ShareModal } from "@/features/share/ShareModal"
 
 interface Task {
   id: string
@@ -53,6 +55,7 @@ interface DraggableTaskCardProps {
   getPriorityColor: (priority: string) => string;
   onViewDetails: (task: any) => void;
   onDeleteTask?: (id: string) => Promise<void>;
+  onShareTask?: (task: any) => void;
 }
 
 // Component cho cột droppable
@@ -67,9 +70,10 @@ interface DroppableColumnProps {
   projects: any[];
   onViewDetails: (task: any) => void;
   onDeleteTask?: (id: string) => Promise<void>;
+  onShareTask?: (task: any) => void;
 }
 
-function DraggableTaskCard({ task, project, onToggle, getPriorityColor, onViewDetails, onDeleteTask }: DraggableTaskCardProps) {
+function DraggableTaskCard({ task, project, onToggle, getPriorityColor, onViewDetails, onDeleteTask, onShareTask }: DraggableTaskCardProps) {
   const { t } = useLanguage()
   const {
     attributes,
@@ -128,6 +132,20 @@ function DraggableTaskCard({ task, project, onToggle, getPriorityColor, onViewDe
           </div>
           <div className="flex justify-end mt-2">
             <div className="flex gap-1">
+              {onShareTask && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onShareTask(task);
+                  }}
+                  className="h-6 px-2 text-xs text-blue-500 hover:text-blue-600"
+                >
+                  <Share2 className="h-3 w-3 mr-1" />
+                  {t("share") || "Chia sẻ"}
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
@@ -140,6 +158,23 @@ function DraggableTaskCard({ task, project, onToggle, getPriorityColor, onViewDe
                 <Eye className="h-3 w-3 mr-1" />
                 {t("viewDetails") || "Xem chi tiết"}
               </Button>
+              <AdvancedEmailComposer
+                initialEmailType="taskNotification"
+                contextData={task}
+                trigger={
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                    className="h-6 px-2 text-xs text-blue-600 hover:text-blue-700"
+                  >
+                    <Mail className="h-3 w-3 mr-1" />
+                    Email
+                  </Button>
+                }
+              />
               {onDeleteTask && (
                 <Button
                   variant="ghost"
@@ -163,7 +198,7 @@ function DraggableTaskCard({ task, project, onToggle, getPriorityColor, onViewDe
   );
 }
 
-function DroppableColumn({ id, title, icon, tasks, bgColor, onToggle, getPriorityColor, projects, onViewDetails, onDeleteTask }: DroppableColumnProps) {
+function DroppableColumn({ id, title, icon, tasks, bgColor, onToggle, getPriorityColor, projects, onViewDetails, onDeleteTask, onShareTask }: DroppableColumnProps) {
   const { t } = useLanguage()
   const { setNodeRef, isOver } = useDroppable({
     id: id,
@@ -192,6 +227,7 @@ function DroppableColumn({ id, title, icon, tasks, bgColor, onToggle, getPriorit
                 getPriorityColor={getPriorityColor}
                 onViewDetails={onViewDetails}
                 onDeleteTask={onDeleteTask}
+                onShareTask={onShareTask}
               />
             );
           })}
@@ -219,6 +255,10 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
   // Task details dialog state
   const [viewingTask, setViewingTask] = useState<any>(null)
   const [showTaskDetails, setShowTaskDetails] = useState(false)
+  
+  // Share modal state
+  const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [selectedTaskForShare, setSelectedTaskForShare] = useState<any>(null)
   // Form data
   const [formData, setFormData] = useState({
     title: "",
@@ -393,6 +433,11 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
   const handleViewTaskDetails = (task: any) => {
     setViewingTask(task);
     setShowTaskDetails(true);
+  };
+
+  const handleShareTask = (task: any) => {
+    setSelectedTaskForShare(task);
+    setShareModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -655,6 +700,7 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
             projects={displayProjects}
             onViewDetails={handleViewTaskDetails}
             onDeleteTask={onDeleteTask}
+            onShareTask={handleShareTask}
           />
           
           {/* In Progress Column */}
@@ -669,6 +715,7 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
             projects={displayProjects}
             onViewDetails={handleViewTaskDetails}
             onDeleteTask={onDeleteTask}
+            onShareTask={handleShareTask}
           />
           
           {/* Done Column */}
@@ -683,6 +730,7 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
             projects={displayProjects}
             onViewDetails={handleViewTaskDetails}
             onDeleteTask={onDeleteTask}
+            onShareTask={handleShareTask}
           />        </div>
       </DndContext>
 
@@ -794,6 +842,16 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
                 >
                   {t("close") || "Đóng"}
                 </Button>
+                <AdvancedEmailComposer
+                  initialEmailType="taskNotification"
+                  contextData={viewingTask}
+                  trigger={
+                    <Button variant="secondary" className="gap-2">
+                      <Mail className="h-4 w-4" />
+                      {t("sendEmail") || "Gửi Email"}
+                    </Button>
+                  }
+                />
                 {onEditTask && (
                   <Button
                     variant="secondary"
@@ -830,6 +888,17 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Share Modal */}
+      {selectedTaskForShare && (
+        <ShareModal
+          open={shareModalOpen}
+          onOpenChange={setShareModalOpen}
+          resourceType="task"
+          resourceId={selectedTaskForShare.id || ''}
+          resourceName={selectedTaskForShare.title || 'Untitled Task'}
+        />
+      )}
     </div>
   )
 }
