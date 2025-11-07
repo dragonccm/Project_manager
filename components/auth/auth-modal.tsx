@@ -44,13 +44,13 @@ export function AuthModal({ open, onOpenChange, defaultTab = 'login' }: AuthModa
       <ModalContent onClick={(e) => e.stopPropagation()}>
         <TabsContainer>
           <TabButton
-            active={activeTab === 'login'}
+            $active={activeTab === 'login'}
             onClick={() => setActiveTab('login')}
           >
             ĐĂNG NHẬP
           </TabButton>
           <TabButton
-            active={activeTab === 'register'}
+            $active={activeTab === 'register'}
             onClick={() => setActiveTab('register')}
           >
             ĐĂNG KÝ
@@ -154,7 +154,7 @@ function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps) {
             <BrutalismCheckbox
               id="remember"
               checked={formData.remember_me}
-              onChange={(e) => setFormData({ ...formData, remember_me: e.target.checked })}
+              onCheckedChange={(checked) => setFormData({ ...formData, remember_me: checked as boolean })}
               disabled={loading}
             />
             <CheckboxLabel htmlFor="remember">
@@ -480,14 +480,14 @@ const TabsContainer = styled.div`
   border-bottom: 4px solid #000;
 `
 
-const TabButton = styled.button<{ active: boolean }>`
+const TabButton = styled.button<{ $active: boolean }>`
   padding: 1rem;
   font-size: 1rem;
   font-weight: 900;
   text-transform: uppercase;
   border: none;
-  border-right: ${({ active }) => !active && '2px solid #000'};
-  background: ${({ active }) => active ? '#ffeb3b' : '#fff'};
+  border-right: ${({ $active }) => !$active && '2px solid #000'};
+  background: ${({ $active }) => $active ? '#ffeb3b' : '#fff'};
   color: #000;
   cursor: pointer;
   transition: all 0.2s;
@@ -497,7 +497,7 @@ const TabButton = styled.button<{ active: boolean }>`
   }
 
   &:hover:not([disabled]) {
-    background: ${({ active }) => active ? '#ffeb3b' : '#e0e0e0'};
+    background: ${({ $active }) => $active ? '#ffeb3b' : '#e0e0e0'};
   }
 `
 

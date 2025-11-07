@@ -1,0 +1,263 @@
+.ct__slider {
+    height: 100%;
+}
+
+.hero-swiper {
+    width: 100%;
+    height: auto;
+    position: relative;
+    overflow: hidden;
+    background: transparent;
+}
+
+.swiper-wrapper {
+    height: 100% !important;
+}
+
+/* Hiệu ứng slide đẹp hơn với 3D transform */
+.swiper-slide {
+    width: 100% !important;
+    height: auto !important;
+    opacity: 1;
+    transform: scale(1);
+    transition: all 1.2s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.swiper-slide-active {
+    opacity: 1;
+    transform: scale(1);
+    z-index: 10;
+}
+
+/* Slide trước và sau */
+.swiper-slide-prev {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.swiper-slide-next {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.swiper-slide > * {
+    height: 100%;
+}
+
+/* Loại bỏ animation slideContentReveal */
+
+/* Custom pagination nội tuyến bên trái dưới */
+.swiper-pagination {
+    bottom: 40px !important;
+    top: auto !important;
+    left: 40px !important;
+    right: auto !important;
+    width: auto !important;
+    transform: none;
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    z-index: 20;
+}
+
+.swiper-pagination-bullet {
+    width: 9px;
+    height: 9px;
+    background: #b8b8b8 !important;
+    opacity: 1 !important;
+    margin: 0 !important;
+    transition: all 0.3s ease;
+    border: none;
+    border-radius: 50%;
+    position: relative;
+}
+
+.swiper-pagination-bullet-active {
+    width: 9px;
+    height: 9px;
+    background: #ffffff !important;
+    border-radius: 50%;
+}
+
+.swiper-pagination-bullet-active::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px;
+    height: 16px;
+    border: 1px solid #ffffff;
+    border-radius: 50%;
+    background: transparent;
+}
+
+/* Ẩn navigation arrows */
+.swiper-button-next,
+.swiper-button-prev {
+    display: none;
+}
+
+/* Hiệu ứng parallax cho background */
+.hero-swiper::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    animation: pulseBackground 8s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+@keyframes pulseBackground {
+    0%,
+    100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.6;
+        transform: scale(1.1);
+    }
+}
+
+/* Progress bar animation */
+.swiper-pagination-progressbar {
+    background: rgba(255, 255, 255, 0.2);
+    height: 4px;
+}
+
+.swiper-pagination-progressbar-fill {
+    background: transparent;
+    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.6);
+}
+
+/* Carousel với pagination dạng số */
+.number-swiper .swiper-pagination {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+    left: 50%;
+    transform: translateX(380%);
+    width: auto !important;
+}
+
+.number-swiper .swiper-pagination-custom {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 600;
+    font-family: Arial, sans-serif;
+    justify-content: center;
+}
+
+.number-swiper .swiper-nav-button {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: bold;
+    user-select: none;
+}
+
+.number-swiper .swiper-nav-button:hover path {
+    fill: black;
+}
+
+.number-swiper .swiper-nav-button.swiper-button-disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.number-swiper .swiper-nav-button.swiper-button-disabled:hover {
+    transform: scale(1);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Carousel cho logo công ty hợp tác */
+.partners-swiper {
+    width: 100%;
+    height: auto;
+    padding: 20px 0;
+    overflow: hidden;
+}
+
+.partners-swiper .swiper-wrapper {
+    align-items: center;
+    transition-timing-function: linear !important;
+}
+
+.partners-swiper .swiper-slide {
+    width: auto !important;
+    height: auto !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    transition: all 0.3s ease;
+}
+
+.partners-swiper .swiper-slide img {
+    width: 214px;
+    height: 120px;
+    object-fit: contain;
+    display: block;
+    filter: grayscale(100%);
+    transition: filter 0.3s ease;
+}
+
+.partners-swiper .swiper-slide:hover img {
+    filter: grayscale(0%);
+}
+
+/* Container cho 2 hàng carousel */
+.partners-container {
+    width: 100%;
+    overflow: hidden;
+    padding: 40px 0;
+}
+
+.partners-row {
+    margin-bottom: 30px;
+}
+
+.partners-row:last-child {
+    margin-bottom: 0;
+}
+
+/* Responsive cho logo */
+@media (max-width: 1024px) {
+    .partners-swiper .swiper-slide img {
+        width: 180px;
+        height: 100px;
+    }
+}
+
+@media (max-width: 768px) {
+    .partners-swiper .swiper-slide img {
+        width: 150px;
+        height: 85px;
+    }
+
+    .partners-row {
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .partners-swiper .swiper-slide img {
+        width: 120px;
+        height: 68px;
+    }
+}
