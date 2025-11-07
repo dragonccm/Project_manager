@@ -6,7 +6,7 @@ import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export const metadata: Metadata = {
-  title: 'Dragonccm Project Manager | Phần mềm quản lý dự án & báo cáo công việc',
+  title: 'Dragonccm Project Manager | Phần mềm quản lý  & báo cáo công việc',
   description:
     'Dragonccm Project Manager – Phần mềm quản lý dự án giúp lập kế hoạch, theo dõi tiến độ, xuất báo cáo công việc nhanh chóng, hiệu quả và dễ dàng.',
   keywords: [

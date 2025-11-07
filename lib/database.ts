@@ -115,6 +115,7 @@ async function initializeModels() {
     tags: [String],
     preview_image: String,
     preview_data: Object,
+    linked_a4_template: String,
     metadata: Object,
     created_at: { type: Date, default: Date.now },
     updated_at: { type: Date, default: Date.now }
@@ -162,6 +163,54 @@ async function initializeModels() {
     updated_at: { type: Date, default: Date.now }
   })
 
+  // A4 Template schema
+  const a4TemplateSchema = new mongooseLib.default.Schema({
+    user_id: { 
+      type: mongooseLib.default.Schema.Types.ObjectId, 
+      ref: 'User', 
+      required: true,
+      index: true
+    },
+    name: { type: String, required: true },
+    description: String,
+    canvasSettings: {
+      mode: { type: String, enum: ['a4', 'flexible'], default: 'a4' },
+      width: { type: Number, default: 794 },
+      height: { type: Number, default: 1123 },
+      backgroundColor: { type: String, default: '#ffffff' },
+      backgroundImage: String,
+      gridEnabled: { type: Boolean, default: true },
+      gridSize: { type: Number, default: 20 },
+      gridColor: { type: String, default: '#e0e0e0' },
+      snapToGrid: { type: Boolean, default: true },
+      snapTolerance: { type: Number, default: 5 },
+      padding: { type: Number, default: 40 },
+      autoExpand: { type: Boolean, default: false }
+    },
+    shapes: [mongooseLib.default.Schema.Types.Mixed],
+    linkedEntities: [{
+      entityType: { type: String, required: true, enum: ['note', 'mail', 'account', 'project', 'task'] },
+      entityId: { type: String, required: true },
+      linkType: { type: String, enum: ['embedded', 'referenced', 'attached'], default: 'referenced' },
+      metadata: mongooseLib.default.Schema.Types.Mixed
+    }],
+    category: { type: String, default: 'custom' },
+    tags: [String],
+    isPublic: { type: Boolean, default: false },
+    isTemplate: { type: Boolean, default: false },
+    version: { type: Number, default: 1 },
+    versionHistory: [mongooseLib.default.Schema.Types.Mixed],
+    usageCount: { type: Number, default: 0 },
+    lastUsed: Date,
+    sharedWith: [mongooseLib.default.Schema.Types.Mixed],
+    createdBy: String,
+    updatedBy: String,
+    created_at: { type: Date, default: Date.now, index: true },
+    updated_at: { type: Date, default: Date.now }
+  }, {
+    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
+  })
+
   // Create models
   Models.Project = mongooseLib.default.models.Project || mongooseLib.default.model('Project', projectSchema)
   Models.Account = mongooseLib.default.models.Account || mongooseLib.default.model('Account', accountSchema)
@@ -171,6 +220,7 @@ async function initializeModels() {
   Models.Settings = mongooseLib.default.models.Settings || mongooseLib.default.model('Settings', settingsSchema)
   Models.ReportTemplate = mongooseLib.default.models.ReportTemplate || mongooseLib.default.model('ReportTemplate', reportTemplateSchema)
   Models.Link = mongooseLib.default.models.Link || mongooseLib.default.model('Link', linkSchema)
+  Models.A4Template = mongooseLib.default.models.A4Template || mongooseLib.default.model('A4Template', a4TemplateSchema)
 
   return Models
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Bell, Settings, BarChart3, Users, FolderOpen, CheckSquare, Mail, Database, Code, FileText, PieChart, Cog, Activity, Shield } from "lucide-react"
+import { Bell, Settings, BarChart3, Users, FolderOpen, CheckSquare, Mail, Database, Code, FileText, PieChart, Cog, Activity, Shield, Layout } from "lucide-react"
 import { ProjectForm } from "@/features/projects/project-form"
 import { AccountManager } from "@/features/accounts/account-manager"
 import { TrelloTasks } from "@/features/tasks/trello-tasks"
@@ -136,10 +136,11 @@ export default function Dashboard() {
     { id: "tasksOverview", label: t("taskOverview"), icon: PieChart },
     { id: "reports", label: t("reports"), icon: FileText },
     { id: "components", label: "Notes", icon: Code },
-    { id: "settings", label: t("settings"), icon: Settings },
+    { id: "a4designer", label: "A4 Designer", icon: Layout },
     { id: "email", label: t("emailComposer"), icon: Mail },
-    { id: "emailSettings", label: t("emailSettings"), icon: Cog },
     { id: "admin", label: t("adminPanel"), icon: Shield },
+    { id: "emailSettings", label: t("emailSettings"), icon: Cog },
+    { id: "settings", label: t("settings"), icon: Settings },
   ]
 
   const renderContent = () => {
@@ -191,6 +192,18 @@ export default function Dashboard() {
         )
       case "components":
         return <NotesManager />
+      case "a4designer":
+        // Redirect to dedicated A4 editor page
+        if (typeof window !== 'undefined') {
+          window.location.href = '/a4-editor';
+        }
+        return (
+          <div className="text-center py-12">
+            <Layout className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <h2 className="text-2xl font-bold mb-2">A4 Designer</h2>
+            <p className="text-muted-foreground mb-4">Đang chuyển đến trang thiết kế A4...</p>
+          </div>
+        )
       case "settings":
         return (
           <SettingsPanel

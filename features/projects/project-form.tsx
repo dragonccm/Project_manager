@@ -17,6 +17,7 @@ import { useLanguage } from "@/hooks/use-language"
 import { LazyLoadList } from "@/components/ui/lazy-load"
 import AdvancedEmailComposer from "@/components/advanced-email-composer"
 import { ShareModal } from "@/features/share/ShareModal"
+import styled from 'styled-components';
 
 interface Project {
   id: string
@@ -36,18 +37,18 @@ interface ProjectFormProps {
   onDeleteProject: (id: string) => Promise<any>
 }
 
-export function ProjectForm({ 
-  projects, 
-  onAddProject, 
-  onEditProject, 
-  onDeleteProject 
+export function ProjectForm({
+  projects,
+  onAddProject,
+  onEditProject,
+  onDeleteProject
 }: ProjectFormProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | null>(null)
   const [showForm, setShowForm] = useState(false) // New state to control form visibility
   const [viewingProject, setViewingProject] = useState<Project | null>(null)
   const [showProjectDetails, setShowProjectDetails] = useState(false)
-  
+
   // Grid view states
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
   const [searchQuery, setSearchQuery] = useState('')
@@ -56,7 +57,7 @@ export function ProjectForm({
   // Share modal state
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [selectedProjectForShare, setSelectedProjectForShare] = useState<Project | null>(null)
-  
+
   const [formData, setFormData] = useState({
     name: "",
     domain: "",
@@ -71,18 +72,18 @@ export function ProjectForm({
   // Filter projects based on search and status
   const filteredProjects = (projects || []).filter(project => {
     if (!project) return false
-    
+
     const name = project.name || ''
     const description = project.description || ''
     const domain = project.domain || ''
     const query = searchQuery.toLowerCase()
-    
+
     const matchesSearch = name.toLowerCase().includes(query) ||
-                         description.toLowerCase().includes(query) ||
-                         domain.toLowerCase().includes(query)
-    
+      description.toLowerCase().includes(query) ||
+      domain.toLowerCase().includes(query)
+
     const matchesStatus = statusFilter === 'all' || project.status === statusFilter
-    
+
     return matchesSearch && matchesStatus
   })
 
@@ -93,9 +94,9 @@ export function ProjectForm({
     status: 'Trạng thái',
     all: 'Tất cả',
     active: 'Đang hoạt động',
-    paused: 'Tạm dừng', 
+    paused: 'Tạm dừng',
     completed: 'Hoàn thành',
-    cancelled: 'Đã hủy',    viewMode: 'Chế độ xem',
+    cancelled: 'Đã hủy', viewMode: 'Chế độ xem',
     listView: 'Danh sách',
     gridView: 'Lưới',
     view: 'Xem',
@@ -241,7 +242,27 @@ export function ProjectForm({
         </div>
       </div>
 
-  <div className={`grid grid-cols-1 ${showForm ? 'lg:grid-cols-2' : 'lg:grid-cols-1'} gap-6`}>
+      <div className={`grid grid-cols-1 ${showForm ? 'lg:grid-cols-2' : 'lg:grid-cols-1'} gap-6`}>
+        <StyledWrapper>
+          <div className="brutalist-card">
+            <div className="brutalist-card__header">
+              <div className="brutalist-card__icon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                </svg>
+              </div>
+              <div className="brutalist-card__alert">Warning</div>
+            </div>
+            <div className="brutalist-card__message">
+              This is a brutalist card with a very angry button. Proceed with caution,
+              you've been warned.
+            </div>
+            <div className="brutalist-card__actions">
+              <a className="brutalist-card__button brutalist-card__button--mark" href="#">Mark as Read</a>
+              <a className="brutalist-card__button brutalist-card__button--read" href="#">Okay</a>
+            </div>
+          </div>
+        </StyledWrapper>
         {/* Form Card - Conditionally render based on showForm */}
         {showForm && (
           <Card>
@@ -312,10 +333,10 @@ export function ProjectForm({
                   <Button type="submit" className="flex-1">
                     {isEditing ? t("updateProject") : t("createProject")}
                   </Button>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => setShowForm(false)} 
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowForm(false)}
                     className="flex-1"
                   >
                     {t("cancel")}
@@ -345,9 +366,9 @@ export function ProjectForm({
                         <div className="flex items-center gap-2 mt-2">
                           <Badge variant="outline">
                             {project.status === 'active' ? vietnameseText.active :
-                             project.status === 'completed' ? vietnameseText.completed :
-                             project.status === 'paused' ? vietnameseText.paused :
-                             vietnameseText.cancelled}
+                              project.status === 'completed' ? vietnameseText.completed :
+                                project.status === 'paused' ? vietnameseText.paused :
+                                  vietnameseText.cancelled}
                           </Badge>
                           {project.domain && (
                             <Button variant="ghost" size="sm" asChild>
@@ -414,16 +435,16 @@ export function ProjectForm({
                           {project.name}
                         </h3>
                         <div className="flex items-center gap-2 mt-2">
-                          <Badge 
-                            variant={project.status === 'active' ? 'default' : 
-                                    project.status === 'completed' ? 'secondary' : 
-                                    project.status === 'paused' ? 'outline' : 'destructive'}
+                          <Badge
+                            variant={project.status === 'active' ? 'default' :
+                              project.status === 'completed' ? 'secondary' :
+                                project.status === 'paused' ? 'outline' : 'destructive'}
                             className="text-xs"
                           >
                             {project.status === 'active' ? vietnameseText.active :
-                             project.status === 'completed' ? vietnameseText.completed :
-                             project.status === 'paused' ? vietnameseText.paused :
-                             vietnameseText.cancelled}
+                              project.status === 'completed' ? vietnameseText.completed :
+                                project.status === 'paused' ? vietnameseText.paused :
+                                  vietnameseText.cancelled}
                           </Badge>
                           {project.accounts && (
                             <Badge variant="outline" className="text-xs">
@@ -441,13 +462,13 @@ export function ProjectForm({
                       <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
                         {project.description || 'Chưa có mô tả'}
                       </p>
-                        {/* Domain */}
+                      {/* Domain */}
                       {project.domain && (
                         <div className="flex items-center gap-2">
                           <ExternalLink className="h-3 w-3 text-muted-foreground shrink-0" />
-                          <a 
-                            href={project.domain} 
-                            target="_blank" 
+                          <a
+                            href={project.domain}
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="text-xs text-blue-600 hover:underline truncate"
                           >
@@ -455,17 +476,17 @@ export function ProjectForm({
                           </a>
                         </div>
                       )}
-                      
+
                       {/* Figma Link */}
                       {project.figmaLink && (
                         <div className="flex items-center gap-2">
                           <svg className="h-3 w-3 text-muted-foreground shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M15.332 8.668a3.333 3.333 0 0 0 0-6.663H8.668a3.333 3.333 0 0 0 0 6.663 3.333 3.333 0 0 0 0 6.665 3.333 3.333 0 1 0 3.332 3.332V8.668h3.332z"/>
-                            <circle cx="15.332" cy="12.001" r="3.332"/>
+                            <path d="M15.332 8.668a3.333 3.333 0 0 0 0-6.663H8.668a3.333 3.333 0 0 0 0 6.663 3.333 3.333 0 0 0 0 6.665 3.333 3.333 0 1 0 3.332 3.332V8.668h3.332z" />
+                            <circle cx="15.332" cy="12.001" r="3.332" />
                           </svg>
-                          <a 
-                            href={project.figmaLink} 
-                            target="_blank" 
+                          <a
+                            href={project.figmaLink}
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="text-xs text-purple-600 hover:underline truncate"
                           >
@@ -473,7 +494,7 @@ export function ProjectForm({
                           </a>
                         </div>
                       )}
-                      
+
                       {/* Created Date */}
                       {project.createdAt && (
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -481,7 +502,7 @@ export function ProjectForm({
                           {getLocalDateString(new Date(project.createdAt))}
                         </div>
                       )}
-                      
+
                       {/* Action Buttons */}
                       <div className="flex justify-between items-center pt-2">
                         <div className="flex gap-1">
@@ -549,7 +570,7 @@ export function ProjectForm({
               loadingText="Đang tải thêm dự án..."
               noMoreText="Đã hiển thị tất cả dự án"
             />
-            
+
             {/* Empty State for Grid when no lazy loading visible */}
             {filteredProjects.length === 0 && (
               <Card>
@@ -559,8 +580,8 @@ export function ProjectForm({
                     {searchQuery || statusFilter !== 'all' ? vietnameseText.noResults : 'Chưa có dự án nào'}
                   </h3>
                   <p className="text-muted-foreground text-center">
-                    {searchQuery || statusFilter !== 'all' ? 
-                      'Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm của bạn' : 
+                    {searchQuery || statusFilter !== 'all' ?
+                      'Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm của bạn' :
                       'Tạo dự án đầu tiên để bắt đầu quản lý công việc của bạn'
                     }
                   </p>
@@ -594,15 +615,15 @@ export function ProjectForm({
                   </div>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-sm font-medium">Domain</Label>
                   <p className="text-sm text-muted-foreground mt-1">
                     {viewingProject.domain ? (
-                      <a 
-                        href={viewingProject.domain} 
-                        target="_blank" 
+                      <a
+                        href={viewingProject.domain}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:underline flex items-center gap-1"
                       >
@@ -618,9 +639,9 @@ export function ProjectForm({
                   <Label className="text-sm font-medium">Figma Link</Label>
                   <p className="text-sm text-muted-foreground mt-1">
                     {viewingProject.figmaLink ? (
-                      <a 
-                        href={viewingProject.figmaLink} 
-                        target="_blank" 
+                      <a
+                        href={viewingProject.figmaLink}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:underline flex items-center gap-1"
                       >
@@ -645,8 +666,8 @@ export function ProjectForm({
                 <div>
                   <Label className="text-sm font-medium">Ngày tạo</Label>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {viewingProject.createdAt ? 
-                      getLocalDateString(new Date(viewingProject.createdAt)) : 
+                    {viewingProject.createdAt ?
+                      getLocalDateString(new Date(viewingProject.createdAt)) :
                       "Không xác định"}
                   </p>
                 </div>
@@ -675,3 +696,125 @@ export function ProjectForm({
     </div>
   )
 }
+const StyledWrapper = styled.div`
+  .brutalist-card {
+    width: 320px;
+    border: 4px solid #000;
+    background-color: #fff;
+    padding: 1.5rem;
+    box-shadow: 10px 10px 0 #000;
+    font-family: "Arial", sans-serif;
+  }
+
+  .brutalist-card__header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #000;
+    padding-bottom: 1rem;
+  }
+
+  .brutalist-card__icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #000;
+    padding: 0.5rem;
+  }
+
+  .brutalist-card__icon svg {
+    height: 1.5rem;
+    width: 1.5rem;
+    fill: #fff;
+  }
+
+  .brutalist-card__alert {
+    font-weight: 900;
+    color: #000;
+    font-size: 1.5rem;
+    text-transform: uppercase;
+  }
+
+  .brutalist-card__message {
+    margin-top: 1rem;
+    color: #000;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    border-bottom: 2px solid #000;
+    padding-bottom: 1rem;
+    font-weight: 600;
+  }
+
+  .brutalist-card__actions {
+    margin-top: 1rem;
+  }
+
+  .brutalist-card__button {
+    display: block;
+    width: 100%;
+    padding: 0.75rem;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    border: 3px solid #000;
+    background-color: #fff;
+    color: #000;
+    position: relative;
+    transition: all 0.2s ease;
+    box-shadow: 5px 5px 0 #000;
+    overflow: hidden;
+    text-decoration: none;
+    margin-bottom: 1rem;
+  }
+
+  .brutalist-card__button--read {
+    background-color: #000;
+    color: #fff;
+  }
+
+  .brutalist-card__button::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      120deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+    );
+    transition: all 0.6s;
+  }
+
+  .brutalist-card__button:hover::before {
+    left: 100%;
+  }
+
+  .brutalist-card__button:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 7px 7px 0 #000;
+  }
+
+  .brutalist-card__button--mark:hover {
+    background-color: #296fbb;
+    border-color: #296fbb;
+    color: #fff;
+    box-shadow: 7px 7px 0 #004280;
+  }
+
+  .brutalist-card__button--read:hover {
+    background-color: #ff0000;
+    border-color: #ff0000;
+    color: #fff;
+    box-shadow: 7px 7px 0 #800000;
+  }
+
+  .brutalist-card__button:active {
+    transform: translate(5px, 5px);
+    box-shadow: none;
+  }`;
