@@ -9,18 +9,23 @@ import { useLanguage } from "@/hooks/use-language"
 import { getLocalDateString } from "@/lib/date-utils"
 import { generateStrongPassword } from "@/lib/password-generator"
 import { ShareModal } from "@/features/share/ShareModal"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { 
-  BrutalismButton, 
-  BrutalismInput, 
-  BrutalismSelect, 
-  BrutalismCard,
-  BrutalismCardHeader,
-  BrutalismCardTitle,
-  BrutalismCardContent,
-  BrutalismBadge,
-  BrutalismLabel,
-  BrutalismH1
-} from "@/components/ui/brutalism"
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue 
+} from "@/components/ui/select"
+import { 
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle 
+} from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
 interface Account {
   id: string
@@ -50,7 +55,7 @@ export function AccountManager({
   const [showForm, setShowForm] = useState(false)
   const [showEmailComposer, setShowEmailComposer] = useState(false)
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null)
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid')
   const [searchQuery, setSearchQuery] = useState('')
   const [projectFilter, setProjectFilter] = useState<string>('all')
   const [shareModalOpen, setShareModalOpen] = useState(false)
@@ -182,15 +187,15 @@ export function AccountManager({
       position: fixed;
       top: 20px;
       right: 20px;
-      background: #ffeb3b;
-      color: #000;
+      background: linear-gradient(135deg, #667eea 0%, #5568d3 100%);
+      color: hsl(var(--foreground));
       padding: 1rem 1.5rem;
-      border: 3px solid #000;
-      box-shadow: 5px 5px 0 #000;
+      border: none;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       z-index: 9999;
       font-size: 14px;
-      font-weight: 900;
-      text-transform: uppercase;
+      font-weight: 600;
+      ;
     `
     document.body.appendChild(notification)
     
@@ -216,16 +221,16 @@ export function AccountManager({
       {/* Header */}
       <Header>
         <HeaderLeft>
-          <BrutalismH1>TÀI KHOẢN</BrutalismH1>
+          <h1 className="text-3xl font-bold">TÀI KHOẢN</h1>
           <Stats>{filteredAccounts.length} TÀI KHOẢN</Stats>
         </HeaderLeft>
-        <BrutalismButton onClick={() => {
+        <Button onClick={() => {
           setFormData({ projectId: "", username: "", password: "", email: "", website: "", notes: "" })
           setShowForm(true)
         }}>
           <Plus size={20} />
           THÊM TÀI KHOẢN
-        </BrutalismButton>
+        </Button>
       </Header>
 
       {/* Search and Filters */}
@@ -234,7 +239,7 @@ export function AccountManager({
           <SearchIcon>
             <Search size={20} />
           </SearchIcon>
-          <BrutalismInput
+          <Input
             placeholder="TÌM KIẾM TÀI KHOẢN..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -243,7 +248,8 @@ export function AccountManager({
         </SearchBox>
 
         <ControlButtons>
-          <BrutalismSelect
+          <select 
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-all hover:border-primary/50 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             value={projectFilter}
             onChange={(e) => setProjectFilter(e.target.value)}
             style={{ width: '200px' }}
@@ -254,17 +260,17 @@ export function AccountManager({
                 {project.name}
               </option>
             ))}
-          </BrutalismSelect>
+          </select>
 
           <ViewToggle>
             <ViewButton
-              active={viewMode === 'list'}
+              $active={viewMode === 'list'}
               onClick={() => setViewMode('list')}
             >
               <List size={20} />
             </ViewButton>
             <ViewButton
-              active={viewMode === 'grid'}
+              $active={viewMode === 'grid'}
               onClick={() => setViewMode('grid')}
             >
               <Grid3X3 size={20} />
@@ -277,15 +283,15 @@ export function AccountManager({
       <ContentGrid $showForm={showForm}>
         {/* Form */}
         {showForm && (
-          <BrutalismCard>
-            <BrutalismCardHeader>
-              <BrutalismCardTitle>THÊM TÀI KHOẢN MỚI</BrutalismCardTitle>
-            </BrutalismCardHeader>
-            <BrutalismCardContent>
+          <Card className="hover-lift">
+            <CardHeader>
+              <CardTitle>THÊM TÀI KHOẢN MỚI</CardTitle>
+            </CardHeader>
+            <CardContent>
               <Form onSubmit={handleSubmit}>
                 <FormGroup>
-                  <BrutalismLabel>DỰ ÁN *</BrutalismLabel>
-                  <BrutalismSelect
+                  <Label>DỰ ÁN *</Label>
+                  <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                     value={formData.projectId}
                     onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
                     required
@@ -296,12 +302,12 @@ export function AccountManager({
                         {project.name}
                       </option>
                     ))}
-                  </BrutalismSelect>
+                  </select>
                 </FormGroup>
 
                 <FormGroup>
-                  <BrutalismLabel>WEBSITE *</BrutalismLabel>
-                  <BrutalismInput
+                  <Label>WEBSITE *</Label>
+                  <Input
                     value={formData.website}
                     onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                     placeholder="https://example.com"
@@ -310,25 +316,25 @@ export function AccountManager({
                 </FormGroup>
 
                 <FormGroup>
-                  <BrutalismLabel>TÊN ĐĂNG NHẬP *</BrutalismLabel>
+                  <Label>TÊN ĐĂNG NHẬP *</Label>
                   <InputGroup>
-                    <BrutalismInput
+                    <Input
                       value={formData.username}
                       onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                       placeholder="USERNAME"
                       required
                       style={{ flex: 1 }}
                     />
-                    <BrutalismButton type="button" onClick={autoFillFromWebsite}>
+                    <Button type="button" onClick={autoFillFromWebsite}>
                       <RefreshCw size={16} />
-                    </BrutalismButton>
+                    </Button>
                   </InputGroup>
                 </FormGroup>
 
                 <FormGroup>
-                  <BrutalismLabel>MẬT KHẨU *</BrutalismLabel>
+                  <Label>MẬT KHẨU *</Label>
                   <InputGroup>
-                    <BrutalismInput
+                    <Input
                       type="password"
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -336,18 +342,18 @@ export function AccountManager({
                       required
                       style={{ flex: 1 }}
                     />
-                    <BrutalismButton
+                    <Button
                       type="button"
                       onClick={() => setFormData({ ...formData, password: generateStrongPassword() })}
                     >
                       <RefreshCw size={16} />
-                    </BrutalismButton>
+                    </Button>
                   </InputGroup>
                 </FormGroup>
 
                 <FormGroup>
-                  <BrutalismLabel>EMAIL</BrutalismLabel>
-                  <BrutalismInput
+                  <Label>EMAIL</Label>
+                  <Input
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -356,8 +362,8 @@ export function AccountManager({
                 </FormGroup>
 
                 <FormGroup>
-                  <BrutalismLabel>GHI CHÚ</BrutalismLabel>
-                  <BrutalismInput
+                  <Label>GHI CHÚ</Label>
+                  <Input
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     placeholder="GHI CHÚ THÊM..."
@@ -365,25 +371,25 @@ export function AccountManager({
                 </FormGroup>
 
                 <FormActions>
-                  <BrutalismButton type="submit" style={{ flex: 1 }}>
+                  <Button type="submit" style={{ flex: 1 }}>
                     <Plus size={16} />
                     TẠO TÀI KHOẢN
-                  </BrutalismButton>
-                  <BrutalismButton type="button" variant="secondary" onClick={() => setShowForm(false)}>
+                  </Button>
+                  <Button type="button" variant="secondary" onClick={() => setShowForm(false)}>
                     HỦY
-                  </BrutalismButton>
+                  </Button>
                 </FormActions>
               </Form>
-            </BrutalismCardContent>
-          </BrutalismCard>
+            </CardContent>
+          </Card>
         )}
 
         {/* Accounts Display */}
-        <BrutalismCard>
-          <BrutalismCardHeader>
-            <BrutalismCardTitle>TÀI KHOẢN ĐÃ LƯU</BrutalismCardTitle>
-          </BrutalismCardHeader>
-          <BrutalismCardContent>
+        <Card className="hover-lift">
+          <CardHeader>
+            <CardTitle>TÀI KHOẢN ĐÃ LƯU</CardTitle>
+          </CardHeader>
+          <CardContent>
             {filteredAccounts.length === 0 ? (
               <EmptyState>
                 {searchQuery || projectFilter !== 'all' ? 'KHÔNG TÌM THẤY TÀI KHOẢN NÀO' : 'CHƯA CÓ TÀI KHOẢN NÀO'}
@@ -398,7 +404,7 @@ export function AccountManager({
                       <AccountHeader>
                         <div>
                           <AccountWebsite>{account.website}</AccountWebsite>
-                          <BrutalismBadge>{project?.name || "UNKNOWN PROJECT"}</BrutalismBadge>
+                          <Badge>{project?.name || "UNKNOWN PROJECT"}</Badge>
                         </div>
                         <AccountActions>
                           <IconButton
@@ -470,9 +476,9 @@ export function AccountManager({
                       <GridCardHeader>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <GridCardTitle>{account.website}</GridCardTitle>
-                          <BrutalismBadge style={{ fontSize: '0.75rem', marginTop: '0.5rem' }}>
+                          <Badge style={{ fontSize: '0.75rem', marginTop: '0.5rem' }}>
                             {project?.name || "UNKNOWN"}
-                          </BrutalismBadge>
+                          </Badge>
                         </div>
                         <GridCardActions>
                           <IconButton
@@ -530,25 +536,25 @@ export function AccountManager({
                         )}
 
                         {account.website && (
-                          <BrutalismButton
+                          <Button
                             variant="secondary"
                             onClick={() => window.open(account.website, '_blank')}
                             style={{ width: '100%', marginTop: '0.5rem', fontSize: '0.75rem', padding: '0.5rem' }}
                           >
                             <ExternalLink size={12} />
                             WEBSITE
-                          </BrutalismButton>
+                          </Button>
                         )}
 
                         {account.email && (
-                          <BrutalismButton
+                          <Button
                             variant="secondary"
                             onClick={() => sendEmailWithCredentials(account)}
                             style={{ width: '100%', marginTop: '0.5rem', fontSize: '0.75rem', padding: '0.5rem' }}
                           >
                             <Mail size={12} />
                             GỬI EMAIL
-                          </BrutalismButton>
+                          </Button>
                         )}
                       </GridCardBody>
                     </GridCard>
@@ -556,8 +562,8 @@ export function AccountManager({
                 })}
               </AccountsGrid>
             )}
-          </BrutalismCardContent>
-        </BrutalismCard>
+          </CardContent>
+        </Card>
       </ContentGrid>
 
       {/* Email Composer */}
@@ -618,7 +624,7 @@ const HeaderLeft = styled.div`
 const Stats = styled.p`
   font-size: 0.875rem;
   font-weight: 700;
-  text-transform: uppercase;
+  ;
   color: #666;
 `
 
@@ -643,7 +649,7 @@ const SearchIcon = styled.div`
   left: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #000;
+  color: hsl(var(--foreground));
   pointer-events: none;
 `
 
@@ -655,15 +661,15 @@ const ControlButtons = styled.div`
 
 const ViewToggle = styled.div`
   display: flex;
-  border: 3px solid #000;
-  background: #fff;
+  border: none;
+  background: hsl(var(--card));
 `
 
-const ViewButton = styled.button<{ active?: boolean }>`
+const ViewButton = styled.button<{ $active?: boolean }>`
   padding: 0.75rem;
-  background: ${({ active }) => active ? '#ffeb3b' : '#fff'};
+  background: ${({ $active }) => $active ? 'linear-gradient(135deg, #667eea 0%, #5568d3 100%)' : 'hsl(var(--card))'};
   border: none;
-  border-right: ${({ active }) => !active && '2px solid #000'};
+  border-right: ${({ $active }) => !$active && '2px solid hsl(var(--foreground))'};
   cursor: pointer;
   transition: all 0.2s;
 
@@ -672,7 +678,7 @@ const ViewButton = styled.button<{ active?: boolean }>`
   }
 
   &:hover {
-    background: ${({ active }) => active ? '#ffeb3b' : '#e0e0e0'};
+    background: ${({ $active }) => $active ? 'linear-gradient(135deg, #667eea 0%, #5568d3 100%)' : '#e0e0e0'};
   }
 `
 
@@ -713,8 +719,8 @@ const EmptyState = styled.div`
   padding: 4rem 2rem;
   text-align: center;
   font-size: 1rem;
-  font-weight: 900;
-  text-transform: uppercase;
+  font-weight: 600;
+  ;
   color: #666;
 `
 
@@ -726,9 +732,9 @@ const AccountsList = styled.div`
 
 const AccountCard = styled.div`
   padding: 1.5rem;
-  border: 3px solid #000;
-  background: #fff;
-  box-shadow: 4px 4px 0 #000;
+  border: none;
+  background: hsl(var(--card));
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 `
 
 const AccountHeader = styled.div`
@@ -741,8 +747,8 @@ const AccountHeader = styled.div`
 
 const AccountWebsite = styled.h3`
   font-size: 1rem;
-  font-weight: 900;
-  text-transform: uppercase;
+  font-weight: 600;
+  ;
   margin-bottom: 0.5rem;
 `
 
@@ -753,16 +759,16 @@ const AccountActions = styled.div`
 
 const IconButton = styled.button<{ $danger?: boolean }>`
   padding: 0.5rem;
-  border: 2px solid #000;
-  background: ${({ $danger }) => $danger ? '#ff0000' : '#fff'};
-  color: ${({ $danger }) => $danger ? '#fff' : '#000'};
+  border: none;
+  background: ${({ $danger }) => $danger ? '#ff0000' : 'hsl(var(--card))'};
+  color: ${({ $danger }) => $danger ? 'hsl(var(--card))' : 'hsl(var(--foreground))'};
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 2px 2px 0 #000;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 
   &:hover {
     transform: translate(-1px, -1px);
-    box-shadow: 3px 3px 0 #000;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
 
   &:active {
@@ -791,8 +797,8 @@ const DetailRow = styled.div`
 `
 
 const DetailLabel = styled.span`
-  font-weight: 900;
-  text-transform: uppercase;
+  font-weight: 600;
+  ;
   color: #666;
 `
 
@@ -809,20 +815,20 @@ const AccountsGrid = styled.div`
 `
 
 const GridCard = styled.div`
-  border: 3px solid #000;
-  background: #fff;
-  box-shadow: 4px 4px 0 #000;
+  border: none;
+  background: hsl(var(--card));
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   transition: all 0.2s;
 
   &:hover {
     transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0 #000;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
 `
 
 const GridCardHeader = styled.div`
   padding: 1rem;
-  border-bottom: 2px solid #000;
+  border-bottom: 2px solid hsl(var(--foreground));
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -831,8 +837,8 @@ const GridCardHeader = styled.div`
 
 const GridCardTitle = styled.h4`
   font-size: 0.875rem;
-  font-weight: 900;
-  text-transform: uppercase;
+  font-weight: 600;
+  ;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -864,8 +870,8 @@ const GridDetailRow = styled.div`
 `
 
 const GridLabel = styled.span`
-  font-weight: 900;
-  text-transform: uppercase;
+  font-weight: 600;
+  ;
   color: #666;
   white-space: nowrap;
 `
@@ -875,3 +881,7 @@ const GridValueRow = styled.div`
   align-items: center;
   gap: 0.25rem;
 `
+
+
+
+

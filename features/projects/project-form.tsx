@@ -50,7 +50,7 @@ export function ProjectForm({
   const [showProjectDetails, setShowProjectDetails] = useState(false)
 
   // Grid view states
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
 
@@ -699,10 +699,10 @@ export function ProjectForm({
 const StyledWrapper = styled.div`
   .brutalist-card {
     width: 320px;
-    border: 4px solid #000;
-    background-color: #fff;
+    border: none;
+    background-color: hsl(var(--card));
     padding: 1.5rem;
-    box-shadow: 10px 10px 0 #000;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     font-family: "Arial", sans-serif;
   }
 
@@ -711,7 +711,7 @@ const StyledWrapper = styled.div`
     align-items: center;
     gap: 1rem;
     margin-bottom: 1rem;
-    border-bottom: 2px solid #000;
+    border: none;
     padding-bottom: 1rem;
   }
 
@@ -720,29 +720,29 @@ const StyledWrapper = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #000;
+    background-color: hsl(var(--foreground));
     padding: 0.5rem;
   }
 
   .brutalist-card__icon svg {
     height: 1.5rem;
     width: 1.5rem;
-    fill: #fff;
+    fill: hsl(var(--card));
   }
 
   .brutalist-card__alert {
-    font-weight: 900;
-    color: #000;
+    font-weight: 600;
+    color: hsl(var(--foreground));
     font-size: 1.5rem;
-    text-transform: uppercase;
+    ;
   }
 
   .brutalist-card__message {
     margin-top: 1rem;
-    color: #000;
+    color: hsl(var(--foreground));
     font-size: 0.9rem;
     line-height: 1.4;
-    border-bottom: 2px solid #000;
+    border: none;
     padding-bottom: 1rem;
     font-weight: 600;
   }
@@ -758,21 +758,21 @@ const StyledWrapper = styled.div`
     text-align: center;
     font-size: 1rem;
     font-weight: 700;
-    text-transform: uppercase;
-    border: 3px solid #000;
-    background-color: #fff;
-    color: #000;
+    ;
+    border: none;
+    background-color: hsl(var(--card));
+    color: hsl(var(--foreground));
     position: relative;
     transition: all 0.2s ease;
-    box-shadow: 5px 5px 0 #000;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     overflow: hidden;
     text-decoration: none;
     margin-bottom: 1rem;
   }
 
   .brutalist-card__button--read {
-    background-color: #000;
-    color: #fff;
+    background-color: hsl(var(--foreground));
+    color: hsl(var(--card));
   }
 
   .brutalist-card__button::before {
@@ -797,20 +797,20 @@ const StyledWrapper = styled.div`
 
   .brutalist-card__button:hover {
     transform: translate(-2px, -2px);
-    box-shadow: 7px 7px 0 #000;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
 
   .brutalist-card__button--mark:hover {
     background-color: #296fbb;
     border-color: #296fbb;
-    color: #fff;
+    color: hsl(var(--card));
     box-shadow: 7px 7px 0 #004280;
   }
 
   .brutalist-card__button--read:hover {
     background-color: #ff0000;
     border-color: #ff0000;
-    color: #fff;
+    color: hsl(var(--card));
     box-shadow: 7px 7px 0 #800000;
   }
 

@@ -30,14 +30,22 @@ interface ShapeSettingsPanelProps {
 export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps) {
   if (!shape) {
     return (
-      <Card>
+      <Card className="border-2 border-dashed hover:border-primary/50 transition-colors">
         <CardHeader>
-          <CardTitle className="text-sm">Shape Settings</CardTitle>
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Box className="h-4 w-4 text-muted-foreground" />
+            Shape Settings
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground text-center py-4">
-            Select a shape to edit its properties
-          </p>
+          <div className="text-center py-8 space-y-2">
+            <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+              <Box className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Select a shape to edit its properties
+            </p>
+          </div>
         </CardContent>
       </Card>
     )
@@ -466,23 +474,29 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
   }
 
   return (
-    <Card className="h-full">
-      <CardHeader>
+    <Card className="h-full shadow-lg">
+      <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-accent/5">
         <CardTitle className="text-sm flex items-center gap-2">
-          {shape.type === 'rectangle' && <Box className="h-4 w-4" />}
-          {shape.type === 'ellipse' && <Box className="h-4 w-4" />}
-          {shape.type === 'text' && <Type className="h-4 w-4" />}
-          {shape.type === 'image' && <ImageIcon className="h-4 w-4" />}
-          {shape.type === 'data-card' && <FileText className="h-4 w-4" />}
-          {shape.type === 'mermaid-diagram' && <FileText className="h-4 w-4" />}
-          {shape.type.charAt(0).toUpperCase() + shape.type.slice(1)} Settings
+          {shape.type === 'rectangle' && <Box className="h-4 w-4 text-primary" />}
+          {shape.type === 'ellipse' && <Box className="h-4 w-4 text-secondary" />}
+          {shape.type === 'text' && <Type className="h-4 w-4 text-accent" />}
+          {shape.type === 'image' && <ImageIcon className="h-4 w-4 text-success" />}
+          {shape.type === 'data-card' && <FileText className="h-4 w-4 text-info" />}
+          {shape.type === 'mermaid-diagram' && <FileText className="h-4 w-4 text-warning" />}
+          <span className="font-semibold">{shape.type.charAt(0).toUpperCase() + shape.type.slice(1)} Settings</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 overflow-y-auto max-h-[calc(100vh-200px)]">
+      <CardContent className="space-y-4 overflow-y-auto max-h-[calc(100vh-200px)] p-6">
         <Tabs defaultValue="properties" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="properties">Properties</TabsTrigger>
-            <TabsTrigger value="style">Style</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 bg-muted/50">
+            <TabsTrigger value="properties" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Palette className="h-4 w-4 mr-2" />
+              Properties
+            </TabsTrigger>
+            <TabsTrigger value="style" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Box className="h-4 w-4 mr-2" />
+              Style
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="properties" className="space-y-4">

@@ -4,16 +4,11 @@ import { useState } from "react"
 import styled from 'styled-components'
 import { useAuth } from "@/hooks/use-auth"
 import { Eye, EyeOff, LogIn, UserPlus, CheckCircle, XCircle } from "lucide-react"
-import {
-  BrutalismButton,
-  BrutalismInput,
-  BrutalismLabel,
-  BrutalismCard,
-  BrutalismCardHeader,
-  BrutalismCardTitle,
-  BrutalismCardContent,
-  BrutalismCheckbox,
-} from "@/components/ui/brutalism"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 
 // ============================================
 // AUTH MODAL
@@ -47,13 +42,13 @@ export function AuthModal({ open, onOpenChange, defaultTab = 'login' }: AuthModa
             $active={activeTab === 'login'}
             onClick={() => setActiveTab('login')}
           >
-            ĐĂNG NHẬP
+            Đăng nhập
           </TabButton>
           <TabButton
             $active={activeTab === 'register'}
             onClick={() => setActiveTab('register')}
           >
-            ĐĂNG KÝ
+            Đăng ký
           </TabButton>
         </TabsContainer>
 
@@ -107,7 +102,7 @@ function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps) {
         <IconCircle>
           <LogIn size={32} />
         </IconCircle>
-        <FormTitle>ĐĂNG NHẬP</FormTitle>
+        <FormTitle>Đăng nhập</FormTitle>
         <FormDescription>Nhập thông tin để truy cập hệ thống</FormDescription>
       </FormHeader>
 
@@ -118,10 +113,10 @@ function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps) {
           )}
 
           <FormGroup>
-            <BrutalismLabel>TÊN ĐĂNG NHẬP</BrutalismLabel>
-            <BrutalismInput
+            <Label>Tên đăng nhập</Label>
+            <Input
               type="text"
-              placeholder="NHẬP TÊN ĐĂNG NHẬP"
+              placeholder="Nhập tên đăng nhập"
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               disabled={loading}
@@ -130,11 +125,11 @@ function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps) {
           </FormGroup>
 
           <FormGroup>
-            <BrutalismLabel>MẬT KHẨU</BrutalismLabel>
+            <Label>Mật khẩu</Label>
             <PasswordWrapper>
-              <BrutalismInput
+              <Input
                 type={showPassword ? "text" : "password"}
-                placeholder="NHẬP MẬT KHẨU"
+                placeholder="Nhập mật khẩu"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 disabled={loading}
@@ -151,36 +146,37 @@ function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps) {
           </FormGroup>
 
           <CheckboxWrapper>
-            <BrutalismCheckbox
+            <Checkbox
               id="remember"
               checked={formData.remember_me}
               onCheckedChange={(checked) => setFormData({ ...formData, remember_me: checked as boolean })}
               disabled={loading}
             />
             <CheckboxLabel htmlFor="remember">
-              GHI NHỚ ĐĂNG NHẬP (30 NGÀY)
+              Ghi nhớ đăng nhập (30 ngày)
             </CheckboxLabel>
           </CheckboxWrapper>
         </FormContent>
 
         <FormFooter>
-          <BrutalismButton
+          <Button
             type="submit"
+            variant="default"
             style={{ width: '100%' }}
             disabled={loading || !formData.username || !formData.password}
           >
-            {loading ? 'ĐANG ĐĂNG NHẬP...' : 'ĐĂNG NHẬP'}
-          </BrutalismButton>
+            {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+          </Button>
 
           {onSwitchToRegister && (
             <SwitchText>
-              CHƯA CÓ TÀI KHOẢN?{' '}
+              Chưa có tài khoản?{' '}
               <SwitchButton
                 type="button"
                 onClick={onSwitchToRegister}
                 disabled={loading}
               >
-                ĐĂNG KÝ NGAY
+                Đăng ký ngay
               </SwitchButton>
             </SwitchText>
           )}
@@ -280,7 +276,7 @@ function RegisterForm({ onSwitchToLogin, onRegisterSuccess }: RegisterFormProps)
         <IconCircle>
           <UserPlus size={32} />
         </IconCircle>
-        <FormTitle>ĐĂNG KÝ</FormTitle>
+        <FormTitle>Đăng ký</FormTitle>
         <FormDescription>Tạo tài khoản mới để sử dụng hệ thống</FormDescription>
       </FormHeader>
 
@@ -289,10 +285,10 @@ function RegisterForm({ onSwitchToLogin, onRegisterSuccess }: RegisterFormProps)
           {error && <ErrorAlert>{error}</ErrorAlert>}
 
           <FormGroup>
-            <BrutalismLabel>HỌ VÀ TÊN</BrutalismLabel>
-            <BrutalismInput
+            <Label>Họ và tên</Label>
+            <Input
               type="text"
-              placeholder="NHẬP HỌ VÀ TÊN ĐẦY ĐỦ"
+              placeholder="Nhập họ và tên đầy đủ"
               value={formData.full_name}
               onChange={(e) => handleInputChange('full_name', e.target.value)}
               disabled={loading}
@@ -301,10 +297,10 @@ function RegisterForm({ onSwitchToLogin, onRegisterSuccess }: RegisterFormProps)
           </FormGroup>
 
           <FormGroup>
-            <BrutalismLabel>TÊN ĐĂNG NHẬP</BrutalismLabel>
-            <BrutalismInput
+            <Label>Tên đăng nhập</Label>
+            <Input
               type="text"
-              placeholder="3-20 KÝ TỰ, CHỈ CHỮ, SỐ VÀ _"
+              placeholder="3-20 ký tự, chỉ chữ, số và _"
               value={formData.username}
               onChange={(e) => handleInputChange('username', e.target.value)}
               disabled={loading}
@@ -313,10 +309,10 @@ function RegisterForm({ onSwitchToLogin, onRegisterSuccess }: RegisterFormProps)
           </FormGroup>
 
           <FormGroup>
-            <BrutalismLabel>EMAIL</BrutalismLabel>
-            <BrutalismInput
+            <Label>Email</Label>
+            <Input
               type="email"
-              placeholder="NHẬP ĐỊA CHỈ EMAIL"
+              placeholder="Nhập địa chỉ email"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
               disabled={loading}
@@ -325,11 +321,11 @@ function RegisterForm({ onSwitchToLogin, onRegisterSuccess }: RegisterFormProps)
           </FormGroup>
 
           <FormGroup>
-            <BrutalismLabel>MẬT KHẨU</BrutalismLabel>
+            <Label>Mật khẩu</Label>
             <PasswordWrapper>
-              <BrutalismInput
+              <Input
                 type={showPassword ? "text" : "password"}
-                placeholder="NHẬP MẬT KHẨU"
+                placeholder="Nhập mật khẩu"
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
                 disabled={loading}
@@ -346,11 +342,11 @@ function RegisterForm({ onSwitchToLogin, onRegisterSuccess }: RegisterFormProps)
             {formData.password && (
               <PasswordStrength>
                 <StrengthText style={{ color: getPasswordStrengthColor() }}>
-                  ĐỘ MẠNH: {getPasswordStrengthText()}
+                  Độ mạnh: {getPasswordStrengthText()}
                 </StrengthText>
                 {passwordStrength.feedback.length > 0 && (
                   <FeedbackText>
-                    CẦN: {passwordStrength.feedback.join(", ").toUpperCase()}
+                    Cần: {passwordStrength.feedback.join(", ")}
                   </FeedbackText>
                 )}
               </PasswordStrength>
@@ -358,11 +354,11 @@ function RegisterForm({ onSwitchToLogin, onRegisterSuccess }: RegisterFormProps)
           </FormGroup>
 
           <FormGroup>
-            <BrutalismLabel>XÁC NHẬN MẬT KHẨU</BrutalismLabel>
+            <Label>Xác nhận mật khẩu</Label>
             <PasswordWrapper>
-              <BrutalismInput
+              <Input
                 type={showConfirmPassword ? "text" : "password"}
-                placeholder="NHẬP LẠI MẬT KHẨU"
+                placeholder="Nhập lại mật khẩu"
                 value={formData.confirmPassword}
                 onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
                 disabled={loading}
@@ -381,12 +377,12 @@ function RegisterForm({ onSwitchToLogin, onRegisterSuccess }: RegisterFormProps)
                 {formData.password === formData.confirmPassword ? (
                   <>
                     <CheckCircle size={16} />
-                    MẬT KHẨU KHỚP
+                    Mật khẩu khớp
                   </>
                 ) : (
                   <>
                     <XCircle size={16} />
-                    MẬT KHẨU KHÔNG KHỚP
+                    Mật khẩu không khớp
                   </>
                 )}
               </PasswordMatch>
@@ -395,8 +391,9 @@ function RegisterForm({ onSwitchToLogin, onRegisterSuccess }: RegisterFormProps)
         </FormContent>
 
         <FormFooter>
-          <BrutalismButton
+          <Button
             type="submit"
+            variant="default"
             style={{ width: '100%' }}
             disabled={
               loading ||
@@ -407,18 +404,18 @@ function RegisterForm({ onSwitchToLogin, onRegisterSuccess }: RegisterFormProps)
               passwordStrength.score < 4
             }
           >
-            {loading ? 'ĐANG ĐĂNG KÝ...' : 'ĐĂNG KÝ'}
-          </BrutalismButton>
+            {loading ? 'Đang đăng ký...' : 'Đăng ký'}
+          </Button>
 
           {onSwitchToLogin && (
             <SwitchText>
-              ĐÃ CÓ TÀI KHOẢN?{' '}
+              Đã có tài khoản?{' '}
               <SwitchButton
                 type="button"
                 onClick={onSwitchToLogin}
                 disabled={loading}
               >
-                ĐĂNG NHẬP
+                Đăng nhập
               </SwitchButton>
             </SwitchText>
           )}
@@ -449,7 +446,7 @@ export function AuthPage() {
 }
 
 // ============================================
-// STYLED COMPONENTS
+// STYLED COMPONENTS - NEUMORPHISM
 // ============================================
 
 const ModalOverlay = styled.div`
@@ -458,7 +455,8 @@ const ModalOverlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -470,39 +468,81 @@ const ModalContent = styled.div`
   width: 100%;
   max-width: 500px;
   background: #fff;
-  border: 5px solid #000;
-  box-shadow: 15px 15px 0 #000;
+  border-radius: 24px;
+  box-shadow: 0 0.706592px 0.706592px -0.666667px #00000014,
+              0 1.80656px 1.80656px -1.33333px #00000014,
+              0 3.62176px 3.62176px -2px #00000012,
+              0 6.8656px 6.8656px -2.66667px #00000012,
+              0 13.6468px 13.6468px -3.33333px #0000000d,
+              0 30px 30px -4px #00000005,
+              inset 0 3px 1px #fff;
+  overflow: hidden;
 `
 
 const TabsContainer = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
-  border-bottom: 4px solid #000;
+  background: #fff;
+  padding: 8px;
+  gap: 8px;
 `
 
 const TabButton = styled.button<{ $active: boolean }>`
   padding: 1rem;
   font-size: 1rem;
-  font-weight: 900;
-  text-transform: uppercase;
+  font-weight: 600;
   border: none;
-  border-right: ${({ $active }) => !$active && '2px solid #000'};
-  background: ${({ $active }) => $active ? '#ffeb3b' : '#fff'};
-  color: #000;
+  border-radius: 12px;
+  background: ${({ $active }) => 
+    $active 
+      ? '#000' 
+      : '#fff'
+  };
+  color: ${({ $active }) => $active ? '#fff' : '#000'};
   cursor: pointer;
-  transition: all 0.2s;
-
-  &:last-child {
-    border-right: none;
-  }
+  transition: all 0.3s ease;
+  box-shadow: ${({ $active }) => 
+    $active 
+      ? `0 0.706592px 0.706592px -0.666667px #00000014,
+         0 1.80656px 1.80656px -1.33333px #00000014,
+         0 3.62176px 3.62176px -2px #00000012,
+         0 6.8656px 6.8656px -2.66667px #00000012,
+         0 13.6468px 13.6468px -3.33333px #0000000d,
+         0 30px 30px -4px #00000005,
+         inset 0 3px 1px #fff`
+      : `0 0.706592px 0.706592px -0.666667px #00000014,
+         0 1.80656px 1.80656px -1.33333px #00000014,
+         0 3.62176px 3.62176px -2px #00000012,
+         inset 0 3px 1px #fff`
+  };
 
   &:hover:not([disabled]) {
-    background: ${({ $active }) => $active ? '#ffeb3b' : '#e0e0e0'};
+    transform: translateY(-2px);
+    box-shadow: ${({ $active }) => 
+      $active 
+        ? `0 0.706592px 0.706592px -0.666667px #00000014,
+           0 1.80656px 1.80656px -1.33333px #00000014,
+           0 3.62176px 3.62176px -2px #00000012,
+           0 6.8656px 6.8656px -2.66667px #00000012,
+           0 13.6468px 13.6468px -3.33333px #0000000d,
+           0 30px 30px -4px #00000005,
+           inset 0 3px 1px #fff`
+        : `0 0.706592px 0.706592px -0.666667px #00000014,
+           0 1.80656px 1.80656px -1.33333px #00000014,
+           0 3.62176px 3.62176px -2px #00000012,
+           0 6.8656px 6.8656px -2.66667px #00000012,
+           inset 0 3px 1px #fff`
+    };
+  }
+
+  &:active {
+    transform: scale(0.98);
   }
 `
 
 const FormCard = styled.div`
   padding: 2rem;
+  background: #fff;
 `
 
 const FormHeader = styled.div`
@@ -517,22 +557,28 @@ const IconCircle = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 4px solid #000;
-  background: #ffeb3b;
-  box-shadow: 6px 6px 0 #000;
+  border-radius: 50%;
+  background: #000;
+  color: #fff;
+  box-shadow: 0 0.706592px 0.706592px -0.666667px #00000014,
+              0 1.80656px 1.80656px -1.33333px #00000014,
+              0 3.62176px 3.62176px -2px #00000012,
+              0 6.8656px 6.8656px -2.66667px #00000012,
+              0 13.6468px 13.6468px -3.33333px #0000000d,
+              0 30px 30px -4px #00000005,
+              inset 0 3px 1px #fff;
 `
 
 const FormTitle = styled.h2`
   font-size: 2rem;
-  font-weight: 900;
-  text-transform: uppercase;
+  font-weight: 700;
+  color: #000;
   margin-bottom: 0.5rem;
 `
 
 const FormDescription = styled.p`
   font-size: 0.875rem;
-  font-weight: 700;
-  text-transform: uppercase;
+  font-weight: 500;
   color: #666;
 `
 
@@ -563,9 +609,12 @@ const PasswordToggle = styled.button`
   background: transparent;
   cursor: pointer;
   color: #000;
+  border-radius: 8px;
+  transition: all 0.3s ease;
 
   &:hover:not(:disabled) {
-    color: #296fbb;
+    background: rgba(0, 0, 0, 0.05);
+    transform: translateY(-50%) scale(1.1);
   }
 
   &:disabled {
@@ -576,12 +625,17 @@ const PasswordToggle = styled.button`
 
 const ErrorAlert = styled.div`
   padding: 1rem;
-  border: 3px solid #000;
-  background: #ff0000;
+  border-radius: 12px;
+  background: #f44336;
   color: #fff;
-  font-weight: 900;
-  text-transform: uppercase;
-  box-shadow: 4px 4px 0 #000;
+  font-weight: 600;
+  box-shadow: 0 0.706592px 0.706592px -0.666667px #00000014,
+              0 1.80656px 1.80656px -1.33333px #00000014,
+              0 3.62176px 3.62176px -2px #00000012,
+              0 6.8656px 6.8656px -2.66667px #00000012,
+              0 13.6468px 13.6468px -3.33333px #0000000d,
+              0 30px 30px -4px #00000005,
+              inset 0 3px 1px #fff;
 `
 
 const CheckboxWrapper = styled.div`
@@ -592,8 +646,8 @@ const CheckboxWrapper = styled.div`
 
 const CheckboxLabel = styled.label`
   font-size: 0.875rem;
-  font-weight: 700;
-  text-transform: uppercase;
+  font-weight: 500;
+  color: #000;
   cursor: pointer;
 `
 
@@ -606,21 +660,23 @@ const FormFooter = styled.div`
 const SwitchText = styled.div`
   text-align: center;
   font-size: 0.875rem;
-  font-weight: 700;
-  text-transform: uppercase;
+  font-weight: 500;
+  color: #666;
 `
 
 const SwitchButton = styled.button`
   border: none;
   background: none;
-  color: #296fbb;
-  font-weight: 900;
-  text-decoration: underline;
+  color: #000;
+  font-weight: 600;
+  text-decoration: none;
   cursor: pointer;
   padding: 0;
+  transition: all 0.3s ease;
 
   &:hover:not(:disabled) {
-    color: #1e5a8e;
+    color: #333;
+    text-decoration: underline;
   }
 
   &:disabled {
@@ -634,12 +690,11 @@ const PasswordStrength = styled.div`
   flex-direction: column;
   gap: 0.25rem;
   font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
+  font-weight: 500;
 `
 
 const StrengthText = styled.div`
-  font-weight: 900;
+  font-weight: 600;
 `
 
 const FeedbackText = styled.div`
@@ -651,9 +706,8 @@ const PasswordMatch = styled.div<{ $match: boolean }>`
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  color: ${({ $match }) => $match ? '#00ff00' : '#ff0000'};
+  font-weight: 600;
+  color: ${({ $match }) => $match ? '#4caf50' : '#f44336'};
 `
 
 const PageContainer = styled.div`
@@ -661,7 +715,7 @@ const PageContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
+  background: #f5f5f5;
   padding: 1rem;
 `
 

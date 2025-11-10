@@ -77,77 +77,95 @@ export function DashboardOverview({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">        <div>
-        <h1 className="text-3xl font-bold">{t("welcome")}</h1>
-        <p className="text-muted-foreground">{getTodayDateString()}</p>
-      </div><div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            {t("welcome")}
+          </h1>
+          <p className="text-muted-foreground flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            {getTodayDateString()}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md">
             <Bell className="h-4 w-4 mr-2" />
-            {highPriorityTasks.length}
+            <Badge variant="destructive" className="ml-1">{highPriorityTasks.length}</Badge>
           </Button>
         </div>
       </div>
 
       {/* Main Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
+        <Card className="hover-lift bg-gradient-to-br from-primary/5 to-transparent border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t("totalProjects")}</CardTitle>
-            <FolderOpen className="h-4 w-4 text-muted-foreground" />
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <FolderOpen className="h-5 w-5 text-primary" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{Array.isArray(projects) ? projects.length : 0}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-3xl font-bold text-primary">{Array.isArray(projects) ? projects.length : 0}</div>
+            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+              <Activity className="h-3 w-3" />
               {Array.isArray(projects) ? projects.filter((p) => p.status === "active").length : 0} {t("active")}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover-lift bg-gradient-to-br from-accent/5 to-transparent border-accent/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t("todayTasks")}</CardTitle>
-            <CheckSquare className="h-4 w-4 text-muted-foreground" />
+            <div className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center">
+              <CheckSquare className="h-5 w-5 text-accent" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-3xl font-bold text-accent">
               {completedTasks.length}/{todayTasks.length}
             </div>
             <Progress
               value={todayTasks.length > 0 ? (completedTasks.length / todayTasks.length) * 100 : 0}
-              className="mt-2"
+              className="mt-2 h-2"
             />
           </CardContent>
-        </Card>        <Card>
+        </Card>        <Card className="hover-lift bg-gradient-to-br from-success/5 to-transparent border-success/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t("totalTasks")}</CardTitle>
-            <CheckSquare className="h-4 w-4 text-muted-foreground" />
+            <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center">
+              <CheckSquare className="h-5 w-5 text-success" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{tasks.length}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-3xl font-bold text-success">{tasks.length}</div>
+            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+              <TrendingUp className="h-3 w-3" />
               {tasks.filter((t) => t.completed).length} {t("completed")}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover-lift bg-gradient-to-br from-secondary/5 to-transparent border-secondary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t("activeAccounts")}</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <div className="h-10 w-10 rounded-full bg-secondary/10 flex items-center justify-center">
+              <Users className="h-5 w-5 text-secondary" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{Array.isArray(accounts) ? accounts.length : 0}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-3xl font-bold text-secondary">{Array.isArray(accounts) ? accounts.length : 0}</div>
+            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+              <FolderOpen className="h-3 w-3" />
               {Array.isArray(projects) ? projects.length : 0} {t("projects")}
             </p>
           </CardContent>
         </Card>
       </div>      {/* Alerts */}
       {highPriorityTasks.length > 0 && (
-        <Card className="border-orange-200 bg-orange-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-orange-800">
+        <Card className="border-warning/30 bg-gradient-to-r from-warning/10 to-transparent shadow-lg animate-scale-in">\n          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-warning-foreground">
+              <AlertTriangle className="h-5 w-5 text-warning animate-pulse" />
               <AlertTriangle className="h-5 w-5" />
               {t("requiresAttention")}
             </CardTitle>
