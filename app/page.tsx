@@ -278,7 +278,7 @@ export default function Dashboard() {
   return (
     <div className={`min-h-screen bg-background ${theme}`}>
       {/* Mobile Header */}
-      <div className="lg:hidden flex items-center justify-between p-4 border-b border-border bg-card">
+      <div className="md:hidden flex items-center justify-between p-4 border-b border-border bg-card">
         <h2 className="text-lg font-bold">{t("projectManager")}</h2>
         <div className="flex items-center gap-2">
           <UserMenu />
@@ -294,7 +294,7 @@ export default function Dashboard() {
 
       <div className="flex">
         {/* Desktop Sidebar */}
-        <div className="hidden lg:block w-64 bg-card border-r border-border">
+        <div className="hidden md:block w-64 bg-card border-r border-border">
           <div className="p-4">
             <div className="mb-8">
               <div className="flex items-center justify-between">
@@ -363,7 +363,7 @@ export default function Dashboard() {
         </div>
 
         {/* Desktop Main Content */}
-        <div className="hidden lg:flex flex-1 flex-col">
+        <div className="hidden md:flex flex-1 flex-col">
           <div className="flex-1 p-4 lg:p-6 overflow-auto">
             {renderContent()}
           </div>
@@ -371,28 +371,37 @@ export default function Dashboard() {
       </div>
 
       {/* Mobile Layout - Content first, sticky navigation at bottom */}
-      <div className="lg:hidden flex flex-col h-screen">
+      <div className="md:hidden flex flex-col h-screen">
         {/* Mobile Main Content */}
         <div className="flex-1 mobile-scroll-container p-4 mobile-content-with-nav">
           {renderContent()}
         </div>
 
         {/* Mobile Navigation - Sticky Bottom */}
-        <div className="mobile-sticky-nav fixed bottom-0 left-0 right-0 border-t border-border z-50">
-          <div className="overflow-x-auto">
-            <div className="flex min-w-max">
-              {menuItems.map((item) => (
+        <div className="mobile-sticky-nav fixed bottom-0 left-0 right-0 border-t border-border z-50 glass pb-safe">
+          <div className="overflow-x-auto no-scrollbar">
+            <div className="flex min-w-max justify-around w-full px-2">
+              {menuItems.slice(0, 5).map((item) => (
                 <Button
                   key={item.id}
                   variant={activeTab === item.id ? "default" : "ghost"}
                   size="sm"
-                  className="mobile-nav-button shrink-0 m-2 min-w-[80px] flex-col h-12 px-2"
+                  className={`mobile-nav-button flex-col h-14 px-1 min-w-[64px] ${activeTab === item.id ? 'text-primary-foreground' : 'text-muted-foreground'}`}
                   onClick={() => setActiveTab(item.id)}
                 >
-                  <item.icon className="h-4 w-4 mb-1" />
-                  <span className="text-xs leading-tight text-center">{item.label}</span>
+                  <item.icon className={`h-5 w-5 mb-1 ${activeTab === item.id ? 'animate-bounce' : ''}`} />
+                  <span className="text-[10px] leading-tight text-center font-medium">{item.label}</span>
                 </Button>
               ))}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mobile-nav-button flex-col h-14 px-1 min-w-[64px] text-muted-foreground"
+                onClick={() => setActiveTab("settings")}
+              >
+                <Settings className="h-5 w-5 mb-1" />
+                <span className="text-[10px] leading-tight text-center font-medium">{t("settings")}</span>
+              </Button>
             </div>
           </div>
 

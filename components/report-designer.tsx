@@ -86,10 +86,8 @@ export function ReportDesigner({
           setSavedTemplates(result.data)
         }
       } else if (response.status === 401) {
-        console.log('Authentication required for report templates')
       }
     } catch (err) {
-      console.log('Could not load templates:', err)
       // Don't show error to user, just continue without saved templates
     }
   }

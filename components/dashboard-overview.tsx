@@ -55,7 +55,7 @@ export function DashboardOverview({
         date: task.date,
         status: task.completed ? "completed" : "pending",
         priority: task.priority,
-      })),  ]
+      })),]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 10);
 
@@ -65,7 +65,7 @@ export function DashboardOverview({
       await onToggleTask(task.id, !task.completed)
     }
   }
-  
+
   const getProjectProgress = (projectId: string) => {
     const projectTasks = tasks.filter((task: any) => {
       const taskProjectId = task.projectId || task.project_id?.toString();
@@ -90,7 +90,7 @@ export function DashboardOverview({
       </div>
 
       {/* Main Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t("totalProjects")}</CardTitle>
@@ -179,28 +179,28 @@ export function DashboardOverview({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">              {projects.slice(0, 5).map((project) => {
-                const progress = getProjectProgress(project.id)
-                const projectTasks = tasks.filter((task: any) => {
-                  const taskProjectId = task.projectId || task.project_id?.toString();
-                  return taskProjectId == project.id;
-                })
-                const completedProjectTasks = projectTasks.filter((task: any) => task.completed)
+              const progress = getProjectProgress(project.id)
+              const projectTasks = tasks.filter((task: any) => {
+                const taskProjectId = task.projectId || task.project_id?.toString();
+                return taskProjectId == project.id;
+              })
+              const completedProjectTasks = projectTasks.filter((task: any) => task.completed)
 
-                return (
-                  <div key={project.id} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-sm">{project.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {completedProjectTasks.length}/{projectTasks.length} {t("completed")}
-                        </p>
-                      </div>
-                      <Badge variant="outline">{progress}%</Badge>
+              return (
+                <div key={project.id} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-sm">{project.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {completedProjectTasks.length}/{projectTasks.length} {t("completed")}
+                      </p>
                     </div>
-                    <Progress value={progress} className="h-2" />
+                    <Badge variant="outline">{progress}%</Badge>
                   </div>
-                )
-              })}
+                  <Progress value={progress} className="h-2" />
+                </div>
+              )
+            })}
               {projects.length === 0 && (
                 <p className="text-center text-muted-foreground py-4">{t("noActiveProjects")}</p>
               )}
@@ -252,30 +252,30 @@ export function DashboardOverview({
           </CardHeader>
           <CardContent>
             <div className="space-y-3">              {todayTasks.map((task: any) => {
-                const taskProjectId = task.projectId || task.project_id?.toString();
-                const project = projects.find((p) => p.id == taskProjectId)
-                return (
-                  <div key={task.id} className="flex items-start gap-3">
-                    <Checkbox checked={task.completed} onCheckedChange={() => toggleTask(task.id)} className="mt-1" />
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className={`text-sm font-medium ${task.completed ? "line-through text-muted-foreground" : ""}`}
-                      >
-                        {task.title}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant={task.priority === "high" ? "destructive" : "outline"} className="text-xs">
-                          {task.priority}
-                        </Badge>
-                        {project && <span className="text-xs text-muted-foreground">{project.name}</span>}                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          {task.estimated_time || task.estimatedTime || 60}min
-                        </div>
+              const taskProjectId = task.projectId || task.project_id?.toString();
+              const project = projects.find((p) => p.id == taskProjectId)
+              return (
+                <div key={task.id} className="flex items-start gap-3">
+                  <Checkbox checked={task.completed} onCheckedChange={() => toggleTask(task.id)} className="mt-1" />
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className={`text-sm font-medium ${task.completed ? "line-through text-muted-foreground" : ""}`}
+                    >
+                      {task.title}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant={task.priority === "high" ? "destructive" : "outline"} className="text-xs">
+                        {task.priority}
+                      </Badge>
+                      {project && <span className="text-xs text-muted-foreground">{project.name}</span>}                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        {task.estimated_time || task.estimatedTime || 60}min
                       </div>
                     </div>
                   </div>
-                )
-              })}
+                </div>
+              )
+            })}
               {todayTasks.length === 0 && <p className="text-center text-muted-foreground py-4">{t("noTasksToday")}</p>}
             </div>
           </CardContent>

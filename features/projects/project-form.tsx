@@ -17,7 +17,6 @@ import { useLanguage } from "@/hooks/use-language"
 import { LazyLoadList } from "@/components/ui/lazy-load"
 import AdvancedEmailComposer from "@/components/advanced-email-composer"
 import { ShareModal } from "@/features/share/ShareModal"
-import styled from 'styled-components';
 
 interface Project {
   id: string
@@ -243,29 +242,9 @@ export function ProjectForm({
       </div>
 
       <div className={`grid grid-cols-1 ${showForm ? 'lg:grid-cols-2' : 'lg:grid-cols-1'} gap-6`}>
-        <StyledWrapper>
-          <div className="brutalist-card">
-            <div className="brutalist-card__header">
-              <div className="brutalist-card__icon">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-                </svg>
-              </div>
-              <div className="brutalist-card__alert">Warning</div>
-            </div>
-            <div className="brutalist-card__message">
-              This is a brutalist card with a very angry button. Proceed with caution,
-              you've been warned.
-            </div>
-            <div className="brutalist-card__actions">
-              <a className="brutalist-card__button brutalist-card__button--mark" href="#">Mark as Read</a>
-              <a className="brutalist-card__button brutalist-card__button--read" href="#">Okay</a>
-            </div>
-          </div>
-        </StyledWrapper>
         {/* Form Card - Conditionally render based on showForm */}
         {showForm && (
-          <Card>
+          <Card glareEffect={true} glareColor="#3B82F6" glareOpacity={0.15}>
             <CardHeader>
               <CardTitle>{isEditing ? t("editProject") : t("addNewProject")}</CardTitle>
               <CardDescription>{t("fillProjectDetails")}</CardDescription>
@@ -347,7 +326,7 @@ export function ProjectForm({
           </Card>
         )}        {/* Projects Display with Grid/List Toggle */}
         {viewMode === 'list' ? (
-          <Card>
+          <Card glareEffect={true} glareColor="#ffffff" glareOpacity={0.15}>
             <CardHeader>
               <CardTitle>{t("existingProjects")}</CardTitle>
               <CardDescription>{t("manageYourProjects")}</CardDescription>
@@ -387,7 +366,7 @@ export function ProjectForm({
                             setSelectedProjectForShare(project)
                             setShareModalOpen(true)
                           }}
-                          className="text-blue-500 hover:text-blue-600"
+                          className="text-primary hover:text-primary/80"
                         >
                           <Share2 className="h-4 w-4" />
                         </Button>
@@ -398,7 +377,7 @@ export function ProjectForm({
                           initialEmailType="projectUpdate"
                           contextData={project}
                           trigger={
-                            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+                            <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
                               <Mail className="h-4 w-4" />
                             </Button>
                           }
@@ -427,7 +406,13 @@ export function ProjectForm({
               batchSize={8}
               getItemKey={(project) => project.id || project._id || `project-${project.name}`}
               renderItem={(project, index) => (
-                <Card key={project.id || `card-project-${index}`} className="group hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/20">
+                <Card 
+                  key={project.id || `card-project-${index}`} 
+                  className="group hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/20"
+                  glareEffect={true}
+                  glareColor="#ffffff"
+                  glareOpacity={0.2}
+                >
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
@@ -470,7 +455,7 @@ export function ProjectForm({
                             href={project.domain}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs text-blue-600 hover:underline truncate"
+                            className="text-xs text-primary hover:underline truncate"
                           >
                             {project.domain.replace(/^https?:\/\//, '')}
                           </a>
@@ -488,7 +473,7 @@ export function ProjectForm({
                             href={project.figmaLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs text-purple-600 hover:underline truncate"
+                            className="text-xs text-secondary hover:underline truncate"
                           >
                             Figma Design
                           </a>
@@ -513,7 +498,7 @@ export function ProjectForm({
                               setSelectedProjectForShare(project)
                               setShareModalOpen(true)
                             }}
-                            className="text-xs px-2 h-7 text-blue-500 hover:text-blue-600"
+                            className="text-xs px-2 h-7 text-primary hover:text-primary/80"
                           >
                             <Share2 className="h-3 w-3 mr-1" />
                             Share
@@ -534,7 +519,7 @@ export function ProjectForm({
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-xs px-2 h-7 text-blue-600 hover:text-blue-700"
+                                className="text-xs px-2 h-7 text-primary hover:text-primary/80"
                               >
                                 <Mail className="h-3 w-3 mr-1" />
                                 Email
@@ -573,7 +558,7 @@ export function ProjectForm({
 
             {/* Empty State for Grid when no lazy loading visible */}
             {filteredProjects.length === 0 && (
-              <Card>
+              <Card glareEffect={true} glareColor="#3B82F6" glareOpacity={0.1}>
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <Grid3X3 className="h-16 w-16 text-muted-foreground/50 mb-4" />
                   <h3 className="text-lg font-semibold mb-2">
@@ -625,7 +610,7 @@ export function ProjectForm({
                         href={viewingProject.domain}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline flex items-center gap-1"
+                        className="text-primary hover:underline flex items-center gap-1"
                       >
                         {viewingProject.domain}
                         <ExternalLink className="h-3 w-3" />
@@ -643,7 +628,7 @@ export function ProjectForm({
                         href={viewingProject.figmaLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline flex items-center gap-1"
+                        className="text-primary hover:underline flex items-center gap-1"
                       >
                         Xem thiết kế
                         <ExternalLink className="h-3 w-3" />
@@ -696,125 +681,3 @@ export function ProjectForm({
     </div>
   )
 }
-const StyledWrapper = styled.div`
-  .brutalist-card {
-    width: 320px;
-    border: none;
-    background-color: hsl(var(--card));
-    padding: 1.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    font-family: "Arial", sans-serif;
-  }
-
-  .brutalist-card__header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
-    border: none;
-    padding-bottom: 1rem;
-  }
-
-  .brutalist-card__icon {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: hsl(var(--foreground));
-    padding: 0.5rem;
-  }
-
-  .brutalist-card__icon svg {
-    height: 1.5rem;
-    width: 1.5rem;
-    fill: hsl(var(--card));
-  }
-
-  .brutalist-card__alert {
-    font-weight: 600;
-    color: hsl(var(--foreground));
-    font-size: 1.5rem;
-    ;
-  }
-
-  .brutalist-card__message {
-    margin-top: 1rem;
-    color: hsl(var(--foreground));
-    font-size: 0.9rem;
-    line-height: 1.4;
-    border: none;
-    padding-bottom: 1rem;
-    font-weight: 600;
-  }
-
-  .brutalist-card__actions {
-    margin-top: 1rem;
-  }
-
-  .brutalist-card__button {
-    display: block;
-    width: 100%;
-    padding: 0.75rem;
-    text-align: center;
-    font-size: 1rem;
-    font-weight: 700;
-    ;
-    border: none;
-    background-color: hsl(var(--card));
-    color: hsl(var(--foreground));
-    position: relative;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    overflow: hidden;
-    text-decoration: none;
-    margin-bottom: 1rem;
-  }
-
-  .brutalist-card__button--read {
-    background-color: hsl(var(--foreground));
-    color: hsl(var(--card));
-  }
-
-  .brutalist-card__button::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      120deg,
-      transparent,
-      rgba(255, 255, 255, 0.3),
-      transparent
-    );
-    transition: all 0.6s;
-  }
-
-  .brutalist-card__button:hover::before {
-    left: 100%;
-  }
-
-  .brutalist-card__button:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  }
-
-  .brutalist-card__button--mark:hover {
-    background-color: #296fbb;
-    border-color: #296fbb;
-    color: hsl(var(--card));
-    box-shadow: 7px 7px 0 #004280;
-  }
-
-  .brutalist-card__button--read:hover {
-    background-color: #ff0000;
-    border-color: #ff0000;
-    color: hsl(var(--card));
-    box-shadow: 7px 7px 0 #800000;
-  }
-
-  .brutalist-card__button:active {
-    transform: translate(5px, 5px);
-    box-shadow: none;
-  }`;

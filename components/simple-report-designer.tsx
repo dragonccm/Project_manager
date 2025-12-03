@@ -113,7 +113,6 @@ export function SimpleReportDesigner({ projects = [], tasks = [] }: SimpleReport
       const result = await response.json()
       
       if (result.success) {
-        console.log('Template saved successfully')
         setTemplates([result.data, ...templates])
         setReportName("")
         setReportDescription("")

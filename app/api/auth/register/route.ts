@@ -13,21 +13,21 @@ export async function POST(request: NextRequest) {
     // Validation
     if (!username || !email || !password || !full_name) {
       return NextResponse.json(
-        { error: 'All fields are required' },
+        { error: 'Vui lòng điền đầy đủ thông tin' },
         { status: 400 }
       )
     }
 
     if (!isValidUsername(username)) {
       return NextResponse.json(
-        { error: 'Username must be 3-20 characters and contain only letters, numbers, and underscores' },
+        { error: 'Tên đăng nhập phải từ 3-20 ký tự và chỉ chứa chữ cái, số và dấu gạch dưới' },
         { status: 400 }
       )
     }
 
     if (!isValidEmail(email)) {
       return NextResponse.json(
-        { error: 'Invalid email format' },
+        { error: 'Định dạng email không hợp lệ' },
         { status: 400 }
       )
     }
@@ -51,25 +51,25 @@ export async function POST(request: NextRequest) {
 
     // Don't return sensitive data
     const { ...userResponse } = newUser
-    
+
     return NextResponse.json({
       success: true,
-      message: 'User registered successfully',
+      message: 'Đăng ký tài khoản thành công',
       user: userResponse
     })
-    
+
   } catch (error) {
     console.error('Registration error:', error)
-    
-    if (error instanceof Error && error.message.includes('already exists')) {
+
+    if (error instanceof Error && (error.message.includes('đã tồn tại') || error.message.includes('đã được đăng ký'))) {
       return NextResponse.json(
         { error: error.message },
         { status: 409 }
       )
     }
-    
+
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Lỗi máy chủ nội bộ' },
       { status: 500 }
     )
   }

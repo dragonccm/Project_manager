@@ -33,8 +33,6 @@ export function EmailComposer({ projects, tasks = [], accounts = [] }: EmailComp
   } = useEmail()
 
   // Debug: Log tasks để kiểm tra
-  console.log("📧 EmailComposer - Received tasks:", tasks.length, tasks)
-  console.log("📧 EmailComposer - Received projects:", projects.length, projects)
 
   const [emailData, setEmailData] = useState({
     to: "",

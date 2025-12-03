@@ -13,7 +13,7 @@ export function verifyPassword(password: string, hashedPassword: string): boolea
   try {
     const [salt, hash] = hashedPassword.split(':')
     if (!salt || !hash) return false
-    
+
     const verifyHash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha256').toString('hex')
     return hash === verifyHash
   } catch (error) {
@@ -29,10 +29,10 @@ export function generateToken(length: number = 32): string {
 // Generate JWT-like token (simple implementation)
 export function generateJWT(payload: any, expiresIn: string = '7d'): { token: string, expires_at: Date } {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url')
-  
+
   const now = new Date()
   const expires_at = new Date()
-  
+
   // Parse expiresIn (7d, 24h, 60m, etc.)
   const timeMatch = expiresIn.match(/^(\d+)([dhm])$/)
   if (timeMatch) {
@@ -46,24 +46,24 @@ export function generateJWT(payload: any, expiresIn: string = '7d'): { token: st
   } else {
     expires_at.setDate(now.getDate() + 7) // Default 7 days
   }
-  
+
   const payloadWithExp = {
     ...payload,
     iat: Math.floor(now.getTime() / 1000),
     exp: Math.floor(expires_at.getTime() / 1000)
   }
-  
+
   const payloadBase64 = Buffer.from(JSON.stringify(payloadWithExp)).toString('base64url')
-  
+
   // Simple signature (in production, use proper JWT library)
   const secret = process.env.JWT_SECRET || 'your-secret-key'
   const signature = crypto
     .createHmac('sha256', secret)
     .update(`${header}.${payloadBase64}`)
     .digest('base64url')
-  
+
   const token = `${header}.${payloadBase64}.${signature}`
-  
+
   return { token, expires_at }
 }
 
@@ -72,24 +72,24 @@ export function verifyJWT(token: string): any {
   try {
     const [header, payload, signature] = token.split('.')
     if (!header || !payload || !signature) return null
-    
+
     // Verify signature
     const secret = process.env.JWT_SECRET || 'your-secret-key'
     const expectedSignature = crypto
       .createHmac('sha256', secret)
       .update(`${header}.${payload}`)
       .digest('base64url')
-    
+
     if (signature !== expectedSignature) return null
-    
+
     // Decode payload
     const decodedPayload = JSON.parse(Buffer.from(payload, 'base64url').toString())
-    
+
     // Check expiration
     if (decodedPayload.exp && decodedPayload.exp < Math.floor(Date.now() / 1000)) {
       return null // Token expired
     }
-    
+
     return decodedPayload
   } catch (error) {
     return null
@@ -112,20 +112,20 @@ export function isValidUsername(username: string): boolean {
 // Validate password strength
 export function isValidPassword(password: string): { valid: boolean, message?: string } {
   if (password.length < 8) {
-    return { valid: false, message: "Password must be at least 8 characters long" }
+    return { valid: false, message: "Mật khẩu phải có ít nhất 8 ký tự" }
   }
-  
+
   if (!/(?=.*[a-z])/.test(password)) {
-    return { valid: false, message: "Password must contain at least one lowercase letter" }
+    return { valid: false, message: "Mật khẩu phải chứa ít nhất 1 chữ thường" }
   }
-  
+
   if (!/(?=.*[A-Z])/.test(password)) {
-    return { valid: false, message: "Password must contain at least one uppercase letter" }
+    return { valid: false, message: "Mật khẩu phải chứa ít nhất 1 chữ hoa" }
   }
-  
+
   if (!/(?=.*\d)/.test(password)) {
-    return { valid: false, message: "Password must contain at least one number" }
+    return { valid: false, message: "Mật khẩu phải chứa ít nhất 1 số" }
   }
-  
+
   return { valid: true }
 }

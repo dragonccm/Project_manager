@@ -61,7 +61,6 @@ export function useCollaboration(reportId: string, userId: string): Collaboratio
     // Connection event handlers
     socketInstance.on('connect', () => {
       setConnectionStatus('connected')
-      console.log('🔗 Collaboration connected')
       
       // Join the report session
       socketInstance.emit('join-report', {
@@ -73,18 +72,15 @@ export function useCollaboration(reportId: string, userId: string): Collaboratio
     
     socketInstance.on('disconnect', () => {
       setConnectionStatus('disconnected')
-      console.log('❌ Collaboration disconnected')
     })
     
     // User presence events
     socketInstance.on('user-joined', (user: CollaborationUser) => {
       setActiveUsers(prev => [...prev.filter(u => u.id !== user.id), user])
-      console.log(`👋 ${user.name} joined the collaboration`)
     })
     
     socketInstance.on('user-left', (userId: string) => {
       setActiveUsers(prev => prev.filter(u => u.id !== userId))
-      console.log(`👋 User ${userId} left the collaboration`)
     })
     
     socketInstance.on('users-update', (users: CollaborationUser[]) => {

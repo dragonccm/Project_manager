@@ -23,15 +23,11 @@ export function DatabaseStatus() {
     setConnectionStatus((prev) => ({ ...prev, testing: true, error: undefined }))
 
     try {
-      console.log("Testing database connection...")
       const result = await testDatabaseConnection()
-      console.log("Connection test result:", result)
 
       if (result.success) {
         setConnectionStatus((prev) => ({ ...prev, initializing: true }))
-        console.log("Initializing database tables...")
         const initResult = await initializeTables()
-        console.log("Initialization result:", initResult)
 
         setConnectionStatus({
           connected: result.success && initResult.success,

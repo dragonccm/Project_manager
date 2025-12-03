@@ -433,7 +433,6 @@ export function useAdvancedAnimations() {
     
     createParticleEffect: (x: number, y: number) => {
       // Create particle effect at coordinates
-      console.log(`Creating particle effect at ${x}, ${y}`)
     },
     
     animateSuccess: () => {
@@ -536,7 +535,6 @@ export function MagneticSnapZone({
           const offsetY = (centerY - e.clientY) * strength * magneticForce
           
           // Apply magnetic effect (this would need cursor API or similar)
-          console.log(`Magnetic snap: ${offsetX}, ${offsetY}`)
         }
       })
     }

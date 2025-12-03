@@ -54,14 +54,11 @@ export function CodeComponentManager() {
   // Mock code component operations until they're implemented in useApi
   const codeComponents: CodeComponent[] = []
   const addCodeComponent = async (data: CreateCodeComponentInput) => {
-    console.log('addCodeComponent not implemented yet', data)
     return {} as CodeComponent
   }
   const editCodeComponent = async (id: string, data: Partial<CreateCodeComponentInput>) => {
-    console.log('editCodeComponent not implemented yet', id, data)
   }
   const removeCodeComponent = async (id: string) => {
-    console.log('removeCodeComponent not implemented yet', id)
   }
   const [searchTerm, setSearchTerm] = useState("")
   const [categoryFilter, setCategoryFilter] = useState<string>("all")

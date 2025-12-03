@@ -124,7 +124,6 @@ export default function DataCardRenderer({
           break
       }
 
-      console.log('DataCardRenderer: Fetching from', endpoint, 'for ID', entityId)
       
       const response = await fetch(endpoint)
       if (!response.ok) {
@@ -132,7 +131,6 @@ export default function DataCardRenderer({
       }
       
       const allData = await response.json()
-      console.log('DataCardRenderer: Received data', allData)
       
       // Try multiple ID field names
       const item = Array.isArray(allData) 
@@ -144,7 +142,6 @@ export default function DataCardRenderer({
           )
         : allData
 
-      console.log('DataCardRenderer: Found item', item)
 
       if (!item) {
         // List available IDs for debugging

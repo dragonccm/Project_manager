@@ -604,7 +604,6 @@ export function TaskReports({ projects, tasks }: TaskReportsProps) {
             projects={projects} 
             tasks={tasks}
             onTemplateCreated={(template) => {
-              console.log('Template created:', template)
             }}
           />
         </TabsContent>

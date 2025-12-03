@@ -1,20 +1,46 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { GlareHover } from "@/components/glare-hover"
 
-const Card = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all duration-200",
-      className
-    )}
-    {...props}
-  />
-))
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  glareEffect?: boolean
+  glareColor?: string
+  glareOpacity?: number
+}
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, glareEffect = false, glareColor, glareOpacity, children, ...props }, ref) => {
+    const cardContent = (
+      <div
+        ref={ref}
+        className={cn(
+          "rounded-lg border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all duration-200",
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </div>
+    )
+
+    if (glareEffect) {
+      return (
+        <GlareHover
+          glareColor={glareColor}
+          glareOpacity={glareOpacity}
+          glareAngle={-30}
+          glareSize={300}
+          transitionDuration={800}
+        >
+          {cardContent}
+        </GlareHover>
+      )
+    }
+
+    return cardContent
+  }
+)
 Card.displayName = "Card"
 
 const CardHeader = React.forwardRef<
