@@ -1,9 +1,9 @@
 /*
  * =====================================================================
- * DRAGONCCM PROJECT MANAGER - THEME SYSTEM
+ * DRAGONCCM PROJECT MANAGER - PREMIUM DESIGN SYSTEM
  * =====================================================================
  * 
- * Theme: Modern Indigo (Premium)
+ * Theme: Cyberpunk/Glassmorphism Premium
  * 
  * =====================================================================
  */
@@ -17,10 +17,11 @@
 @import '../styles/drag-drop-enhancements.css';
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  font-family: 'Outfit', 'Inter', sans-serif;
   background: hsl(var(--background));
   color: hsl(var(--foreground));
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-x: hidden;
 }
 
 @layer utilities {
@@ -30,200 +31,159 @@ body {
   
   /* Modern Shadow Utilities */
   .shadow-soft {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.1);
   }
   
   .shadow-soft-lg {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Neon Glow Effects */
+  .shadow-glow-primary {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); /* Indigo/Primary glow */
   }
   
-  .shadow-glow {
-    box-shadow: 0 0 20px rgba(124, 58, 237, 0.3); /* Indigo glow */
+  .shadow-glow-accent {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.3); /* Purple/Accent glow */
   }
   
-  .dark .shadow-glow {
-    box-shadow: 0 0 30px rgba(139, 92, 246, 0.4); /* Brighter indigo glow */
+  .dark .shadow-glow-primary {
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.15); 
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
   }
   
   /* Glass morphism effect */
   .glass {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
   }
   
   .dark .glass {
-    background: rgba(15, 23, 42, 0.7); /* Slate-900 glass */
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(10, 10, 15, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .glass-card {
+    @apply glass rounded-xl transition-all duration-300;
+  }
+  
+  .glass-card:hover {
+    @apply shadow-lg transform -translate-y-[2px];
+    border-color: rgba(var(--primary), 0.3);
+    background: rgba(255, 255, 255, 0.75);
+  }
+
+  .dark .glass-card:hover {
+    border-color: rgba(99, 102, 241, 0.2);
+    background: rgba(15, 15, 25, 0.7);
   }
   
   /* Hover effects */
   .hover-lift {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
   }
   
   .hover-lift:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.15);
   }
   
   .dark .hover-lift:hover {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary/50;
   }
 }
 
 @layer base {
   :root {
-    /*
-     * =============================================
-     * LIGHT MODE - Modern & Clean
-     * =============================================
-     */
+    /* LIGHT MODE - using comma separation for compatibility */
+    --background: 210, 40%, 98%;      /* #F8FAFC */
+    --foreground: 222, 47%, 11%;      /* #0F172A */
     
-    /* Backgrounds - Pure White */
-    --background: 0 0% 100%;        /* #FFFFFF */
-    --card: 0 0% 100%;              /* #FFFFFF */
-    --popover: 0 0% 100%;           /* #FFFFFF */
+    --card: 0, 0%, 100%;
+    --card-foreground: 222, 47%, 11%;
     
-    /* Text - Deep Slate (Softer than black) */
-    --foreground: 222.2 84% 4.9%;   /* #020817 (Slate-950) */
-    --card-foreground: 222.2 84% 4.9%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 0, 0%, 100%;
+    --popover-foreground: 222, 47%, 11%;
     
-    /* Primary - Vibrant Indigo */
-    --primary: 262.1 83.3% 57.8%;   /* #8b5cf6 (Violet-500) */
-    --primary-foreground: 210 40% 98%; /* #f8fafc */
+    --primary: 246, 80%, 60%;         /* #6366F1 Indigo */
+    --primary-foreground: 210, 40%, 98%;
     
-    /* Secondary - Cool Gray */
-    --secondary: 210 40% 96.1%;     /* #f1f5f9 (Slate-100) */
-    --secondary-foreground: 222.2 47.4% 11.2%; /* #0f172a */
+    --secondary: 210, 40%, 96.1%;
+    --secondary-foreground: 222.2, 47.4%, 11.2%;
     
-    /* Muted - Cool Gray */
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%; /* #64748b (Slate-500) */
+    --muted: 210, 40%, 96.1%;
+    --muted-foreground: 215.4, 16.3%, 46.9%;
     
-    /* Accent - Light Indigo Tint */
-    --accent: 210 40% 96.1%;        /* Slate-100 */
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 270, 95%, 75%;          /* #C084FC Purple */
+    --accent-foreground: 222.2, 47.4%, 11.2%;
     
-    /* Status Colors */
-    --success: 142.1 76.2% 36.3%;   /* Green-600 */
-    --success-foreground: 355.7 100% 97.3%;
+    --destructive: 0, 84.2%, 60.2%;
+    --destructive-foreground: 210, 40%, 98%;
+
+    --border: 214.3, 31.8%, 91.4%;
+    --input: 214.3, 31.8%, 91.4%;
+    --ring: 246, 80%, 60%;
     
-    --warning: 38 92% 50%;          /* Amber */
-    --warning-foreground: 0 0% 100%;
-    
-    --destructive: 0 84.2% 60.2%;   /* Red */
-    --destructive-foreground: 210 40% 98%;
-    
-    --info: 199 89% 48%;            /* Cyan */
-    --info-foreground: 0 0% 100%;
-    
-    /* Borders */
-    --border: 214.3 31.8% 91.4%;    /* #e2e8f0 (Slate-200) */
-    --input: 214.3 31.8% 91.4%;
-    --ring: 262.1 83.3% 57.8%;      /* Indigo ring */
-    
-    /* Charts */
-    --chart-1: 262.1 83.3% 57.8%;   /* Indigo */
-    --chart-2: 173 58% 39%;         /* Teal */
-    --chart-3: 197 37% 24%;         /* Blue */
-    --chart-4: 43 74% 66%;          /* Yellow */
-    --chart-5: 27 87% 67%;          /* Orange */
-    
-    /* Sidebar */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 262.1 83.3% 57.8%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 262.1 83.3% 57.8%;
-    
-    /* Design tokens */
-    --radius: 0.5rem;
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --radius: 0.75rem;
+
+    /* Custom Gradients - keeping HSL explicit */
+    --gradient-primary: linear-gradient(135deg, hsl(246, 80%, 60%) 0%, hsl(270, 95%, 75%) 100%);
   }
   
   .dark {
-    /*
-     * =============================================
-     * DARK MODE - Premium Deep Slate
-     * =============================================
-     */
+    /* DARK MODE - Deep Space */
+    --background: 240, 10%, 4%;       /* #09090B Very Dark */
+    --foreground: 210, 40%, 98%;
     
-    /* Backgrounds - Deep Navy/Slate (Not pure black) */
-    --background: 222.2 84% 4.9%;   /* #020817 (Slate-950) */
-    --card: 222.2 84% 4.9%;         /* #020817 */
-    --popover: 222.2 84% 4.9%;
+    --card: 240, 10%, 5.5%;          /* Slightly lighter than bg */
+    --card-foreground: 210, 40%, 98%;
     
-    /* Text - Soft White */
-    --foreground: 210 40% 98%;      /* #f8fafc (Slate-50) */
-    --card-foreground: 210 40% 98%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 240, 10%, 5.5%;
+    --popover-foreground: 210, 40%, 98%;
     
-    /* Primary - Bright Indigo */
-    --primary: 263.4 70% 50.4%;     /* #7c3aed (Violet-600) */
-    --primary-foreground: 210 40% 98%;
+    --primary: 246, 90%, 65%;         /* Brighter Indigo for dark mode */
+    --primary-foreground: 0, 0%, 100%;
     
-    /* Secondary - Dark Slate */
-    --secondary: 217.2 32.6% 17.5%; /* #1e293b (Slate-800) */
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 240, 5%, 15%;        /* Dark Grey */
+    --secondary-foreground: 210, 40%, 98%;
     
-    /* Muted - Dark Slate */
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%; /* #94a3b8 (Slate-400) */
+    --muted: 240, 5%, 15%;
+    --muted-foreground: 240, 5%, 65%;
     
-    /* Accent - Dark Slate */
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 270, 90%, 70%;          /* Lilac */
+    --accent-foreground: 210, 40%, 98%;
     
-    /* Status Colors */
-    --success: 142.1 70.6% 45.3%;   /* Green-500 */
-    --success-foreground: 144.9 80.4% 10%;
+    --destructive: 0, 62.8%, 30.6%;
+    --destructive-foreground: 210, 40%, 98%;
     
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 9%;
-    
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    
-    --info: 199 89% 58%;
-    --info-foreground: 0 0% 9%;
-    
-    /* Borders */
-    --border: 217.2 32.6% 17.5%;    /* #1e293b (Slate-800) */
-    --input: 217.2 32.6% 17.5%;
-    --ring: 263.4 70% 50.4%;
-    
-    /* Charts */
-    --chart-1: 263.4 70% 50.4%;     /* Indigo */
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    
-    /* Sidebar */
-    --sidebar-background: 222.2 84% 4.9%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 263.4 70% 50.4%;
-    --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 217.2 32.6% 17.5%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-ring: 263.4 70% 50.4%;
-    
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.5);
+    --border: 240, 5%, 15%;
+    --input: 240, 5%, 15%;
+    --ring: 246, 90%, 65%;
   }
 }
 
@@ -234,97 +194,24 @@ body {
   body {
     @apply bg-background text-foreground;
   }
-}
-
-/* Enhanced Dark Theme Optimizations */
-.dark {
-  color-scheme: dark;
-}
-
-.dark input,
-.dark textarea,
-.dark select {
-  color-scheme: dark;
-}
-
-.dark [data-radix-scroll-area-viewport] {
-  scrollbar-width: thin;
-  scrollbar-color: hsl(var(--muted)) hsl(var(--background));
-}
-
-.dark ::-webkit-scrollbar {
-  width: 8px;
-}
-
-.dark ::-webkit-scrollbar-track {
-  background: hsl(var(--background));
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted));
-  border-radius: 4px;
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground));
-}
-
-/* Enhanced focus styles */
-.dark *:focus-visible {
-  outline: 2px solid hsl(var(--ring));
-  outline-offset: 2px;
-}
-
-/* Better contrast for disabled elements */
-.dark *:disabled {
-  opacity: 0.6;
-}
-
-/* Mobile optimizations */
-@media (max-width: 1024px) {
-  button, .button, [role="button"] {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  
-  input, textarea, select {
-    font-size: 16px;
-    padding: 12px;
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: -0.02em;
   }
 }
 
-/* LifeLine Loading Component Enhancements */
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
+/* Animations */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
 }
 
-.loading-text {
-  color: hsl(var(--foreground));
-  font-weight: 500;
-  opacity: 0.8;
-  animation: pulse 2s ease-in-out infinite;
+.animate-float {
+  animation: float 6s ease-in-out infinite;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
-}
-
-/* Enhanced loading backdrop */
-.loading-backdrop {
-  backdrop-filter: blur(2px);
-  background: hsl(var(--background) / 0.9);
-}
-
-/* LifeLine component custom styling */
-.react-loading-indicators {
-  filter: drop-shadow(0 0 8px rgba(124, 58, 237, 0.3));
-}
-
-.dark .react-loading-indicators {
-  filter: drop-shadow(0 0 12px rgba(139, 92, 246, 0.4));
+/* Glass Card Variations */
+.glass-panel {
+  @apply bg-white/50 dark:bg-black/40 backdrop-blur-xl border border-white/20 dark:border-white/10;
 }

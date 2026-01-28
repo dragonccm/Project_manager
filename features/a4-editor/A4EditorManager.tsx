@@ -1,6 +1,6 @@
-'use client'
+"use client"
 
-import React, { useState, useEffect, Suspense } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import A4Editor from '@/features/a4-editor/a4-editor'
 import { useA4Templates } from '@/hooks/use-a4-templates'
@@ -18,10 +18,10 @@ import {
 } from '@/components/ui/dialog'
 import { useToast } from '@/hooks/use-toast'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, Plus, FolderOpen, Trash2, Copy, Settings } from 'lucide-react'
+import { FileText, Plus, Copy, Trash2 } from 'lucide-react'
 import { A4Template } from '@/types/database'
 
-function A4EditorContent() {
+export function A4EditorManager() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
@@ -44,7 +44,7 @@ function A4EditorContent() {
 
   // Load template from URL param
   useEffect(() => {
-    const templateId = searchParams?.get('id')
+    const templateId = searchParams?.get('templateId')
     if (templateId) {
       loadTemplate(templateId)
     }
@@ -104,7 +104,11 @@ function A4EditorContent() {
       setShowNewTemplateDialog(false)
       setNewTemplateName('')
       setNewTemplateDescription('')
-      router.push(`/a4-editor?id=${newTemplate.id}`)
+      // Update URL without full navigation
+      const url = new URL(window.location.href)
+      url.searchParams.set('templateId', newTemplate.id)
+      window.history.pushState({}, '', url.toString())
+      
       toast({
         title: 'Success',
         description: 'Template created successfully',
@@ -135,9 +139,7 @@ function A4EditorContent() {
       const success = await deleteTemplate(id)
       if (success) {
         if (currentTemplate?.id === id) {
-          setCurrentTemplate(null)
-          setIsEditorMode(false)
-          router.push('/a4-editor')
+          handleBackToGallery()
         }
         toast({
           title: 'Success',
@@ -164,59 +166,72 @@ function A4EditorContent() {
     setCurrentTemplate(template)
     setIsEditorMode(true)
     setShowTemplatesDialog(false)
-    router.push(`/a4-editor?id=${template.id}`)
+    // Update URL without full navigation
+    const url = new URL(window.location.href)
+    url.searchParams.set('templateId', template.id)
+    window.history.pushState({}, '', url.toString())
   }
 
   const handleBackToGallery = () => {
     setIsEditorMode(false)
     setCurrentTemplate(null)
-    router.push('/a4-editor')
+    // Clear URL param
+    const url = new URL(window.location.href)
+    url.searchParams.delete('templateId')
+    window.history.pushState({}, '', url.toString())
   }
 
   if (isEditorMode && currentTemplate) {
     return (
-      <A4Editor
-        templateId={currentTemplate.id}
-        onSave={handleSaveTemplate}
-        initialData={{
-          canvasSettings: currentTemplate.canvasSettings,
-          shapes: currentTemplate.shapes,
-        }}
-      />
+      <div className="h-full flex flex-col">
+          <div className="mb-4 flex items-center gap-2">
+            <Button variant="ghost" onClick={handleBackToGallery}>
+              ← Back to Gallery
+            </Button>
+            <h2 className="text-xl font-bold">{currentTemplate.name}</h2>
+          </div>
+          <div className="flex-1 border rounded-lg overflow-hidden bg-background">
+             <A4Editor
+                templateId={currentTemplate.id}
+                onSave={handleSaveTemplate}
+                initialData={{
+                  canvasSettings: currentTemplate.canvasSettings,
+                  shapes: currentTemplate.shapes,
+                }}
+              />
+          </div>
+      </div>
     )
   }
 
   return (
-    <div className="container mx-auto p-8 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex items-center justify-between glass p-6 rounded-xl border border-white/20">
         <div>
-          <h1 className="text-3xl font-bold">A4 Document Designer</h1>
+          <h1 className="text-3xl font-display font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">A4 Document Designer</h1>
           <p className="text-muted-foreground mt-2">
-            Create and manage professional A4 document templates with drag-and-drop design
+            Create and manage professional A4 document templates
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setShowNewTemplateDialog(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            New Template
-          </Button>
-        </div>
+        <Button onClick={() => setShowNewTemplateDialog(true)} className="shadow-glow-primary transition-all hover:scale-105">
+          <Plus className="w-4 h-4 mr-2" />
+          New Template
+        </Button>
       </div>
 
       {/* Templates Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {loading ? (
-          <div className="col-span-full text-center py-12">
+          <div className="col-span-full flex flex-col items-center justify-center py-12">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
             <p className="text-muted-foreground">Loading templates...</p>
           </div>
         ) : templates.length === 0 ? (
-          <div className="col-span-full text-center py-12">
-            <FileText className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+          <div className="col-span-full text-center py-20 glass rounded-xl border-dashed border-2 border-muted-foreground/20">
+            <FileText className="w-16 h-16 mx-auto text-muted-foreground mb-4 opacity-50" />
             <h3 className="text-lg font-semibold mb-2">No templates yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Create your first template to get started
-            </p>
-            <Button onClick={() => setShowNewTemplateDialog(true)}>
+            <p className="text-muted-foreground mb-6">Create your first template to get started</p>
+            <Button onClick={() => setShowNewTemplateDialog(true)} variant="outline">
               <Plus className="w-4 h-4 mr-2" />
               Create Template
             </Button>
@@ -225,58 +240,51 @@ function A4EditorContent() {
           templates.map((template) => (
             <Card
               key={template.id}
-              className="cursor-pointer hover:shadow-lg transition-shadow"
+              className="glass-card cursor-pointer group border-black/5 dark:border-white/10"
               onClick={() => handleOpenTemplate(template)}
             >
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  {template.name}
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 rounded-md bg-primary/10 text-primary">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                    <span className="truncate">{template.name}</span>
+                  </div>
                 </CardTitle>
-                <CardDescription>
-                  {template.description || 'No description'}
+                <CardDescription className="line-clamp-2 min-h-[40px]">
+                  {template.description || 'No description provided'}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    {template.shapes.length} shapes
-                  </span>
-                  <span className="text-muted-foreground">
-                    v{template.version}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1 flex-wrap">
-                  {template.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-2 py-1 bg-secondary text-secondary-foreground rounded text-xs"
+              <CardContent>
+                <div className="flex items-center justify-between text-xs text-muted-foreground mt-4 pt-4 border-t border-border/50">
+                  <span>{template.shapes.length} elements</span>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 hover:text-primary"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleCloneTemplate(template.id)
+                      }}
+                      title="Duplicate"
                     >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <div className="flex items-center gap-2 pt-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleCloneTemplate(template.id)
-                    }}
-                  >
-                    <Copy className="w-3 h-3" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleDeleteTemplate(template.id)
-                    }}
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
+                      <Copy className="w-3 h-3" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 hover:text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDeleteTemplate(template.id)
+                      }}
+                      title="Delete"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -286,7 +294,7 @@ function A4EditorContent() {
 
       {/* New Template Dialog */}
       <Dialog open={showNewTemplateDialog} onOpenChange={setShowNewTemplateDialog}>
-        <DialogContent>
+        <DialogContent className="glass-panel">
           <DialogHeader>
             <DialogTitle>Create New Template</DialogTitle>
             <DialogDescription>
@@ -300,7 +308,8 @@ function A4EditorContent() {
                 id="name"
                 value={newTemplateName}
                 onChange={(e) => setNewTemplateName(e.target.value)}
-                placeholder="My Template"
+                placeholder="My Awesome Template"
+                className="bg-background/50"
               />
             </div>
             <div>
@@ -311,6 +320,7 @@ function A4EditorContent() {
                 onChange={(e) => setNewTemplateDescription(e.target.value)}
                 placeholder="Describe your template..."
                 rows={3}
+                className="bg-background/50"
               />
             </div>
           </div>
@@ -318,25 +328,12 @@ function A4EditorContent() {
             <Button variant="outline" onClick={() => setShowNewTemplateDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleCreateNewTemplate}>Create Template</Button>
+            <Button onClick={handleCreateNewTemplate} className="shadow-glow-primary">
+              Create Template
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
-  )
-}
-
-export default function A4EditorPage() {
-  return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading A4 Editor...</p>
-        </div>
-      </div>
-    }>
-      <A4EditorContent />
-    </Suspense>
   )
 }

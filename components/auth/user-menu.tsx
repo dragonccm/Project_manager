@@ -9,7 +9,11 @@ import { Badge } from "@/components/ui/badge"
 import { User, LogOut, Settings, Shield, Eye } from "lucide-react"
 import { AuthModal } from "./auth-modal"
 
-export function UserMenu() {
+interface UserMenuProps {
+  onNavigate?: (tab: string) => void
+}
+
+export function UserMenu({ onNavigate }: UserMenuProps) {
   const { user, logout, loading } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
 
@@ -116,18 +120,18 @@ export function UserMenu() {
               )}
             </div>
             
-            <p className="text-xs text-muted-foreground">{user.email}</p>
+            <p className="text-xs text-muted-foreground truncate" title={user.email}>{user.email}</p>
           </div>
         </DropdownMenuLabel>
         
         <DropdownMenuSeparator />
         
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onNavigate?.('settings')}>
           <User className="mr-2 h-4 w-4" />
           <span>Hồ sơ cá nhân</span>
         </DropdownMenuItem>
         
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onNavigate?.('settings')}>
           <Settings className="mr-2 h-4 w-4" />
           <span>Cài đặt</span>
         </DropdownMenuItem>
