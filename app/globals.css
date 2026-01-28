@@ -8,13 +8,13 @@
  * =====================================================================
  */
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* Import custom Report Designer styles */
 @import '../styles/report-designer.css';
 @import '../styles/drag-drop-enhancements.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 body {
   font-family: 'Outfit', 'Inter', sans-serif;
