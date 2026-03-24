@@ -455,7 +455,7 @@ export function ProjectForm({
                             href={project.domain}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs text-primary hover:underline truncate"
+                            className="text-xs text-primary hover:underline truncate flex-1 min-w-0"
                           >
                             {project.domain.replace(/^https?:\/\//, '')}
                           </a>
@@ -473,7 +473,7 @@ export function ProjectForm({
                             href={project.figmaLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs text-secondary hover:underline truncate"
+                            className="text-xs text-secondary hover:underline truncate flex-1 min-w-0"
                           >
                             Figma Design
                           </a>
@@ -489,8 +489,8 @@ export function ProjectForm({
                       )}
 
                       {/* Action Buttons */}
-                      <div className="flex justify-between items-center pt-2">
-                        <div className="flex gap-1">
+                      <div className="flex justify-between items-center pt-2 gap-2">
+                        <div className="flex gap-1 shrink-0">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -527,12 +527,12 @@ export function ProjectForm({
                             }
                           />
                         </div>
-                        <div className="flex gap-1">
+                        <div className="flex gap-1 shrink-0">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleEdit(project)}
-                            className="text-xs px-2 h-7"
+                            className="text-xs px-2 h-7 w-7 p-0"
                           >
                             <Edit className="h-3 w-3" />
                           </Button>
@@ -540,7 +540,7 @@ export function ProjectForm({
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDelete(project.id)}
-                            className="text-xs px-2 h-7 text-destructive hover:text-destructive"
+                            className="text-xs px-2 h-7 w-7 p-0 text-destructive hover:text-destructive"
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
@@ -550,7 +550,7 @@ export function ProjectForm({
                   </CardContent>
                 </Card>
               )}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+              className="grid grid-cols-3 gap-4"
               emptyMessage={searchQuery || statusFilter !== 'all' ? vietnameseText.noResults : 'Chưa có dự án nào'}
               loadingText="Đang tải thêm dự án..."
               noMoreText="Đã hiển thị tất cả dự án"

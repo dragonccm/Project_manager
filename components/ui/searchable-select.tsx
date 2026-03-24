@@ -264,19 +264,19 @@ export function SearchableSelect({
               !selectedValues.length && "text-muted-foreground"
             )}
           >
-            <span className="truncate">{getDisplayValue()}</span>
-            <div className="flex items-center space-x-1">
+            <span className="truncate flex-1">{getDisplayValue()}</span>
+            <div className="flex items-center gap-1">
               {clearable && selectedValues.length > 0 && (
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className="h-4 w-4 p-0"
+                  size="icon"
+                  className="h-5 w-5 shrink-0"
                   onClick={(e) => {
                     e.stopPropagation()
                     handleClear()
                   }}
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-3.5 w-3.5" />
                 </Button>
               )}
               <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
@@ -385,11 +385,11 @@ export function SearchableSelect({
                 {option?.label || String(val)}
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className="h-3 w-3 p-0"
+                  size="icon"
+                  className="h-4 w-4 shrink-0"
                   onClick={() => handleSelect(val)}
                 >
-                  <X className="h-2 w-2" />
+                  <X className="h-3 w-3" />
                 </Button>
               </Badge>
             )

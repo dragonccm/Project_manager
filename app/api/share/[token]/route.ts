@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Share from '@/lib/models/Share'
 import mongoose from 'mongoose'
+import { ObjectId } from 'mongodb'
 
 // GET /api/share/[token] - Retrieve shared content
 export async function GET(
@@ -42,8 +43,8 @@ export async function GET(
     }
 
     // Get client info for tracking
-    const ipAddress = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
+    const ipAddress = request.headers.get('x-forwarded-for') ||
+                     request.headers.get('x-real-ip') ||
                      'unknown'
     const userAgent = request.headers.get('user-agent') || 'unknown'
 
@@ -54,10 +55,24 @@ export async function GET(
     let resource: any = null
     let sanitizedResource: any = null
 
+    // Use mongodb ObjectId for consistent ID handling
+    let resourceId: any = share.resourceId
+    if (typeof resourceId === 'string') {
+      try {
+        resourceId = new ObjectId(resourceId)
+      } catch (e) {
+        console.error('Invalid ObjectId in share:', resourceId)
+        return NextResponse.json(
+          { error: 'Invalid resource ID' },
+          { status: 400 }
+        )
+      }
+    }
+
     switch (share.resourceType) {
       case 'task':
-        resource = await mongoose.connection.collection('tasks').findOne({ 
-          _id: new mongoose.Types.ObjectId(share.resourceId as string) 
+        resource = await mongoose.connection.collection('tasks').findOne({
+          _id: resourceId
         })
         if (resource) {
           sanitizedResource = {
@@ -78,18 +93,18 @@ export async function GET(
         break
 
       case 'note':
-        resource = await mongoose.connection.collection('code_components').findOne({ 
-          _id: new mongoose.Types.ObjectId(share.resourceId as string) 
+        resource = await mongoose.connection.collection('code_components').findOne({
+          _id: resourceId
         })
         if (resource) {
           sanitizedResource = {
             id: resource._id?.toString(),
             name: resource.name,
             description: resource.description,
-            code: resource.content,
+            code: resource.code || resource.content,
             content: resource.content,
             type: resource.content_type,
-            category: resource.category,
+            category: resource.component_type,
             tags: resource.tags || [],
             image_url: resource.image_url,
             created_at: resource.created_at,
@@ -99,8 +114,8 @@ export async function GET(
         break
 
       case 'account':
-        resource = await mongoose.connection.collection('accounts').findOne({ 
-          _id: new mongoose.Types.ObjectId(share.resourceId as string) 
+        resource = await mongoose.connection.collection('accounts').findOne({
+          _id: resourceId
         })
         if (resource) {
           // Sanitize account data - DO NOT expose passwords
@@ -119,8 +134,8 @@ export async function GET(
         break
 
       case 'project':
-        resource = await mongoose.connection.collection('projects').findOne({ 
-          _id: new mongoose.Types.ObjectId(share.resourceId as string) 
+        resource = await mongoose.connection.collection('projects').findOne({
+          _id: resourceId
         })
         if (resource) {
           sanitizedResource = {

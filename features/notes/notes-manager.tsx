@@ -55,10 +55,11 @@ const makeLinksClickable = (text: string) => {
           href={part}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-500 hover:text-blue-700 underline inline-flex items-center gap-1"
+          className="text-blue-500 hover:text-blue-700 underline inline-flex items-center gap-1 break-all max-w-full"
+          style={{ wordBreak: 'break-all', overflowWrap: 'break-word' }}
         >
-          <LinkIcon className="h-3 w-3" />
-          {part}
+          <LinkIcon className="h-3 w-3 shrink-0" />
+          <span className="truncate max-w-full">{part}</span>
         </a>
       )
     }
@@ -1056,16 +1057,15 @@ export function NotesManager({ }: NotesManagerProps) {
           return (
             <Card key={note.id} className="hover:shadow-lg transition-shadow">
               <CardContent className="pt-6">
-                <h1>thẻ note nè con</h1>
                 {/* Header */}
                 <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <Icon className="h-4 w-4 text-primary" />
-                      <h3 className="font-semibold line-clamp-1">{note.name}</h3>
+                      <Icon className="h-4 w-4 text-primary shrink-0" />
+                      <h3 className="font-semibold line-clamp-1 break-words">{note.name}</h3>
                     </div>
                     {note.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">{note.description}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-2 break-words">{note.description}</p>
                     )}
                   </div>
                 </div>
@@ -1165,14 +1165,16 @@ export function NotesManager({ }: NotesManagerProps) {
 
                 {/* Text Content (with collapse) */}
                 {contentText && note.content_type !== 'password' && note.content_type !== 'image' && (
-                  <div className="bg-muted/30 rounded-md p-3 mb-3 relative">
-                    <div 
-                      className={`text-sm ${note.content_type === 'code' ? 'font-mono' : ''} whitespace-pre-wrap overflow-hidden transition-all duration-200`}
+                  <div className="bg-muted/30 rounded-md p-3 mb-3 relative overflow-hidden">
+                    <div
+                      className={`text-sm ${note.content_type === 'code' ? 'font-mono' : ''} whitespace-pre-wrap overflow-hidden transition-all duration-200 break-words`}
                       style={{
                         maxHeight: !isExpanded && isTextLong ? '6rem' : 'none',
                         display: '-webkit-box',
                         WebkitLineClamp: !isExpanded && isTextLong ? 4 : 'unset',
-                        WebkitBoxOrient: 'vertical'
+                        WebkitBoxOrient: 'vertical',
+                        wordBreak: 'break-word',
+                        overflowWrap: 'break-word'
                       }}
                     >
                       {note.content_type === 'link' ? makeLinksClickable(contentText) : contentText}
@@ -1207,11 +1209,11 @@ export function NotesManager({ }: NotesManagerProps) {
                 )}
 
                 {/* Actions */}
-                <div className="flex items-center justify-between pt-2 border-t">
-                  <span className="text-xs text-muted-foreground">
+                <div className="flex items-center justify-between pt-2 border-t gap-2">
+                  <span className="text-xs text-muted-foreground shrink-0">
                     {note.created_at && new Date(note.created_at).toLocaleDateString('vi-VN')}
                   </span>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 shrink-0">
                     {contentText && (
                       <TooltipProvider>
                         <Tooltip>
@@ -1220,7 +1222,7 @@ export function NotesManager({ }: NotesManagerProps) {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleCopy(contentText, note.content_type || 'text')}
-                              className="h-8 w-8 p-0"
+                              className="h-8 w-8 p-0 shrink-0"
                             >
                               <Copy className="h-4 w-4" />
                             </Button>
@@ -1235,7 +1237,7 @@ export function NotesManager({ }: NotesManagerProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => setPreviewNote(note)}
-                      className="h-8 w-8 p-0"
+                      className="h-8 w-8 p-0 shrink-0"
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
@@ -1243,7 +1245,7 @@ export function NotesManager({ }: NotesManagerProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleEdit(note)}
-                      className="h-8 w-8 p-0"
+                      className="h-8 w-8 p-0 shrink-0"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -1251,7 +1253,7 @@ export function NotesManager({ }: NotesManagerProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => note.id && handleDelete(note.id)}
-                      className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+                      className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive shrink-0"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

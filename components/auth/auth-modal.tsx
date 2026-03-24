@@ -467,22 +467,22 @@ const ModalOverlay = styled.div`
 const ModalContent = styled.div`
   width: 100%;
   max-width: 500px;
-  background: #fff;
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
   border-radius: 24px;
   box-shadow: 0 0.706592px 0.706592px -0.666667px #00000014,
               0 1.80656px 1.80656px -1.33333px #00000014,
               0 3.62176px 3.62176px -2px #00000012,
               0 6.8656px 6.8656px -2.66667px #00000012,
               0 13.6468px 13.6468px -3.33333px #0000000d,
-              0 30px 30px -4px #00000005,
-              inset 0 3px 1px #fff;
+              0 30px 30px -4px #00000005;
   overflow: hidden;
 `
 
 const TabsContainer = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
-  background: #fff;
+  background: hsl(var(--card));
   padding: 8px;
   gap: 8px;
 `
@@ -493,45 +493,43 @@ const TabButton = styled.button<{ $active: boolean }>`
   font-weight: 600;
   border: none;
   border-radius: 12px;
-  background: ${({ $active }) => 
-    $active 
-      ? '#000' 
-      : '#fff'
+  background: ${({ $active }) =>
+    $active
+      ? 'hsl(var(--primary))'
+      : 'hsl(var(--card))'
   };
-  color: ${({ $active }) => $active ? '#fff' : '#000'};
+  color: ${({ $active }) => $active ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))'};
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: ${({ $active }) => 
-    $active 
+  box-shadow: ${({ $active }) =>
+    $active
       ? `0 0.706592px 0.706592px -0.666667px #00000014,
          0 1.80656px 1.80656px -1.33333px #00000014,
          0 3.62176px 3.62176px -2px #00000012,
          0 6.8656px 6.8656px -2.66667px #00000012,
          0 13.6468px 13.6468px -3.33333px #0000000d,
-         0 30px 30px -4px #00000005,
-         inset 0 3px 1px #fff`
+         0 30px 30px -4px #00000005`
       : `0 0.706592px 0.706592px -0.666667px #00000014,
          0 1.80656px 1.80656px -1.33333px #00000014,
          0 3.62176px 3.62176px -2px #00000012,
-         inset 0 3px 1px #fff`
+         inset 0 1px 2px rgba(0, 0, 0, 0.05)`
   };
 
   &:hover:not([disabled]) {
     transform: translateY(-2px);
-    box-shadow: ${({ $active }) => 
-      $active 
+    box-shadow: ${({ $active }) =>
+      $active
         ? `0 0.706592px 0.706592px -0.666667px #00000014,
            0 1.80656px 1.80656px -1.33333px #00000014,
            0 3.62176px 3.62176px -2px #00000012,
            0 6.8656px 6.8656px -2.66667px #00000012,
            0 13.6468px 13.6468px -3.33333px #0000000d,
-           0 30px 30px -4px #00000005,
-           inset 0 3px 1px #fff`
+           0 30px 30px -4px #00000005`
         : `0 0.706592px 0.706592px -0.666667px #00000014,
            0 1.80656px 1.80656px -1.33333px #00000014,
            0 3.62176px 3.62176px -2px #00000012,
            0 6.8656px 6.8656px -2.66667px #00000012,
-           inset 0 3px 1px #fff`
+           inset 0 1px 2px rgba(0, 0, 0, 0.05)`
     };
   }
 
@@ -542,7 +540,7 @@ const TabButton = styled.button<{ $active: boolean }>`
 
 const FormCard = styled.div`
   padding: 2rem;
-  background: #fff;
+  background: hsl(var(--card));
 `
 
 const FormHeader = styled.div`
@@ -558,28 +556,27 @@ const IconCircle = styled.div`
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: #000;
-  color: #fff;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
   box-shadow: 0 0.706592px 0.706592px -0.666667px #00000014,
               0 1.80656px 1.80656px -1.33333px #00000014,
               0 3.62176px 3.62176px -2px #00000012,
               0 6.8656px 6.8656px -2.66667px #00000012,
               0 13.6468px 13.6468px -3.33333px #0000000d,
-              0 30px 30px -4px #00000005,
-              inset 0 3px 1px #fff;
+              0 30px 30px -4px #00000005;
 `
 
 const FormTitle = styled.h2`
   font-size: 2rem;
   font-weight: 700;
-  color: #000;
+  color: hsl(var(--foreground));
   margin-bottom: 0.5rem;
 `
 
 const FormDescription = styled.p`
   font-size: 0.875rem;
   font-weight: 500;
-  color: #666;
+  color: hsl(var(--muted-foreground));
 `
 
 const FormContent = styled.div`
@@ -608,12 +605,12 @@ const PasswordToggle = styled.button`
   border: none;
   background: transparent;
   cursor: pointer;
-  color: #000;
+  color: hsl(var(--foreground));
   border-radius: 8px;
   transition: all 0.3s ease;
 
   &:hover:not(:disabled) {
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(128, 128, 128, 0.1);
     transform: translateY(-50%) scale(1.1);
   }
 
@@ -647,7 +644,7 @@ const CheckboxWrapper = styled.div`
 const CheckboxLabel = styled.label`
   font-size: 0.875rem;
   font-weight: 500;
-  color: #000;
+  color: hsl(var(--foreground));
   cursor: pointer;
 `
 
@@ -661,13 +658,13 @@ const SwitchText = styled.div`
   text-align: center;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #666;
+  color: hsl(var(--muted-foreground));
 `
 
 const SwitchButton = styled.button`
   border: none;
   background: none;
-  color: #000;
+  color: hsl(var(--primary));
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
@@ -675,7 +672,7 @@ const SwitchButton = styled.button`
   transition: all 0.3s ease;
 
   &:hover:not(:disabled) {
-    color: #333;
+    color: hsl(var(--primary));
     text-decoration: underline;
   }
 
@@ -698,7 +695,7 @@ const StrengthText = styled.div`
 `
 
 const FeedbackText = styled.div`
-  color: #666;
+  color: hsl(var(--muted-foreground));
 `
 
 const PasswordMatch = styled.div<{ $match: boolean }>`
