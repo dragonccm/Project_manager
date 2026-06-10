@@ -66,6 +66,15 @@ export default function RootLayout({
   return (
     <html lang="vi" suppressHydrationWarning>
       <body className={outfit.className}>
+        <!-- Google tag (gtag.js) -->
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TV89DPZCW8"></script>
+      <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+      
+        gtag('config', 'G-TV89DPZCW8');
+      </script>
         <AuthProvider>
           <ThemeProvider
             attribute="class"
