@@ -46,8 +46,6 @@ export async function POST(request: NextRequest) {
       path: '/'
     })
 
-    console.log('🍪 Set auth cookie for user:', authResult.user.username, 'Token length:', authResult.token.length)
-
     return response
     
   } catch (error) {

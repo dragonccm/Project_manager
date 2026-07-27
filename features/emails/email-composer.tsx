@@ -186,13 +186,13 @@ export function EmailComposer({ projects, tasks = [], accounts = [] }: EmailComp
           {connectionStatus.connected === true && (
             <Badge variant="default" className="bg-green-500">
               <CheckCircle className="h-3 w-3 mr-1" />
-              Connected
+              {t("connectedStatus")}
             </Badge>
           )}
           {connectionStatus.connected === false && (
             <Badge variant="destructive">
               <XCircle className="h-3 w-3 mr-1" />
-              Disconnected
+              {t("disconnectedStatus")}
             </Badge>
           )}
         </div>

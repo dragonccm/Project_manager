@@ -1,6 +1,7 @@
 "use client"
 
 import React from 'react'
+import { useLanguage } from '@/hooks/use-language'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -24,11 +25,14 @@ export function DocumentStylePanel({
   onItemDelete,
   onItemDuplicate
 }: DocumentStylePanelProps) {
+  // Hook phải gọi trước mọi early return
+  const { t } = useLanguage()
+
   if (!selectedItem) {
     return (
       <Card className="p-4 w-full lg:w-80">
         <div className="text-center text-muted-foreground">
-          <p className="text-sm">Select an item to edit its properties</p>
+          <p className="text-sm">{t("selectItemToEdit")}</p>
         </div>
       </Card>
     )
@@ -60,7 +64,7 @@ export function DocumentStylePanel({
       <div className="space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold">Properties</h3>
+          <h3 className="font-semibold">{t("properties")}</h3>
           <div className="flex gap-1">
             <Button
               size="sm"
@@ -74,7 +78,7 @@ export function DocumentStylePanel({
               size="sm"
               variant="ghost"
               onClick={() => onItemDuplicate(selectedItem)}
-              title="Duplicate"
+              title={t("duplicate")}
             >
               <Copy className="w-4 h-4" />
             </Button>
@@ -82,7 +86,7 @@ export function DocumentStylePanel({
               size="sm"
               variant="ghost"
               onClick={() => onItemDelete(selectedItem.id)}
-              title="Delete"
+              title={t("delete")}
               className="hover:bg-destructive/10 hover:text-destructive"
             >
               <Trash2 className="w-4 h-4" />
@@ -94,13 +98,13 @@ export function DocumentStylePanel({
 
         {/* Type */}
         <div className="space-y-2">
-          <Label className="text-xs font-semibold uppercase text-muted-foreground">Type</Label>
+          <Label className="text-xs font-semibold uppercase text-muted-foreground">{t("typeLabel")}</Label>
           <div className="text-sm capitalize">{selectedItem.type}</div>
         </div>
 
         {/* Position & Size */}
         <div className="space-y-3">
-          <Label className="text-xs font-semibold uppercase text-muted-foreground">Position & Size (mm)</Label>
+          <Label className="text-xs font-semibold uppercase text-muted-foreground">{t("positionAndSizeMm")}</Label>
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label className="text-xs">X</Label>
@@ -121,7 +125,7 @@ export function DocumentStylePanel({
               />
             </div>
             <div>
-              <Label className="text-xs">Width</Label>
+              <Label className="text-xs">{t("width")}</Label>
               <Input
                 type="number"
                 value={selectedItem.width_mm.toFixed(1)}
@@ -131,7 +135,7 @@ export function DocumentStylePanel({
               />
             </div>
             <div>
-              <Label className="text-xs">Height</Label>
+              <Label className="text-xs">{t("height")}</Label>
               <Input
                 type="number"
                 value={selectedItem.height_mm.toFixed(1)}
@@ -158,7 +162,7 @@ export function DocumentStylePanel({
                 size="sm"
                 variant="outline"
                 onClick={() => updatePosition({ z_index: selectedItem.z_index + 1 })}
-                title="Bring Forward"
+                title={t("bringForward")}
               >
                 <MoveUp className="w-3 h-3" />
               </Button>
@@ -166,7 +170,7 @@ export function DocumentStylePanel({
                 size="sm"
                 variant="outline"
                 onClick={() => updatePosition({ z_index: Math.max(0, selectedItem.z_index - 1) })}
-                title="Send Backward"
+                title={t("sendBackward")}
               >
                 <MoveDown className="w-3 h-3" />
               </Button>
@@ -188,26 +192,26 @@ export function DocumentStylePanel({
         {/* Content Properties */}
         {(selectedItem.type === 'title' || selectedItem.type === 'text') && (
           <div className="space-y-3">
-            <Label className="text-xs font-semibold uppercase text-muted-foreground">Content</Label>
+            <Label className="text-xs font-semibold uppercase text-muted-foreground">{t("contentLabel")}</Label>
             <textarea
               className="w-full min-h-[80px] p-2 text-sm border rounded-md"
               value={selectedItem.content.text || ''}
               onChange={(e) => updateContent({ text: e.target.value })}
-              placeholder="Enter text..."
+              placeholder={t("enterTextPlaceholder")}
             />
           </div>
         )}
 
         {selectedItem.type === 'image' && (
           <div className="space-y-3">
-            <Label className="text-xs font-semibold uppercase text-muted-foreground">Image</Label>
+            <Label className="text-xs font-semibold uppercase text-muted-foreground">{t("imageLabel")}</Label>
             <Input
-              placeholder="Image URL"
+              placeholder={t("imageUrl")}
               value={selectedItem.content.image_url || ''}
               onChange={(e) => updateContent({ image_url: e.target.value })}
             />
             <Input
-              placeholder="Alt text"
+              placeholder={t("altTextLabel")}
               value={selectedItem.content.image_alt || ''}
               onChange={(e) => updateContent({ image_alt: e.target.value })}
             />
@@ -217,14 +221,14 @@ export function DocumentStylePanel({
                 checked={selectedItem.content.preserve_aspect ?? true}
                 onChange={(e) => updateContent({ preserve_aspect: e.target.checked })}
               />
-              Preserve aspect ratio
+              {t("preserveAspectRatio")}
             </label>
           </div>
         )}
 
         {selectedItem.type === 'shape' && (
           <div className="space-y-3">
-            <Label className="text-xs font-semibold uppercase text-muted-foreground">Shape</Label>
+            <Label className="text-xs font-semibold uppercase text-muted-foreground">{t("shape")}</Label>
             <Select
               value={selectedItem.content.shape_type || 'rectangle'}
               onValueChange={(value) => updateContent({ shape_type: value })}
@@ -233,14 +237,14 @@ export function DocumentStylePanel({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="rectangle">Rectangle</SelectItem>
-                <SelectItem value="circle">Circle</SelectItem>
-                <SelectItem value="ellipse">Ellipse</SelectItem>
-                <SelectItem value="triangle">Triangle</SelectItem>
+                <SelectItem value="rectangle">{t("rectangle")}</SelectItem>
+                <SelectItem value="circle">{t("circle")}</SelectItem>
+                <SelectItem value="ellipse">{t("ellipse")}</SelectItem>
+                <SelectItem value="triangle">{t("triangle")}</SelectItem>
               </SelectContent>
             </Select>
             <div>
-              <Label className="text-xs">Fill Color</Label>
+              <Label className="text-xs">{t("fillColor")}</Label>
               <Input
                 type="color"
                 value={selectedItem.content.fill_color || '#000000'}
@@ -252,9 +256,9 @@ export function DocumentStylePanel({
 
         {selectedItem.type === 'tag' && (
           <div className="space-y-3">
-            <Label className="text-xs font-semibold uppercase text-muted-foreground">Tag</Label>
+            <Label className="text-xs font-semibold uppercase text-muted-foreground">{t("tagLabel")}</Label>
             <Input
-              placeholder="Tag label"
+              placeholder={t("tagLabel")}
               value={selectedItem.content.tag_label || ''}
               onChange={(e) => updateContent({ tag_label: e.target.value })}
             />
@@ -267,10 +271,10 @@ export function DocumentStylePanel({
         {(selectedItem.type === 'title' || selectedItem.type === 'text') && (
           <>
             <div className="space-y-3">
-              <Label className="text-xs font-semibold uppercase text-muted-foreground">Text Style</Label>
+              <Label className="text-xs font-semibold uppercase text-muted-foreground">{t("textStyle")}</Label>
               
               <div>
-                <Label className="text-xs">Font Family</Label>
+                <Label className="text-xs">{t("fontFamily")}</Label>
                 <Select
                   value={selectedItem.style.font_family || 'Arial'}
                   onValueChange={(value) => updateStyle({ font_family: value })}
@@ -290,7 +294,7 @@ export function DocumentStylePanel({
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label className="text-xs">Font Size (pt)</Label>
+                  <Label className="text-xs">{t("fontSizePt")}</Label>
                   <Input
                     type="number"
                     value={selectedItem.style.font_size_pt || 12}
@@ -300,7 +304,7 @@ export function DocumentStylePanel({
                   />
                 </div>
                 <div>
-                  <Label className="text-xs">Font Weight</Label>
+                  <Label className="text-xs">{t("fontWeight")}</Label>
                   <Select
                     value={String(selectedItem.style.font_weight || 'normal')}
                     onValueChange={(value) => updateStyle({ font_weight: value as any })}
@@ -309,9 +313,9 @@ export function DocumentStylePanel({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="normal">Normal</SelectItem>
-                      <SelectItem value="bold">Bold</SelectItem>
-                      <SelectItem value="lighter">Lighter</SelectItem>
+                      <SelectItem value="normal">{t("fontWeightNormal")}</SelectItem>
+                      <SelectItem value="bold">{t("fontWeightBold")}</SelectItem>
+                      <SelectItem value="lighter">{t("fontWeightLighter")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -319,7 +323,7 @@ export function DocumentStylePanel({
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label className="text-xs">Text Color</Label>
+                  <Label className="text-xs">{t("textColor")}</Label>
                   <Input
                     type="color"
                     value={selectedItem.style.text_color || '#000000'}
@@ -327,7 +331,7 @@ export function DocumentStylePanel({
                   />
                 </div>
                 <div>
-                  <Label className="text-xs">Alignment</Label>
+                  <Label className="text-xs">{t("alignment")}</Label>
                   <Select
                     value={selectedItem.style.text_align || 'left'}
                     onValueChange={(value: any) => updateStyle({ text_align: value })}
@@ -336,10 +340,10 @@ export function DocumentStylePanel({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="left">Left</SelectItem>
-                      <SelectItem value="center">Center</SelectItem>
-                      <SelectItem value="right">Right</SelectItem>
-                      <SelectItem value="justify">Justify</SelectItem>
+                      <SelectItem value="left">{t("alignLeft")}</SelectItem>
+                      <SelectItem value="center">{t("alignCenter")}</SelectItem>
+                      <SelectItem value="right">{t("positionRight")}</SelectItem>
+                      <SelectItem value="justify">{t("alignJustify")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -351,10 +355,10 @@ export function DocumentStylePanel({
 
         {/* Box Styling */}
         <div className="space-y-3">
-          <Label className="text-xs font-semibold uppercase text-muted-foreground">Box Style</Label>
+          <Label className="text-xs font-semibold uppercase text-muted-foreground">{t("boxStyle")}</Label>
           
           <div>
-            <Label className="text-xs">Background</Label>
+            <Label className="text-xs">{t("background")}</Label>
             <div className="flex gap-2">
               <Input
                 type="color"
@@ -371,11 +375,11 @@ export function DocumentStylePanel({
           </div>
 
           <div>
-            <Label className="text-xs">Border</Label>
+            <Label className="text-xs">{t("border")}</Label>
             <div className="grid grid-cols-3 gap-2">
               <Input
                 type="number"
-                placeholder="Width"
+                placeholder={t("width")}
                 value={selectedItem.style.border_width || 0}
                 onChange={(e) => updateStyle({ border_width: parseFloat(e.target.value) || 0 })}
                 min="0"
@@ -393,17 +397,17 @@ export function DocumentStylePanel({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="solid">Solid</SelectItem>
-                  <SelectItem value="dashed">Dashed</SelectItem>
-                  <SelectItem value="dotted">Dotted</SelectItem>
-                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="solid">{t("borderSolid")}</SelectItem>
+                  <SelectItem value="dashed">{t("borderDashed")}</SelectItem>
+                  <SelectItem value="dotted">{t("borderDotted")}</SelectItem>
+                  <SelectItem value="none">{t("none")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div>
-            <Label className="text-xs">Border Radius (px)</Label>
+            <Label className="text-xs">{t("borderRadiusPx")}</Label>
             <Input
               type="number"
               value={selectedItem.style.border_radius || 0}
@@ -428,10 +432,10 @@ export function DocumentStylePanel({
 
         {/* Padding */}
         <div className="space-y-3">
-          <Label className="text-xs font-semibold uppercase text-muted-foreground">Padding (mm)</Label>
+          <Label className="text-xs font-semibold uppercase text-muted-foreground">{t("paddingMm")}</Label>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <Label className="text-xs">Top</Label>
+              <Label className="text-xs">{t("top")}</Label>
               <Input
                 type="number"
                 value={selectedItem.style.padding_top_mm || 0}
@@ -441,7 +445,7 @@ export function DocumentStylePanel({
               />
             </div>
             <div>
-              <Label className="text-xs">Right</Label>
+              <Label className="text-xs">{t("positionRight")}</Label>
               <Input
                 type="number"
                 value={selectedItem.style.padding_right_mm || 0}
@@ -451,7 +455,7 @@ export function DocumentStylePanel({
               />
             </div>
             <div>
-              <Label className="text-xs">Bottom</Label>
+              <Label className="text-xs">{t("positionBottom")}</Label>
               <Input
                 type="number"
                 value={selectedItem.style.padding_bottom_mm || 0}
@@ -461,7 +465,7 @@ export function DocumentStylePanel({
               />
             </div>
             <div>
-              <Label className="text-xs">Left</Label>
+              <Label className="text-xs">{t("alignLeft")}</Label>
               <Input
                 type="number"
                 value={selectedItem.style.padding_left_mm || 0}

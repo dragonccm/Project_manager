@@ -364,7 +364,7 @@ export function TaskReports({ projects, tasks }: TaskReportsProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="project">Project</Label>
+              <Label htmlFor="project">{t("project")}</Label>
               <Select value={selectedProject} onValueChange={setSelectedProject}>
                 <SelectTrigger>
                   <SelectValue />

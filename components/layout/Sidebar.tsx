@@ -4,27 +4,20 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { 
-  BarChart3, 
-  FolderOpen, 
+  LayoutGrid, 
+  Sparkles, 
+  Calendar, 
+  Heart, 
+  FolderGit2, 
   Users, 
-  CheckSquare, 
-  PieChart, 
-  FileText, 
-  Code, 
-  Layout, 
-  Mail, 
-  Shield, 
-  Cog, 
+  GraduationCap,
+  Code,
+  Mail,
   Settings,
-  Menu,
-  X,
-  ChevronLeft,
-  ChevronRight
+  ShieldCheck
 } from "lucide-react"
-import { useState, useEffect } from "react"
 import { useLanguage } from "@/hooks/use-language"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { LanguageToggle } from "@/components/language-toggle"
+import { useAuth } from "@/hooks/use-auth"
 
 interface SidebarProps {
   activeTab: string
@@ -42,21 +35,23 @@ export function Sidebar({
   closeMobileMenu
 }: SidebarProps) {
   const { t } = useLanguage()
-  const [collapsed, setCollapsed] = useState(false)
+  const { user } = useAuth()
+
+  // User không có field `name`/`avatar` — schema dùng `full_name`/`avatar_url`.
+  // Bản cũ đọc sai tên field nên luôn rơi vào giá trị mặc định cứng.
+  const displayName = user?.full_name || user?.username || ""
 
   const menuItems = [
-    { id: "dashboard", label: t("dashboard"), icon: BarChart3 },
-    { id: "projects", label: t("projects"), icon: FolderOpen },
-    { id: "accounts", label: t("accounts"), icon: Users },
-    { id: "tasks", label: t("dailyTasks"), icon: CheckSquare },
-    { id: "tasksOverview", label: t("taskOverview"), icon: PieChart },
-    { id: "reports", label: t("reports"), icon: FileText },
+    { id: "dashboard", label: "For you", icon: LayoutGrid },
+    { id: "projects", label: "Discover", icon: Sparkles },
+    { id: "tasksOverview", label: "Events", icon: Calendar },
+    { id: "tasks", label: "Benefits", icon: Heart },
+    { id: "a4designer", label: "Projects", icon: FolderGit2 },
+    { id: "admin", label: "Communities", icon: Users },
+    { id: "reports", label: "Learning", icon: GraduationCap },
     { id: "components", label: "Notes", icon: Code },
-    { id: "a4designer", label: "A4 Designer", icon: Layout },
-    { id: "email", label: t("emailComposer"), icon: Mail },
-    { id: "admin", label: t("adminPanel"), icon: Shield },
-    { id: "emailSettings", label: t("emailSettings"), icon: Cog },
-    { id: "settings", label: t("settings"), icon: Settings },
+    { id: "email", label: "Email", icon: Mail },
+    { id: "settings", label: "Settings", icon: Settings },
   ]
 
   const handleTabClick = (id: string) => {
@@ -68,84 +63,64 @@ export function Sidebar({
 
   return (
     <div className={cn(
-      "relative flex flex-col h-full bg-background/80 backdrop-blur-xl border-r border-border transition-all duration-300",
-      collapsed && !isMobile ? "w-20" : "w-72",
+      "relative flex flex-col h-full bg-background select-none w-60 py-2",
       className
     )}>
-      {/* Header */}
-      <div className="flex items-center justify-between p-6 pb-2">
-        {!collapsed && (
-          <div className="flex items-center gap-2 animate-fade-in">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-glow-primary">
-              <span className="text-white font-bold text-xl">D</span>
-            </div>
-            <span className="font-display font-bold text-xl tracking-tight text-gradient">
-              Dragonccm
-            </span>
-          </div>
-        )}
-        {collapsed && (
-           <div className="mx-auto h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-glow-primary">
-             <span className="text-white font-bold text-xl">D</span>
-           </div>
-        )}
-        
-        {!isMobile && (
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="hidden md:flex bg-muted/50 hover:bg-muted text-muted-foreground w-6 h-6 rounded-full absolute -right-3 top-8 border shadow-sm z-50"
-            onClick={() => setCollapsed(!collapsed)}
-          >
-            {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-          </Button>
-        )}
-      </div>
-
-      {/* Navigation */}
-      <ScrollArea className="flex-1 px-4 py-6">
-        <nav className="space-y-2">
-          {menuItems.map((item) => (
-            <Button
-              key={item.id}
-              variant={activeTab === item.id ? "default" : "ghost"}
-              className={cn(
-                "w-full justify-start relative group overflow-hidden transition-all duration-300",
-                activeTab === item.id 
-                  ? "bg-primary/10 text-primary hover:bg-primary/20 shadow-glow-primary border border-primary/20" 
-                  : "hover:bg-muted/50 text-muted-foreground hover:text-foreground",
-                collapsed && !isMobile ? "px-2 justify-center" : "px-4"
-              )}
-              onClick={() => handleTabClick(item.id)}
-              title={collapsed ? item.label : undefined}
-            >
-              <item.icon className={cn(
-                "h-5 w-5 transition-all duration-300", 
-                activeTab === item.id ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
-                collapsed && !isMobile ? "mr-0" : "mr-3"
-              )} />
-              
-              {!collapsed && (
-                <span className="font-medium truncate animate-fade-in">
+      {/* Navigation Links */}
+      <ScrollArea className="flex-1 px-3 py-2">
+        <nav className="space-y-1.5">
+          {menuItems.map((item) => {
+            const isActive = activeTab === item.id;
+            return (
+              <Button
+                key={item.id}
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start rounded-full transition-all duration-150 text-sm font-medium h-10 px-4 gap-3",
+                  isActive 
+                    ? "google-dev-active-chip shadow-none" 
+                    : "text-foreground/80 hover:text-foreground hover:bg-muted/60"
+                )}
+                onClick={() => handleTabClick(item.id)}
+              >
+                <item.icon className={cn(
+                  "h-4.5 w-4.5 flex-shrink-0 transition-colors", 
+                  isActive ? "text-[#001D35] dark:text-[#C2E7FF]" : "text-foreground/70"
+                )} />
+                
+                <span className="truncate">
                   {item.label}
                 </span>
-              )}
-              
-              {activeTab === item.id && (
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />
-              )}
-            </Button>
-          ))}
+              </Button>
+            );
+          })}
         </nav>
       </ScrollArea>
 
-      {/* Footer Actions */}
-      <div className="p-4 border-t border-border/50 bg-muted/20">
-        <div className={cn("flex items-center gap-2", collapsed && !isMobile ? "flex-col" : "justify-between")}>
-           <ThemeToggle />
-           <LanguageToggle />
+      {/* Bottom Profile Card matching screenshot */}
+      <div className="p-3 mt-auto">
+        <div className="flex items-center gap-3 p-2 rounded-2xl hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => setActiveTab("settings")}>
+          <div className="w-8.5 h-8.5 rounded-full bg-[#4285F4] text-white font-bold flex items-center justify-center text-xs overflow-hidden flex-shrink-0">
+            {user?.avatar_url ? (
+              <img src={user.avatar_url} alt={t("userAvatar")} className="w-full h-full object-cover" />
+            ) : (
+              <span>{displayName.charAt(0).toUpperCase()}</span>
+            )}
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-sm font-semibold text-foreground truncate">
+              {displayName}
+            </span>
+            <span className="text-xs text-muted-foreground truncate">
+              {user?.email || ""}
+            </span>
+          </div>
         </div>
       </div>
+
     </div>
   )
 }
+
+
+

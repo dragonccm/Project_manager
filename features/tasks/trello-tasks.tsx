@@ -14,7 +14,7 @@ import { Plus, Clock, Circle, Inbox, Loader, Check, X, Eye, Trash2, Mail, Share2
 import { useLanguage } from "@/hooks/use-language"
 import { useEmail } from "@/hooks/use-email"
 import AdvancedEmailComposer from "@/components/advanced-email-composer"
-import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, useDroppable } from '@dnd-kit/core'
+import { DndContext, DragEndEvent, DragStartEvent, DragOverlay, PointerSensor, useSensor, useSensors, useDroppable } from '@dnd-kit/core'
 import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -47,7 +47,7 @@ interface TrelloTasksProps {
   }
 }
 
-// Tạo component cho task có thể kéo thả
+// Component cho task kéo thả - Phong cách Google Developers Card
 interface DraggableTaskCardProps {
   task: any;
   project: any;
@@ -58,7 +58,7 @@ interface DraggableTaskCardProps {
   onShareTask?: (task: any) => void;
 }
 
-// Component cho cột droppable
+// Component cho cột droppable - Phong cách Google Developers Column
 interface DroppableColumnProps {
   id: string;
   title: string;
@@ -90,7 +90,19 @@ function DraggableTaskCard({ task, project, onToggle, getPriorityColor, onViewDe
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1
+    opacity: isDragging ? 0.4 : 1
+  };
+
+  const getPriorityBadgeClass = (priority: string) => {
+    switch (priority) {
+      case "high":
+        return "bg-[#FCE8E6] text-[#EA4335] border-[#F28B82]/30 dark:bg-[#3C2221] dark:text-[#F28B82]";
+      case "medium":
+        return "bg-[#FEF7E0] text-[#FBBC04] border-[#FDD663]/30 dark:bg-[#3C3218] dark:text-[#FDD663]";
+      case "low":
+      default:
+        return "bg-[#E6F4EA] text-[#34A853] border-[#81C995]/30 dark:bg-[#1C3A27] dark:text-[#81C995]";
+    }
   };
 
   return (
@@ -99,97 +111,96 @@ function DraggableTaskCard({ task, project, onToggle, getPriorityColor, onViewDe
       style={style}
       {...attributes}
       {...listeners}
-      className={`border rounded-lg p-4 mb-2 bg-card text-card-foreground shadow hover:shadow-md cursor-grab active:cursor-grabbing ${task.completed ? "opacity-60" : ""
-        }`}
+      className={`group relative rounded-2xl p-4 mb-3 bg-card border border-border text-card-foreground shadow-google-sm hover:shadow-google-md hover:border-[#1A73E8] dark:hover:border-[#8AB4F8] transition-all cursor-grab active:cursor-grabbing ${task.completed ? "opacity-60 bg-muted/30" : ""}`}
     >
       <div className="flex items-start gap-3">
         <Checkbox
           checked={task.completed}
           onCheckedChange={() => onToggle(task.id, task.completed)}
-          className="mt-1"
+          className="mt-1 rounded-sm border-muted-foreground/40 data-[state=checked]:bg-[#1A73E8] data-[state=checked]:border-[#1A73E8]"
         />
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className={`font-medium ${task.completed ? "line-through" : ""}`}>{task.title}</h3>
-            <Badge variant={getPriorityColor(task.priority) as any}>{task.priority}</Badge>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+            <h3 className={`font-semibold text-sm truncate ${task.completed ? "line-through text-muted-foreground" : "text-foreground"}`}>{task.title}</h3>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${getPriorityBadgeClass(task.priority)}`}>
+              {task.priority}
+            </span>
           </div>
-          {task.description && <p className="text-sm text-muted-foreground mb-2">{task.description}</p>}
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+          {task.description && <p className="text-xs text-muted-foreground line-clamp-2 mb-2.5">{task.description}</p>}
+          <div className="flex items-center gap-3 text-[11px] text-muted-foreground flex-wrap">
             {project && (
-              <span className="flex items-center gap-1">
-                <Circle className="h-3 w-3" />
+              <span className="flex items-center gap-1 font-medium text-[#1A73E8] dark:text-[#8AB4F8] bg-[#E8F0FE] dark:bg-[#2C384E] px-2 py-0.5 rounded-full">
+                <Circle className="h-2.5 w-2.5 fill-current" />
                 {project.name}
               </span>
             )}
             <span className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {task.estimated_time || task.estimatedTime}min
+              <Clock className="h-3 w-3 text-muted-foreground" />
+              {task.estimated_time || task.estimatedTime}m
             </span>
-            <span className="text-xs">
+            <span>
               {task.date ? getLocalDateString(new Date(task.date)) : t("noDate") || 'Chưa có ngày'}
             </span>
           </div>
-          <div className="flex justify-end mt-2">
-            <div className="flex gap-1">
-              {onShareTask && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onShareTask(task);
-                  }}
-                  className="h-6 px-2 text-xs text-blue-500 hover:text-blue-600"
-                >
-                  <Share2 className="h-3 w-3 mr-1" />
-                  {t("share") || "Chia sẻ"}
-                </Button>
-              )}
+          <div className="flex justify-end items-center gap-1 mt-3 pt-2 border-t border-border/40 opacity-90 group-hover:opacity-100 transition-opacity">
+            {onShareTask && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onViewDetails(task);
+                  onShareTask(task);
                 }}
-                className="h-6 px-2 text-xs"
+                className="h-7 px-2 text-[11px] rounded-full text-[#1A73E8] hover:bg-[#E8F0FE] dark:hover:bg-[#2C384E]"
               >
-                <Eye className="h-3 w-3 mr-1" />
-                {t("viewDetails") || "Xem chi tiết"}
+                <Share2 className="h-3 w-3 mr-1" />
+                {t("share") || "Chia sẻ"}
               </Button>
-              <AdvancedEmailComposer
-                initialEmailType="taskNotification"
-                contextData={task}
-                trigger={
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
-                    className="h-6 px-2 text-xs text-blue-600 hover:text-blue-700"
-                  >
-                    <Mail className="h-3 w-3 mr-1" />
-                    Email
-                  </Button>
-                }
-              />
-              {onDeleteTask && (
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewDetails(task);
+              }}
+              className="h-7 px-2 text-[11px] rounded-full hover:bg-muted"
+            >
+              <Eye className="h-3 w-3 mr-1" />
+              {t("viewDetails") || "Xem chi tiết"}
+            </Button>
+            <AdvancedEmailComposer
+              initialEmailType="taskNotification"
+              contextData={task}
+              trigger={
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (window.confirm(t("confirmDeleteTask") || "Bạn có chắc chắn muốn xóa task này?")) {
-                      onDeleteTask(task.id);
-                    }
                   }}
-                  className="h-6 px-2 text-xs text-destructive hover:text-destructive"
+                  className="h-7 px-2 text-[11px] rounded-full text-[#34A853] hover:bg-[#E6F4EA] dark:hover:bg-[#1C3A27]"
                 >
-                  <X className="h-3 w-3" />
+                  <Mail className="h-3 w-3 mr-1" />
+                  Email
                 </Button>
-              )}
-            </div>
+              }
+            />
+            {onDeleteTask && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (window.confirm(t("confirmDeleteTask") || "Bạn có chắc chắn muốn xóa task này?")) {
+                    onDeleteTask(task.id);
+                  }
+                }}
+                className="h-7 px-2 text-[11px] rounded-full text-[#EA4335] hover:bg-[#FCE8E6] dark:hover:bg-[#3C2221]"
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -204,15 +215,17 @@ function DroppableColumn({ id, title, icon, tasks, bgColor, onToggle, getPriorit
   });
 
   return (
-    <Card>
-      <CardHeader className={`${bgColor} dark:bg-muted rounded-t-lg`}>
-        <CardTitle className="text-sm font-medium flex items-center">
-          {icon}
-          {title}
-          <Badge variant="outline" className="ml-2">{tasks.length}</Badge>
+    <Card className="rounded-2xl border border-border shadow-google-sm bg-card flex flex-col overflow-hidden">
+      <CardHeader className={`${bgColor} dark:bg-card border-b border-border py-3 px-4`}>
+        <CardTitle className="text-xs font-bold uppercase tracking-wider flex items-center justify-between text-foreground">
+          <span className="flex items-center gap-2">
+            {icon}
+            {title}
+          </span>
+          <Badge variant="secondary" className="rounded-full px-2.5 py-0.5 text-xs font-semibold bg-secondary">{tasks.length}</Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent ref={setNodeRef} className={`p-2 min-h-[200px] max-h-[500px] overflow-y-auto ${isOver ? 'bg-blue-50' : ''}`}>
+      <CardContent ref={setNodeRef} className={`p-3 min-h-[280px] max-h-[620px] overflow-y-auto transition-colors ${isOver ? 'bg-[#E8F0FE]/40 dark:bg-[#2C384E]/40 border-2 border-dashed border-[#1A73E8]' : ''}`}>
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map(task => {
             const taskProjectId = task.projectId || task.project_id?.toString();
@@ -231,7 +244,7 @@ function DroppableColumn({ id, title, icon, tasks, bgColor, onToggle, getPriorit
             );
           })}
           {tasks.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground text-sm italic">
+            <div className="text-center py-12 text-muted-foreground text-xs font-medium italic opacity-70">
               {t("noTasksInList") || "Không có task nào trong danh sách này"}
             </div>
           )}
@@ -341,8 +354,20 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
       done: doneTasks
     });
   }, [tasks, selectedDate]);
+
+  const [activeTask, setActiveTask] = useState<any>(null);
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const taskId = event.active.id as string;
+    const task = tasks.find((t: any) => t.id == taskId);
+    if (task) {
+      setActiveTask(task);
+    }
+  };
+
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveTask(null);
 
     if (!active || !over) return;
 
@@ -681,18 +706,20 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
             </form>
           </CardContent>
         </Card>
-      )}      {/* Trello-style Kanban Board */}
+      )}      {/* Trello-style Kanban Board - Google Developers Drag & Drop */}
       <DndContext
         sensors={sensors}
+        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 overflow-x-auto pb-4">          {/* Todo Column */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 overflow-x-auto pb-4">
+          {/* Todo Column */}
           <DroppableColumn
             id="todo"
             title={t("todo") || "Cần làm"}
-            icon={<Inbox className="h-4 w-4 mr-2" />}
+            icon={<Inbox className="h-4 w-4 mr-1 text-[#EA4335]" />}
             tasks={tasksByStatus.todo}
-            bgColor="bg-slate-50"
+            bgColor="bg-muted/40"
             onToggle={handleToggleTask}
             getPriorityColor={getPriorityColor}
             projects={displayProjects}
@@ -705,9 +732,9 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
           <DroppableColumn
             id="in-progress"
             title={t("inProgress") || "Đang làm"}
-            icon={<Loader className="h-4 w-4 mr-2" />}
+            icon={<Loader className="h-4 w-4 mr-1 text-[#1A73E8]" />}
             tasks={tasksByStatus["in-progress"]}
-            bgColor="bg-blue-50"
+            bgColor="bg-muted/40"
             onToggle={handleToggleTask}
             getPriorityColor={getPriorityColor}
             projects={displayProjects}
@@ -720,17 +747,36 @@ export function TrelloTasks({ projects, tasks, onAddTask, onEditTask, onDeleteTa
           <DroppableColumn
             id="done"
             title={t("completed") || "Hoàn thành"}
-            icon={<Check className="h-4 w-4 mr-2" />}
+            icon={<Check className="h-4 w-4 mr-1 text-[#34A853]" />}
             tasks={tasksByStatus.done}
-            bgColor="bg-green-50"
+            bgColor="bg-muted/40"
             onToggle={handleToggleTask}
             getPriorityColor={getPriorityColor}
             projects={displayProjects}
             onViewDetails={handleViewTaskDetails}
             onDeleteTask={onDeleteTask}
             onShareTask={handleShareTask}
-          />        </div>
+          />
+        </div>
+
+        {/* Floating Padlet / Google Drag Overlay */}
+        <DragOverlay>
+          {activeTask ? (
+            <div className="rounded-2xl p-4 bg-card border-2 border-[#1A73E8] dark:border-[#8AB4F8] text-card-foreground shadow-google-lg transform rotate-3 scale-105 opacity-95">
+              <div className="flex items-center gap-2 mb-1.5">
+                <h3 className="font-semibold text-sm">{activeTask.title}</h3>
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-[#E8F0FE] text-[#1A73E8] dark:bg-[#2C384E] dark:text-[#8AB4F8]">
+                  {activeTask.priority}
+                </span>
+              </div>
+              {activeTask.description && (
+                <p className="text-xs text-muted-foreground line-clamp-2">{activeTask.description}</p>
+              )}
+            </div>
+          ) : null}
+        </DragOverlay>
       </DndContext>
+
 
       {/* Task Details Dialog */}
       <Dialog open={showTaskDetails} onOpenChange={setShowTaskDetails}>

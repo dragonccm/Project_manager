@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -8,22 +7,20 @@ import { Progress } from "@/components/ui/progress"
 import { Checkbox } from "@/components/ui/checkbox"
 import { getTodayDateString } from "@/lib/date-utils"
 import {
-  Bell,
-  Users,
+  Heart,
   FolderOpen,
+  ArrowUpRight,
+  Sparkles,
   CheckSquare,
-  Star,
   Clock,
-  AlertTriangle,
-  Plus,
-  BarChart3,
-  Calendar,
   TrendingUp,
   Activity,
-  FileText,
-  Mail,
   Zap,
-  Layout as LayoutIcon
+  Users,
+  AlertTriangle,
+  Mail,
+  Layout as LayoutIcon,
+  Calendar
 } from "lucide-react"
 import AdvancedEmailComposer from "@/components/advanced-email-composer"
 import { useLanguage } from "@/hooks/use-language"
@@ -33,36 +30,22 @@ interface DashboardOverviewProps {
   tasks: any[]
   accounts: any[]
   onToggleTask: (id: string, completed: boolean) => Promise<any>
+  /** Chuyển tab. Thiếu callback này thì 4 nút trên các thẻ hero không làm gì cả. */
+  onNavigate?: (tab: string) => void
 }
 
 export function DashboardOverview({
   projects,
   tasks,
   accounts,
-  onToggleTask
+  onToggleTask,
+  onNavigate
 }: DashboardOverviewProps) {
   const { t } = useLanguage()
   const today = new Date().toISOString().split("T")[0]
   const todayTasks = tasks.filter((task: any) => task.date === today)
   const completedTasks = todayTasks.filter((task: any) => task.completed)
   const highPriorityTasks = tasks.filter((task: any) => task.priority === "high" && !task.completed)
-
-  // Get recent activity (last 7 days)
-  const sevenDaysAgo = new Date()
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-  const recentActivity = [
-    ...tasks
-      .filter((task: any) => new Date(task.date) >= sevenDaysAgo)
-      .map((task: any) => ({
-        type: "task",
-        title: task.title,
-        date: task.date,
-        status: task.completed ? "completed" : "pending",
-        priority: task.priority,
-      })),
-  ]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 5)
 
   const toggleTask = async (taskId: string) => {
     const task = tasks.find((t: any) => t.id == taskId)
@@ -79,259 +62,306 @@ export function DashboardOverview({
   }
 
   return (
-    <div className="space-y-8 animate-fade-in p-2">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h1 className="text-4xl font-display font-bold bg-gradient-to-r from-primary via-purple-500 to-accent bg-clip-text text-transparent drop-shadow-sm">
-            {t("welcome")}
-          </h1>
-          <p className="text-muted-foreground flex items-center gap-2 text-sm font-medium">
-            <Calendar className="h-4 w-4 text-primary" />
-            {getTodayDateString()}
+    <div className="space-y-8 animate-fade-in p-1 md:p-3 max-w-7xl mx-auto">
+      {/* Top Welcome Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold text-foreground tracking-tight">
+            Quản lý dự án & Tiến độ công việc
+          </h2>
+          <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5 font-medium">
+            <Calendar className="w-3.5 h-3.5 text-[#1B66C9]" />
+            Hôm nay: {getTodayDateString()}
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" className="shadow-soft hover:shadow-glow-primary transition-all rounded-full h-10 w-10 relative">
-            <Bell className="h-5 w-5" />
-            {highPriorityTasks.length > 0 && (
-               <span className="absolute top-0 right-0 h-3 w-3 bg-destructive rounded-full border-2 border-background animate-pulse" />
-            )}
-          </Button>
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs font-semibold bg-[#E8F0FE] text-[#1B66C9] dark:bg-[#2C384E] dark:text-[#8AB4F8]">
+            {projects.length} Dự án active
+          </Badge>
+          <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs font-semibold bg-[#E6F4EA] text-[#34A853] dark:bg-[#1C3A27] dark:text-[#81C995]">
+            {tasks.length} Task tổng cộng
+          </Badge>
         </div>
       </div>
 
-      {/* Main Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="glass-card overflow-hidden relative border-0 shadow-soft-lg group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <FolderOpen className="h-24 w-24 text-primary transform rotate-12" />
-          </div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{t("totalProjects")}</CardTitle>
-            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shadow-glow-primary">
-              <FolderOpen className="h-4 w-4" />
+      {/* 4 Hero Cards Grid with Real Project Manager Data */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Hero Card 1: Projects Overview (Google Blue) */}
+        <div className="rounded-[22px] bg-[#1B66C9] text-white p-5 flex flex-col justify-between min-h-[220px] shadow-sm relative overflow-hidden group hover-lift cursor-pointer">
+          <div className="flex items-center justify-between">
+            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+              <FolderOpen className="w-4 h-4 text-white" />
             </div>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-foreground">{Array.isArray(projects) ? projects.length : 0}</div>
-            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-              <span className="text-success font-medium flex items-center">
-                <TrendingUp className="h-3 w-3 mr-1" />+2
-              </span> 
-              this month
+            <span className="text-xs font-semibold px-3 py-1 rounded-full bg-white/20 text-white backdrop-blur-sm">
+              Dự án
+            </span>
+          </div>
+          <div className="space-y-1.5 mt-4">
+            <h3 className="font-bold text-base leading-snug tracking-tight">
+              {projects.length} Dự án đang thực hiện
+            </h3>
+            <p className="text-xs text-white/90 line-clamp-2 leading-relaxed">
+              Theo dõi tiến độ, phân bổ nhân sự và trạng thái tổng quan các dự án hệ thống.
             </p>
-          </CardContent>
-          <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-transparent" />
-        </Card>
-
-        <Card className="glass-card overflow-hidden relative border-0 shadow-soft-lg group">
-           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <CheckSquare className="h-24 w-24 text-accent transform -rotate-12" />
           </div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{t("todayTasks")}</CardTitle>
-            <div className="h-8 w-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent shadow-glow-accent">
-              <CheckSquare className="h-4 w-4" />
-            </div>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-foreground">
-              {completedTasks.length} <span className="text-lg text-muted-foreground font-normal">/ {todayTasks.length}</span>
-            </div>
-            <Progress
-              value={todayTasks.length > 0 ? (completedTasks.length / todayTasks.length) * 100 : 0}
-              className="mt-3 h-1.5 bg-accent/20"
-              indicatorClassName="bg-accent"
-            />
-          </CardContent>
-          <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-accent to-transparent" />
-        </Card>       
-
-        <Card className="glass-card overflow-hidden relative border-0 shadow-soft-lg group">
-           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Activity className="h-24 w-24 text-success transform rotate-6" />
+          <div className="mt-4">
+            <Button size="sm" className="rounded-full bg-white text-[#1B66C9] hover:bg-white/90 text-xs font-semibold px-4 h-8.5 gap-1.5 shadow-none transition-all active:scale-95" onClick={() => onNavigate?.("projects")}>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+              Tổng quan Dự án
+            </Button>
           </div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{t("totalTasks")}</CardTitle>
-            <div className="h-8 w-8 rounded-lg bg-success/10 flex items-center justify-center text-success">
-              <Activity className="h-4 w-4" />
+        </div>
+
+        {/* Hero Card 2: A4 Designer (Rainbow Border Dark Card) */}
+        <div className="rainbow-border p-5 text-white flex flex-col justify-between min-h-[220px] shadow-sm group hover-lift cursor-pointer">
+          <div className="flex items-center justify-between">
+            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+              <LayoutIcon className="w-4 h-4 text-white" />
             </div>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-foreground">{tasks.length}</div>
-            <p className="text-xs text-muted-foreground mt-1 has-tooltip" title="Completion Rate">
-               {tasks.length > 0 ? Math.round((tasks.filter(t => t.completed).length / tasks.length) * 100) : 0}% completion rate
+            <span className="text-xs font-semibold px-3 py-1 rounded-full bg-white/10 text-white backdrop-blur-sm">
+              Biên tập A4
+            </span>
+          </div>
+          <div className="space-y-1.5 mt-4">
+            <h3 className="font-bold text-base leading-snug tracking-tight text-white">
+              Thiết kế Mẫu A4 & Sơ đồ
+            </h3>
+            <p className="text-xs text-white/80 line-clamp-2 leading-relaxed">
+              Công cụ đồ họa Konva A4 canvas, tạo mẫu báo cáo, sơ đồ Mermaid và xuất PDF/PNG.
             </p>
-          </CardContent>
-          <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-success to-transparent" />
-        </Card>
-
-        <Card className="glass-card overflow-hidden relative border-0 shadow-soft-lg group">
-           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Users className="h-24 w-24 text-secondary-foreground transform -rotate-6" />
           </div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{t("activeAccounts")}</CardTitle>
-            <div className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center text-secondary-foreground">
-              <Users className="h-4 w-4" />
+          <div className="mt-4">
+            <Button size="sm" className="rounded-full bg-white text-black hover:bg-white/90 text-xs font-semibold px-4 h-8.5 gap-1.5 shadow-none transition-all active:scale-95" onClick={() => onNavigate?.("a4designer")}>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+              Mở A4 Designer
+            </Button>
+          </div>
+        </div>
+
+        {/* Hero Card 3: Today's Tasks */}
+        <div className="rounded-[22px] bg-[#0F0F11] border border-white/10 text-white p-5 flex flex-col justify-between min-h-[220px] shadow-sm group hover-lift cursor-pointer">
+          <div className="flex items-center justify-between">
+            <div className="w-8 h-8 rounded-full bg-[#FBBC04]/20 flex items-center justify-center">
+              <CheckSquare className="w-4 h-4 text-[#FBBC04]" />
             </div>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-3xl font-bold text-foreground">{Array.isArray(accounts) ? accounts.length : 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-               Active team members
+            <span className="text-xs font-semibold px-3 py-1 rounded-full bg-white/10 text-white backdrop-blur-sm">
+              {t("dailyTasks")}
+            </span>
+          </div>
+          <div className="space-y-1.5 mt-4">
+            <h3 className="font-bold text-base leading-snug tracking-tight text-white">
+              {completedTasks.length} / {todayTasks.length} Task hoàn thành
+            </h3>
+            <p className="text-xs text-white/80 line-clamp-2 leading-relaxed">
+              {todayTasks.length > 0 ? Math.round((completedTasks.length / todayTasks.length) * 100) : 0}% tỉ lệ hoàn thành danh mục công việc trong ngày.
             </p>
-          </CardContent>
-           <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-secondary-foreground to-transparent" />
-        </Card>
+          </div>
+          <div className="mt-4">
+            <Button size="sm" variant="outline" className="rounded-full border-white/30 text-white hover:bg-white/10 text-xs font-semibold px-4 h-8.5 gap-1.5 bg-transparent transition-all active:scale-95" onClick={() => onNavigate?.("tasks")}>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+              Bảng công việc
+            </Button>
+          </div>
+        </div>
+
+        {/* Hero Card 4: Team Accounts */}
+        <div className="rounded-[22px] bg-[#0F0F11] border border-white/10 text-white p-5 flex flex-col justify-between min-h-[220px] shadow-sm group hover-lift cursor-pointer">
+          <div className="flex items-center justify-between">
+            <div className="w-8 h-8 rounded-full bg-[#EA4335]/20 flex items-center justify-center">
+              <Users className="w-4 h-4 text-[#F28B82]" />
+            </div>
+            <span className="text-xs font-semibold px-3 py-1 rounded-full bg-white/10 text-white backdrop-blur-sm">
+              Thành viên
+            </span>
+          </div>
+          <div className="space-y-1.5 mt-4">
+            <h3 className="font-bold text-base leading-snug tracking-tight text-white">
+              {accounts.length} Thành viên hệ thống
+            </h3>
+            <p className="text-xs text-white/80 line-clamp-2 leading-relaxed">
+              Tài khoản người dùng, phân quyền truy cập và phân công công việc.
+            </p>
+          </div>
+          <div className="mt-4">
+            <Button size="sm" variant="outline" className="rounded-full border-white/30 text-white hover:bg-white/10 text-xs font-semibold px-4 h-8.5 gap-1.5 bg-transparent transition-all active:scale-95" onClick={() => onNavigate?.("accounts")}>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+              Quản lý Tài khoản
+            </Button>
+          </div>
+        </div>
       </div>
 
+      {/* Alert for High Priority Tasks if any */}
       {highPriorityTasks.length > 0 && (
-        <div className="p-4 rounded-xl border border-destructive/20 bg-destructive/5 flex items-center gap-4 animate-accordion-down shadow-sm">
-           <div className="h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0 animate-pulse">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
-           </div>
-           <div className="flex-1">
-             <h3 className="font-semibold text-destructive">{t("requiresAttention")}</h3>
-             <p className="text-sm text-muted-foreground">You have {highPriorityTasks.length} high priority tasks pending.</p>
-           </div>
-           <Button variant="destructive" size="sm" className="shadow-lg shadow-destructive/20">
-             {t("review")}
-           </Button>
+        <div className="p-4 rounded-2xl border border-[#EA4335]/30 bg-[#FCE8E6] dark:bg-[#3C2221] flex items-center gap-4 shadow-sm">
+          <div className="w-9 h-9 rounded-full bg-[#EA4335] text-white flex items-center justify-center flex-shrink-0">
+            <AlertTriangle className="w-5 h-5" />
+          </div>
+          <div className="flex-1">
+            <h4 className="font-bold text-sm text-[#EA4335] dark:text-[#F28B82]">Cần chú ý ngay!</h4>
+            <p className="text-xs text-foreground/80">Bạn có {highPriorityTasks.length} công việc mức độ ưu tiên CAO chưa hoàn thành.</p>
+          </div>
+          <Button size="sm" className="rounded-full bg-[#EA4335] hover:bg-[#EA4335]/90 text-white text-xs font-semibold px-4" onClick={() => onNavigate?.("tasks")}>
+            Xem ngay
+          </Button>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-8 gap-6">
-        {/* Project Progress - Main Focus */}
-        <div className="lg:col-span-5 space-y-6">
-           <Card className="glass-card shadow-soft h-full border-white/20 dark:border-white/5">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <LayoutIcon className="h-5 w-5 text-primary" />
-                {t("projectProgress")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {projects.slice(0, 5).map((project) => {
+      {/* Main Grid: Projects & Quick Actions on Left, Today Schedule on Right */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left 2 Columns: Projects Progress & Quick Features */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Real Projects Progress Section */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-[#E8F0FE] text-[#1B66C9] flex items-center justify-center">
+                  <FolderOpen className="w-4 h-4" />
+                </div>
+                <h3 className="text-base font-bold text-foreground">Tiến độ Dự án</h3>
+              </div>
+              <span className="text-xs text-muted-foreground font-medium">{projects.length} Dự án</span>
+            </div>
+
+            <Card className="rounded-[20px] bg-card border border-border/80 shadow-none p-5 space-y-4">
+              {projects.length > 0 ? (
+                projects.slice(0, 4).map((project) => {
                   const progress = getProjectProgress(project.id)
                   const projectTasks = tasks.filter((task: any) => task.projectId == project.id)
                   const completedProjectTasks = projectTasks.filter((task: any) => task.completed)
 
                   return (
-                    <div key={project.id} className="space-y-2 group">
+                    <div key={project.id} className="space-y-2 group p-2 rounded-xl hover:bg-muted/40 transition-colors">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                           <div className="h-8 w-8 rounded-md bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center text-xs font-bold text-muted-foreground group-hover:text-primary transition-colors">
-                             {project.name.charAt(0).toUpperCase()}
-                           </div>
-                           <div>
-                             <p className="font-medium text-sm group-hover:text-primary transition-colors cursor-pointer">{project.name}</p>
-                             <p className="text-xs text-muted-foreground">
-                               {completedProjectTasks.length}/{projectTasks.length} tasks
-                             </p>
-                           </div>
+                          <div className="w-8 h-8 rounded-full bg-[#E8F0FE] text-[#1B66C9] dark:bg-[#2C384E] dark:text-[#8AB4F8] flex items-center justify-center text-xs font-bold">
+                            {project.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-sm text-foreground group-hover:text-[#1B66C9] transition-colors">{project.name}</h4>
+                            <p className="text-xs text-muted-foreground">
+                              {completedProjectTasks.length} / {projectTasks.length} tasks đã hoàn thành
+                            </p>
+                          </div>
                         </div>
-                        <Badge variant="secondary" className="font-mono bg-secondary/50">{progress}%</Badge>
+                        <Badge variant="secondary" className="font-mono text-xs rounded-full px-2.5 bg-secondary font-bold">{progress}%</Badge>
                       </div>
                       <Progress 
                         value={progress} 
-                        className="h-2 bg-secondary/30" 
-                        indicatorClassName="bg-gradient-to-r from-primary to-accent"
+                        className="h-2 bg-secondary" 
+                        indicatorClassName="bg-[#1B66C9] dark:bg-[#8AB4F8]"
                       />
                     </div>
                   )
-                })}
-                {Array.isArray(projects) && projects.length === 0 && (
-                  <div className="text-center py-10 opacity-50">
-                    <FolderOpen className="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-muted-foreground">{t("noActiveProjects")}</p>
-                  </div>
-                )}
+                })
+              ) : (
+                <div className="text-center py-8 opacity-60">
+                  <FolderOpen className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">Chưa có dự án nào trong hệ thống</p>
+                </div>
+              )}
+            </Card>
+          </div>
+
+          {/* Quick Actions & Composers Section */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full bg-[#FEF7E0] text-[#B45309] flex items-center justify-center">
+                <Zap className="w-4 h-4" />
               </div>
-            </CardContent>
-          </Card>
+              <h3 className="text-base font-bold text-foreground">Tác vụ Nhanh & Email</h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card className="rounded-[20px] bg-card border border-border/80 shadow-none p-4 flex flex-col justify-between min-h-[120px]">
+                <div>
+                  <h4 className="font-semibold text-sm text-foreground">Soạn Email Báo cáo Dự án</h4>
+                  <p className="text-xs text-muted-foreground mt-1">Tự động tổng hợp thông tin dự án gửi thành viên qua SMTP.</p>
+                </div>
+                <div className="mt-4">
+                  <AdvancedEmailComposer
+                    initialEmailType="projectUpdate"
+                    trigger={
+                      <Button size="sm" variant="outline" className="rounded-full text-xs h-8 gap-1.5 w-full justify-center border-border">
+                        <Mail className="w-3.5 h-3.5 text-[#1B66C9]" /> Soạn Email Dự án
+                      </Button>
+                    }
+                  />
+                </div>
+              </Card>
+
+              <Card className="rounded-[20px] bg-card border border-border/80 shadow-none p-4 flex flex-col justify-between min-h-[120px]">
+                <div>
+                  <h4 className="font-semibold text-sm text-foreground">Thông báo Công việc</h4>
+                  <p className="text-xs text-muted-foreground mt-1">Gửi thông báo cập nhật Task hoàn thành đến danh sách nhóm.</p>
+                </div>
+                <div className="mt-4">
+                  <AdvancedEmailComposer
+                    initialEmailType="taskNotification"
+                    trigger={
+                      <Button size="sm" variant="outline" className="rounded-full text-xs h-8 gap-1.5 w-full justify-center border-border">
+                        <Mail className="w-3.5 h-3.5 text-[#34A853]" /> Soạn Email Task
+                      </Button>
+                    }
+                  />
+                </div>
+              </Card>
+            </div>
+          </div>
         </div>
 
-        {/* Side Panel: Schedule & Quick Actions */}
-        <div className="lg:col-span-3 space-y-6 flex flex-col">
-          {/* Today's Schedule */}
-          <Card className="glass-card shadow-soft border-white/20 dark:border-white/5 flex-1">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Clock className="h-4 w-4 text-accent" />
-                {t("todaySchedule")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="h-full">
-              <div className="space-y-3">
-                {todayTasks.length > 0 ? (
-                  todayTasks.slice(0, 5).map((task: any) => (
-                  <div key={task.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors group">
-                    <Checkbox checked={task.completed} onCheckedChange={() => toggleTask(task.id)} className="mt-1" />
+        {/* Right Column: Today's Schedule Checklist */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full bg-[#E6F4EA] text-[#34A853] flex items-center justify-center">
+                <CheckSquare className="w-4 h-4" />
+              </div>
+              <h3 className="text-base font-bold text-foreground">Lịch trình Hôm nay</h3>
+            </div>
+            <span className="text-xs text-muted-foreground font-medium">{todayTasks.length} Tasks</span>
+          </div>
+
+          <Card className="rounded-[20px] bg-card border border-border/80 shadow-none p-4 space-y-3">
+            <div className="space-y-2.5">
+              {todayTasks.length > 0 ? (
+                todayTasks.slice(0, 6).map((task: any) => (
+                  <div key={task.id} className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-muted/50 transition-colors group">
+                    <Checkbox 
+                      checked={task.completed} 
+                      onCheckedChange={() => toggleTask(task.id)} 
+                      className="mt-0.5 rounded-sm border-muted-foreground/40 data-[state=checked]:bg-[#1B66C9]"
+                    />
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium truncate ${task.completed ? "line-through text-muted-foreground" : ""}`}>
+                      <p className={`text-xs font-semibold truncate ${task.completed ? "line-through text-muted-foreground" : "text-foreground"}`}>
                         {task.title}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
-                        <Badge variant={task.priority === "high" ? "destructive" : "outline"} className="text-[10px] h-5 px-1.5 uppercase">
+                        <Badge 
+                          variant={task.priority === "high" ? "destructive" : "outline"} 
+                          className="text-[10px] h-4.5 px-2 rounded-full uppercase font-bold"
+                        >
                           {task.priority}
                         </Badge>
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Clock className="h-3 w-3" /> {task.estimatedTime}m
+                          <Clock className="w-3 h-3" /> {task.estimatedTime || 30}m
                         </span>
                       </div>
                     </div>
                   </div>
                 ))
-                ) : (
-                  <div className="text-center py-8 opacity-60">
-                    <CheckSquare className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">{t("noTasksToday")}</p>
-                    <Button variant="link" size="sm" className="text-primary mt-1">Add a task</Button>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Quick Actions */}
-          <Card className="glass-card shadow-soft border-white/20 dark:border-white/5">
-             <CardHeader className="pb-3">
-               <CardTitle className="flex items-center gap-2 text-base">
-                 <Zap className="h-4 w-4 text-yellow-500" />
-                 {t("quickActions")}
-               </CardTitle>
-             </CardHeader>
-             <CardContent>
-               <div className="grid grid-cols-2 gap-3">
-                 <Button variant="secondary" className="h-auto py-3 flex flex-col gap-1 hover:bg-primary hover:text-primary-foreground transition-all">
-                   <FolderOpen className="h-5 w-5" />
-                   <span className="text-xs font-medium">{t("newProject")}</span>
-                 </Button>
-                 <Button variant="secondary" className="h-auto py-3 flex flex-col gap-1 hover:bg-accent hover:text-accent-foreground transition-all">
-                   <CheckSquare className="h-5 w-5" />
-                   <span className="text-xs font-medium">{t("addTask")}</span>
-                 </Button>
-               </div>
-               
-               <div className="mt-4 pt-4 border-t border-border/50">
-                  <p className="text-xs text-muted-foreground mb-2 font-medium uppercase tracking-wider">Email Composers</p>
-                  <div className="grid grid-cols-2 gap-2">
-                      <AdvancedEmailComposer
-                        initialEmailType="projectUpdate"
-                        trigger={<Button variant="ghost" size="sm" className="w-full justify-start text-xs"><Mail className="h-3 w-3 mr-2" /> Project</Button>}
-                      />
-                      <AdvancedEmailComposer
-                        initialEmailType="taskNotification"
-                        trigger={<Button variant="ghost" size="sm" className="w-full justify-start text-xs"><Mail className="h-3 w-3 mr-2" /> Task</Button>}
-                      />
-                  </div>
-               </div>
-             </CardContent>
+              ) : (
+                <div className="text-center py-10 opacity-60">
+                  <CheckSquare className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">Hôm nay không có task nào</p>
+                </div>
+              )}
+            </div>
           </Card>
         </div>
       </div>
     </div>
   )
 }
+
+

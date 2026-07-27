@@ -2,7 +2,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-for-development'
+// Nguồn duy nhất cho JWT secret. Trước đây file này và lib/mongo-database.ts
+// mỗi nơi tự đặt một fallback KHÁC NHAU, nên khi thiếu JWT_SECRET thì token
+// được ký bằng secret này lại bị xác thực bằng secret kia → luôn đăng nhập hụt.
+export function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET
+  if (!secret) {
+    throw new Error(
+      'JWT_SECRET chưa được cấu hình. Copy .env.example thành .env và điền giá trị.'
+    )
+  }
+  return secret
+}
 
 export interface User {
   id: string
@@ -24,7 +35,7 @@ export function createToken(user: User): string {
       email: user.email,
       role: user.role
     },
-    JWT_SECRET,
+    getJwtSecret(),
     { expiresIn: '7d' }
   )
     
@@ -34,13 +45,11 @@ export function createToken(user: User): string {
 // Verify JWT token
 export function verifyToken(token: string): User | null {
   try {
-    console.log('🔍 Attempting to verify token:', token?.substring(0, 30) + '...', 'Full length:', token.length)
-    const payload = jwt.verify(token, JWT_SECRET) as User
-    console.log('✅ Token verified successfully for user:', payload.username)
-    return payload
+    return jwt.verify(token, getJwtSecret()) as User
   } catch (error) {
-    console.error('Token verification failed:', error)
-    console.log('Token that failed:', token)
+    // Chỉ log loại lỗi, KHÔNG log token — đây là credential.
+    const reason = error instanceof Error ? error.name : 'Unknown'
+    console.warn(`Token verification failed: ${reason}`)
     return null
   }
 }
@@ -48,25 +57,22 @@ export function verifyToken(token: string): User | null {
 // Get user from request (from cookie or Authorization header)
 export async function getUserFromRequest(request: NextRequest): Promise<User | null> {
   try {
-    // Debug: log all cookies
-    console.log('🍪 All cookies received:', Object.fromEntries(request.cookies))
-    
+    // KHÔNG log nội dung cookie/token ở đây: request.cookies chứa cookie của
+    // MỌI ứng dụng chạy trên cùng host (localhost dùng chung cookie giữa các
+    // port), nên việc in ra sẽ làm lộ session của app khác vào log.
+
     // Try Authorization header first
     const authHeader = request.headers.get('authorization')
     if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7)
-      console.log('🔑 Verifying Bearer token:', token?.substring(0, 20) + '...')
-      return verifyToken(token)
+      return verifyToken(authHeader.substring(7))
     }
 
     // Try cookie
     const token = request.cookies.get('auth-token')?.value
     if (token) {
-      console.log('🍪 Verifying cookie token:', token?.substring(0, 20) + '...', 'Length:', token.length)
       return verifyToken(token)
     }
 
-    console.log('❌ No auth token found in request')
     return null
   } catch (error) {
     console.error('Error getting user from request:', error)

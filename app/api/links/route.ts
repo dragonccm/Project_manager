@@ -51,8 +51,8 @@ export const PUT = withAuth(async (request: AuthenticatedRequest) => {
       )
     }
     
-    // Ensure user can only update their own links
-    const updatedLink = await updateLink(id, { ...updates, user_id: request.user.id })
+    // user_id nằm trong filter của updateLink, không phải trong payload ghi
+    const updatedLink = await updateLink(id, request.user.id, updates)
     return NextResponse.json({ success: true, data: updatedLink })
   } catch (error) {
     console.error('Error updating link:', error)
@@ -75,8 +75,7 @@ export const DELETE = withAuth(async (request: AuthenticatedRequest) => {
       )
     }
     
-    // Note: deleteLink should be updated to include user_id check
-    const deleted = await deleteLink(id)
+    const deleted = await deleteLink(id, request.user.id)
     return NextResponse.json({ success: true, data: { deleted } })
   } catch (error) {
     console.error('Error deleting link:', error)

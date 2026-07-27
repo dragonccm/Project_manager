@@ -1,5 +1,6 @@
 'use client'
 
+import { useLanguage } from "@/hooks/use-language"
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -51,6 +52,7 @@ interface EmailDesignerProps {
 }
 
 export function EmailDesigner({ className }: EmailDesignerProps) {
+  const { t } = useLanguage()
   const [currentTemplate, setCurrentTemplate] = useState<EmailTemplate>({
     id: '',
     name: 'Mẫu email mới',
@@ -318,7 +320,7 @@ export function EmailDesigner({ className }: EmailDesignerProps) {
                 onClick={() => setShowTemplateManager(true)}
               >
                 <FolderOpen className="h-4 w-4 mr-2" />
-                Templates
+                {t("templatesTab")}
               </Button>
             </div>
           </CardHeader>
@@ -363,7 +365,7 @@ export function EmailDesigner({ className }: EmailDesignerProps) {
                 </div>
 
                 <div>
-                  <Label>Layout</Label>
+                  <Label>{t("layoutLabel")}</Label>
                   <Select 
                     value={currentTemplate.layout} 
                     onValueChange={(value) => setCurrentTemplate(prev => ({ ...prev, layout: value }))}
@@ -484,14 +486,14 @@ export function EmailDesigner({ className }: EmailDesignerProps) {
                   size="sm"
                   onClick={() => setPreviewMode('desktop')}
                 >
-                  Desktop
+                  {t("desktop")}
                 </Button>
                 <Button
                   variant={previewMode === 'mobile' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setPreviewMode('mobile')}
                 >
-                  Mobile
+                  {t("mobile")}
                 </Button>
               </div>
             </div>

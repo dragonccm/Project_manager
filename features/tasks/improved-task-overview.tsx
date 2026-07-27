@@ -1,5 +1,6 @@
 "use client"
 
+import { useLanguage } from "@/hooks/use-language"
 import { useState, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -29,6 +30,7 @@ interface TaskOverviewProps {
 }
 
 export function TaskOverview({ projects, tasks, accounts }: TaskOverviewProps) {
+  const { t } = useLanguage()
   const [searchTerm, setSearchTerm] = useState("")
   const [filterProject, setFilterProject] = useState("all")
   const [filterStatus, setFilterStatus] = useState("all")
@@ -139,7 +141,7 @@ export function TaskOverview({ projects, tasks, accounts }: TaskOverviewProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <BarChart3 className="h-6 w-6 text-blue-600" />
-          <h1 className="text-2xl font-bold">Task Overview</h1>
+          <h1 className="text-2xl font-bold">{t("taskOverview")}</h1>
         </div>
         <div className="text-sm text-muted-foreground">
           Tổng số: {stats.total} tasks
@@ -255,7 +257,7 @@ export function TaskOverview({ projects, tasks, accounts }: TaskOverviewProps) {
             <div className="space-y-2">
               <label className="text-sm font-medium">Tìm kiếm</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
                 <Input
                   placeholder="Tìm task..."
                   value={searchTerm}
@@ -267,7 +269,7 @@ export function TaskOverview({ projects, tasks, accounts }: TaskOverviewProps) {
 
             {/* Project Filter */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Project</label>
+              <label className="text-sm font-medium">{t("project")}</label>
               <Select value={filterProject} onValueChange={setFilterProject}>
                 <SelectTrigger>
                   <SelectValue />

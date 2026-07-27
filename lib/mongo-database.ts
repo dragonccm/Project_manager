@@ -2,6 +2,7 @@ import { MongoClient, Db, ObjectId } from 'mongodb'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import { Account, Task, Project, EmailTemplate, CodeComponent, Settings, ReportTemplate } from '@/types/database'
+import { getJwtSecret } from '@/lib/auth-session'
 
 let client: MongoClient | null = null
 let db: Db | null = null
@@ -277,41 +278,35 @@ export async function deleteTask(id: string, userId: string) {
   if (result.deletedCount === 0) throw new Error('Task not found')
 }
 
-// Email template operations
-export async function getEmailTemplates() {
+// Code component operations (dùng cho cả Notes — xem app/api/notes)
+// LƯU Ý: mọi hàm dưới đây BẮT BUỘC nhận userId và đưa vào filter.
+// Trước đây chúng query theo _id không kèm user_id, khiến user A có thể
+// đọc/sửa/xoá dữ liệu của user B nếu biết id.
+export async function getCodeComponents(userId: string) {
   const { db } = await connectToDatabase()
-  const templates = await db.collection('email_templates').find({}).sort({ created_at: -1 }).toArray()
-  return templates.map(template => ({
-    ...template,
-    id: template._id.toString(),
-    _id: undefined
-  }))
-}
-
-export async function createEmailTemplate(templateData: any) {
-  const { db } = await connectToDatabase()
-  const newTemplate = {
-    ...templateData,
-    created_at: new Date(),
-    updated_at: new Date()
-  }
-  const result = await db.collection('email_templates').insertOne(newTemplate)
-  return {
-    ...newTemplate,
-    id: result.insertedId.toString(),
-    _id: undefined
-  }
-}
-
-// Code component operations
-export async function getCodeComponents() {
-  const { db } = await connectToDatabase()
-  const components = await db.collection('code_components').find({}).sort({ created_at: -1 }).toArray()
+  const components = await db
+    .collection('code_components')
+    .find({ user_id: userId })
+    .sort({ created_at: -1 })
+    .toArray()
   return components.map(component => ({
     ...component,
     id: component._id.toString(),
     _id: undefined
   }))
+}
+
+export async function getCodeComponentById(id: string, userId: string) {
+  const { db } = await connectToDatabase()
+  const { ObjectId } = await import('mongodb')
+  if (!ObjectId.isValid(id)) return null
+
+  const component = await db
+    .collection('code_components')
+    .findOne({ _id: new ObjectId(id), user_id: userId })
+  if (!component) return null
+
+  return { ...component, id: component._id.toString(), _id: undefined }
 }
 
 export async function createCodeComponent(componentData: any) {
@@ -329,37 +324,33 @@ export async function createCodeComponent(componentData: any) {
   }
 }
 
-export async function updateCodeComponent(id: string, componentData: any) {
+export async function updateCodeComponent(id: string, userId: string, componentData: any) {
   const { db } = await connectToDatabase()
   const { ObjectId } = await import('mongodb')
+  if (!ObjectId.isValid(id)) return null
 
-  const updateData = {
-    ...componentData,
-    updated_at: new Date()
-  }
+  // Không cho ghi đè quyền sở hữu qua body request
+  const { user_id: _ignored, ...safeData } = componentData
 
-  const result = await db.collection('code_components').updateOne(
-    { _id: new ObjectId(id) },
-    { $set: updateData }
+  const result = await db.collection('code_components').findOneAndUpdate(
+    { _id: new ObjectId(id), user_id: userId },
+    { $set: { ...safeData, updated_at: new Date() } },
+    { returnDocument: 'after' }
   )
 
-  if (result.matchedCount === 0) {
-    return null
-  }
+  if (!result) return null
 
-  const updatedComponent = await db.collection('code_components').findOne({ _id: new ObjectId(id) })
-  return {
-    ...updatedComponent,
-    id: updatedComponent?._id.toString(),
-    _id: undefined
-  }
+  return { ...result, id: result._id.toString(), _id: undefined }
 }
 
-export async function deleteCodeComponent(id: string) {
+export async function deleteCodeComponent(id: string, userId: string) {
   const { db } = await connectToDatabase()
   const { ObjectId } = await import('mongodb')
+  if (!ObjectId.isValid(id)) return false
 
-  const result = await db.collection('code_components').deleteOne({ _id: new ObjectId(id) })
+  const result = await db
+    .collection('code_components')
+    .deleteOne({ _id: new ObjectId(id), user_id: userId })
   return result.deletedCount > 0
 }
 
@@ -389,14 +380,18 @@ export async function createLink(linkData: any) {
   }
 }
 
-export async function updateLink(id: string, linkData: any) {
+export async function updateLink(id: string, userId: string, linkData: any) {
   const { db } = await connectToDatabase()
   const objectId = require('mongodb').ObjectId
+  if (!objectId.isValid(id)) throw new Error('Link not found')
+
+  const { user_id: _ignored, ...safeData } = linkData
+
   const result = await db.collection('links').findOneAndUpdate(
-    { _id: new objectId(id) },
+    { _id: new objectId(id), user_id: userId },
     {
       $set: {
-        ...linkData,
+        ...safeData,
         updated_at: new Date()
       }
     },
@@ -412,10 +407,15 @@ export async function updateLink(id: string, linkData: any) {
   }
 }
 
-export async function deleteLink(id: string) {
+export async function deleteLink(id: string, userId: string) {
   const { db } = await connectToDatabase()
   const objectId = require('mongodb').ObjectId
-  await db.collection('links').deleteOne({ _id: new objectId(id) })
+  if (!objectId.isValid(id)) return false
+
+  const result = await db
+    .collection('links')
+    .deleteOne({ _id: new objectId(id), user_id: userId })
+  return result.deletedCount > 0
 }
 
 export async function bulkCreateLinks(linksData: any[]) {
@@ -456,14 +456,18 @@ export async function createReportTemplate(templateData: any) {
   }
 }
 
-export async function updateReportTemplate(id: string, templateData: any) {
+export async function updateReportTemplate(id: string, userId: string, templateData: any) {
   const { db } = await connectToDatabase()
   const objectId = require('mongodb').ObjectId
+  if (!objectId.isValid(id)) throw new Error('Report template not found')
+
+  const { user_id: _ignored, ...safeData } = templateData
+
   const result = await db.collection('report_templates').findOneAndUpdate(
-    { _id: new objectId(id) },
+    { _id: new objectId(id), user_id: userId },
     {
       $set: {
-        ...templateData,
+        ...safeData,
         updated_at: new Date()
       }
     },
@@ -479,22 +483,33 @@ export async function updateReportTemplate(id: string, templateData: any) {
   }
 }
 
-export async function deleteReportTemplate(id: string) {
+export async function deleteReportTemplate(id: string, userId: string) {
   const { db } = await connectToDatabase()
   const objectId = require('mongodb').ObjectId
-  await db.collection('report_templates').deleteOne({ _id: new objectId(id) })
+  if (!objectId.isValid(id)) return false
+
+  const result = await db
+    .collection('report_templates')
+    .deleteOne({ _id: new objectId(id), user_id: userId })
+  return result.deletedCount > 0
 }
 
-export async function duplicateReportTemplate(id: string, newName: string) {
+export async function duplicateReportTemplate(id: string, userId: string, newName: string) {
   const { db } = await connectToDatabase()
   const objectId = require('mongodb').ObjectId
+  if (!objectId.isValid(id)) throw new Error('Report template not found')
 
-  const originalTemplate = await db.collection('report_templates').findOne({ _id: new objectId(id) })
+  const originalTemplate = await db
+    .collection('report_templates')
+    .findOne({ _id: new objectId(id), user_id: userId })
   if (!originalTemplate) throw new Error('Report template not found')
 
+  // Bỏ _id cũ để Mongo sinh id mới thay vì ghi đè bản gốc
+  const { _id: _oldId, ...rest } = originalTemplate
   const duplicatedTemplate = {
-    ...originalTemplate,
+    ...rest,
     name: newName,
+    user_id: userId,
     created_at: new Date(),
     updated_at: new Date()
   }
@@ -570,40 +585,28 @@ export async function authenticateUser({ username, password, remember_me = false
     return null
   }
 
-  console.log('🔍 User found:', {
-    id: user._id,
-    username: user.username,
-    hasPasswordHash: !!user.password_hash,
-    passwordHashType: typeof user.password_hash
-  })
-
-  // Compare password using bcrypt with error handling
+  // So khớp mật khẩu bằng bcrypt.
+  // Đã bỏ nhánh fallback cũ: nó cho phép đăng nhập bằng CHÍNH chuỗi hash
+  // (`password === user.password_hash`) khi NODE_ENV=development — tức là ai
+  // đọc được hash trong DB là đăng nhập được vào tài khoản đó.
   let passwordMatch = false
   try {
     if (!user.password_hash) {
-      console.log('❌ No password hash found for user')
       return null
     }
-
     passwordMatch = await bcrypt.compare(password, user.password_hash)
-    console.log('🔐 Password comparison result:', passwordMatch)
   } catch (error) {
-    console.error('❌ Bcrypt comparison error:', error)
-
-    // Fallback: check if it's a plain text password (for debugging/development)
-    if (process.env.NODE_ENV === 'development' && password === user.password_hash) {
-      console.log('🔓 Using fallback password comparison for development')
-      passwordMatch = true
-    } else {
-      return null
-    }
+    console.error('Bcrypt comparison error:', error)
+    return null
   }
+
   if (!passwordMatch) {
     return null
   }
 
-  // Get JWT secret
-  const JWT_SECRET = process.env.JWT_SECRET || 'your-fallback-secret-key'
+  // Dùng chung một nguồn secret với lib/auth-session.ts, nếu không token ký ra
+  // sẽ không verify được.
+  const JWT_SECRET = getJwtSecret()
 
   // Generate JWT token
   const userPayload = {
@@ -617,8 +620,6 @@ export async function authenticateUser({ username, password, remember_me = false
   const token = jwt.sign(userPayload, JWT_SECRET, {
     expiresIn: remember_me ? '30d' : '7d'
   })
-
-  console.log('✅ Generated JWT token for user:', user.username, 'Token length:', token.length, 'Preview:', token.substring(0, 50) + '...')
 
   const expires_at = new Date(Date.now() + (remember_me ? 30 : 7) * 24 * 60 * 60 * 1000)
 
@@ -674,55 +675,5 @@ export async function verifyUserToken(token: string) {
     email: user.email,
     full_name: user.full_name,
     role: user.role
-  }
-}
-
-// Settings operations
-export async function getSettings() {
-  const { db } = await connectToDatabase()
-  const settings = await db.collection('settings').findOne({ user_id: 'default' })
-
-  if (!settings) {
-    const defaultSettings = {
-      language: "en",
-      theme: "light",
-      notifications: { email: true, desktop: false, tasks: true },
-      custom_colors: { primary: "#3b82f6", secondary: "#64748b", accent: "#f59e0b", background: "#ffffff" },
-      created_at: new Date(),
-      updated_at: new Date()
-    }
-
-    await db.collection('settings').insertOne({ user_id: 'default', ...defaultSettings })
-    return defaultSettings
-  }
-
-  return {
-    ...settings,
-    id: settings._id.toString(),
-    _id: undefined
-  }
-}
-
-export async function updateSettings(settingsData: any) {
-  const { db } = await connectToDatabase()
-  const result = await db.collection('settings').findOneAndUpdate(
-    { user_id: 'default' },
-    {
-      $set: {
-        ...settingsData,
-        updated_at: new Date()
-      }
-    },
-    { returnDocument: 'after', upsert: true }
-  )
-
-  if (!result) {
-    throw new Error('Failed to update settings')
-  }
-
-  return {
-    ...result,
-    id: result._id.toString(),
-    _id: undefined
   }
 }

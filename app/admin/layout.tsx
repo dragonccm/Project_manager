@@ -8,7 +8,7 @@ import { Share2, Database, Settings, Home } from 'lucide-react'
 
 const navigation = [
   {
-    name: 'Migration',
+    name: 'Di chuyển dữ liệu',
     href: '/admin/migration',
     icon: Database,
   },
@@ -28,7 +28,7 @@ export default function AdminLayout({
           <div className="flex justify-between h-16">
             <div className="flex items-center space-x-8">
               <h1 className="text-xl font-semibold text-gray-900">
-                Admin Panel
+                Trang quản trị
               </h1>
               <div className="flex space-x-2">
                 {navigation.map((item) => {
@@ -58,7 +58,7 @@ export default function AdminLayout({
                 className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
               >
                 <Home className="h-4 w-4" />
-                Back to Dashboard
+                Về bảng điều khiển
               </Link>
             </div>
           </div>

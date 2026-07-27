@@ -21,6 +21,24 @@ import {
   StickyNote
 } from 'lucide-react'
 import { Shape, ShapeType } from '@/types/database'
+import { useLanguage } from '@/hooks/use-language'
+
+/** Tên hiển thị của từng loại hình, lấy từ từ điển */
+function shapeTypeLabel(type: ShapeType, t: (k: string) => string): string {
+  const map: Partial<Record<ShapeType, string>> = {
+    rectangle: 'rectangle',
+    ellipse: 'ellipse',
+    line: 'lineShape',
+    arrow: 'arrow',
+    polygon: 'polygon',
+    text: 'textElement',
+    image: 'imageLabel',
+    'data-card': 'dataCard',
+    'mermaid-diagram': 'mermaidDiagram',
+  }
+  const key = map[type]
+  return key ? t(key) : type
+}
 
 interface ShapeSettingsPanelProps {
   shape: Shape | null
@@ -28,13 +46,15 @@ interface ShapeSettingsPanelProps {
 }
 
 export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps) {
+  const { t } = useLanguage()
+
   if (!shape) {
     return (
       <Card className="border-2 border-dashed hover:border-primary/50 transition-colors">
         <CardHeader>
           <CardTitle className="text-sm flex items-center gap-2">
             <Box className="h-4 w-4 text-muted-foreground" />
-            Shape Settings
+            {t("shapeSettings")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -43,7 +63,7 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
               <Box className="h-6 w-6 text-muted-foreground" />
             </div>
             <p className="text-sm text-muted-foreground">
-              Select a shape to edit its properties
+              {t("selectShapeToEdit")}
             </p>
           </div>
         </CardContent>
@@ -51,10 +71,17 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
     )
   }
 
+  // displayConfig là object lồng — phải merge chứ không ghi đè, nếu không
+  // mỗi lần đổi một màu sẽ xoá sạch các thiết lập hiển thị còn lại.
+  const updateDisplayConfig = (patch: Record<string, unknown>) => {
+    const current = (shape as any).displayConfig || {}
+    onUpdate({ displayConfig: { ...current, ...patch } } as Partial<Shape>)
+  }
+
   const renderCommonSettings = () => (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label>Position</Label>
+        <Label>{t("position")}</Label>
         <div className="grid grid-cols-2 gap-2">
           <div>
             <Label className="text-xs">X</Label>
@@ -76,10 +103,10 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
       </div>
 
       <div className="space-y-2">
-        <Label>Size</Label>
+        <Label>{t("size")}</Label>
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <Label className="text-xs">Width</Label>
+            <Label className="text-xs">{t("width")}</Label>
             <Input
               type="number"
               value={shape.width}
@@ -87,7 +114,7 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
             />
           </div>
           <div>
-            <Label className="text-xs">Height</Label>
+            <Label className="text-xs">{t("height")}</Label>
             <Input
               type="number"
               value={shape.height}
@@ -98,7 +125,7 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
       </div>
 
       <div className="space-y-2">
-        <Label>Rotation</Label>
+        <Label>{t("rotation")}</Label>
         <div className="flex gap-2 items-center">
           <Slider
             value={[shape.rotation || 0]}
@@ -118,7 +145,7 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
       </div>
 
       <div className="space-y-2">
-        <Label>Opacity</Label>
+        <Label>{t("opacity")}</Label>
         <div className="flex gap-2 items-center">
           <Slider
             value={[shape.opacity !== undefined ? shape.opacity * 100 : 100]}
@@ -139,7 +166,7 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
       {renderCommonSettings()}
       <div className="space-y-4 pt-4 border-t">
         <div className="space-y-2">
-          <Label>Fill Color</Label>
+          <Label>{t("fillColor")}</Label>
           <div className="flex gap-2">
             <Input
               type="color"
@@ -156,7 +183,7 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
         </div>
 
         <div className="space-y-2">
-          <Label>Stroke Color</Label>
+          <Label>{t("strokeColor")}</Label>
           <div className="flex gap-2">
             <Input
               type="color"
@@ -173,7 +200,7 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
         </div>
 
         <div className="space-y-2">
-          <Label>Stroke Width</Label>
+          <Label>{t("strokeWidth")}</Label>
           <Slider
             value={[shape.strokeWidth || 1]}
             onValueChange={([value]) => onUpdate({ strokeWidth: value })}
@@ -184,7 +211,7 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
         </div>
 
         <div className="space-y-2">
-          <Label>Corner Radius</Label>
+          <Label>{t("cornerRadius")}</Label>
           <Slider
             value={[shape.cornerRadius || 0]}
             onValueChange={([value]) => onUpdate({ cornerRadius: value })}
@@ -204,7 +231,7 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
         {renderCommonSettings()}
         <div className="space-y-4 pt-4 border-t">
           <div className="space-y-2">
-            <Label>Text Content</Label>
+            <Label>{t("textContent")}</Label>
             <Input
               value={textShape.text || ''}
               onChange={(e) => onUpdate({ text: e.target.value })}
@@ -213,7 +240,7 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
           </div>
 
           <div className="space-y-2">
-            <Label>Font Size</Label>
+            <Label>{t("fontSize")}</Label>
             <Slider
               value={[textShape.fontSize || 16]}
               onValueChange={([value]) => onUpdate({ fontSize: value })}
@@ -224,7 +251,7 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
           </div>
 
           <div className="space-y-2">
-            <Label>Font Family</Label>
+            <Label>{t("fontFamily")}</Label>
             <Select
               value={textShape.fontFamily || 'Arial'}
               onValueChange={(value) => onUpdate({ fontFamily: value })}
@@ -243,7 +270,7 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
           </div>
 
           <div className="space-y-2">
-            <Label>Text Color</Label>
+            <Label>{t("textColor")}</Label>
             <div className="flex gap-2">
               <Input
                 type="color"
@@ -287,16 +314,16 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
         {renderCommonSettings()}
         <div className="space-y-4 pt-4 border-t">
           <div className="space-y-2">
-            <Label>Image URL</Label>
+            <Label>{t('imageUrl')}</Label>
             <Input
-              value={imageShape.imageUrl || ''}
-              onChange={(e) => onUpdate({ imageUrl: e.target.value })}
+              value={imageShape.src || ''}
+              onChange={(e) => onUpdate({ src: e.target.value } as Partial<Shape>)}
               placeholder="https://..."
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Border Radius</Label>
+            <Label>{t("borderRadius")}</Label>
             <Slider
               value={[imageShape.cornerRadius || 0]}
               onValueChange={([value]) => onUpdate({ cornerRadius: value })}
@@ -318,7 +345,7 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
                 if (file) {
                   const reader = new FileReader()
                   reader.onload = (e) => {
-                    onUpdate({ imageUrl: e.target?.result as string })
+                    onUpdate({ src: e.target?.result as string } as Partial<Shape>)
                   }
                   reader.readAsDataURL(file)
                 }
@@ -327,7 +354,7 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
             }}
           >
             <ImageIcon className="h-4 w-4 mr-2" />
-            Upload Image
+            {t("uploadImage")}
           </Button>
         </div>
       </>
@@ -341,10 +368,10 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
         {renderCommonSettings()}
         <div className="space-y-4 pt-4 border-t">
           <div className="space-y-2">
-            <Label>Card Type</Label>
+            <Label>{t("cardType")}</Label>
             <Select
-              value={dataCard.cardType || 'task'}
-              onValueChange={(value) => onUpdate({ cardType: value })}
+              value={dataCard.dataType || 'task'}
+              onValueChange={(value) => onUpdate({ dataType: value } as Partial<Shape>)}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -379,43 +406,43 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
           </div>
 
           <div className="space-y-2">
-            <Label>Entity ID</Label>
+            <Label>{t("entityId")}</Label>
             <Input
-              value={dataCard.entityId || ''}
-              onChange={(e) => onUpdate({ entityId: e.target.value })}
+              value={dataCard.dataId || ''}
+              onChange={(e) => onUpdate({ dataId: e.target.value } as Partial<Shape>)}
               placeholder="Select from list..."
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Background Color</Label>
+            <Label>{t('backgroundColor')}</Label>
             <div className="flex gap-2">
               <Input
                 type="color"
-                value={dataCard.backgroundColor || '#ffffff'}
-                onChange={(e) => onUpdate({ backgroundColor: e.target.value })}
+                value={dataCard.displayConfig?.backgroundColor || '#ffffff'}
+                onChange={(e) => updateDisplayConfig({ backgroundColor: e.target.value })}
                 className="w-20"
               />
               <Input
-                value={dataCard.backgroundColor || '#ffffff'}
-                onChange={(e) => onUpdate({ backgroundColor: e.target.value })}
+                value={dataCard.displayConfig?.backgroundColor || '#ffffff'}
+                onChange={(e) => updateDisplayConfig({ backgroundColor: e.target.value })}
                 placeholder="#ffffff"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>Border Color</Label>
+            <Label>{t("borderColor")}</Label>
             <div className="flex gap-2">
               <Input
                 type="color"
-                value={dataCard.borderColor || '#e0e0e0'}
-                onChange={(e) => onUpdate({ borderColor: e.target.value })}
+                value={dataCard.displayConfig?.borderColor || '#e0e0e0'}
+                onChange={(e) => updateDisplayConfig({ borderColor: e.target.value })}
                 className="w-20"
               />
               <Input
-                value={dataCard.borderColor || '#e0e0e0'}
-                onChange={(e) => onUpdate({ borderColor: e.target.value })}
+                value={dataCard.displayConfig?.borderColor || '#e0e0e0'}
+                onChange={(e) => updateDisplayConfig({ borderColor: e.target.value })}
                 placeholder="#e0e0e0"
               />
             </div>
@@ -423,7 +450,7 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
 
           <Button variant="outline" className="w-full">
             <FileText className="h-4 w-4 mr-2" />
-            Select {dataCard.cardType || 'item'}
+            Select {dataCard.dataType || 'item'}
           </Button>
         </div>
       </>
@@ -437,20 +464,20 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
         {renderCommonSettings()}
         <div className="space-y-4 pt-4 border-t">
           <div className="space-y-2">
-            <Label>Mermaid Code</Label>
+            <Label>{t("mermaidCode")}</Label>
             <textarea
-              value={mermaidShape.mermaidCode || ''}
-              onChange={(e) => onUpdate({ mermaidCode: e.target.value })}
+              value={mermaidShape.code || ''}
+              onChange={(e) => onUpdate({ code: e.target.value } as Partial<Shape>)}
               placeholder="graph TD\n  A[Start] --> B[End]"
               className="w-full h-32 p-2 border rounded-md font-mono text-sm"
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Theme</Label>
+            <Label>{t("mermaidTheme")}</Label>
             <Select
               value={mermaidShape.theme || 'default'}
-              onValueChange={(value) => onUpdate({ theme: value })}
+              onValueChange={(value) => onUpdate({ theme: value } as Partial<Shape>)}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -483,7 +510,8 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
           {shape.type === 'image' && <ImageIcon className="h-4 w-4 text-success" />}
           {shape.type === 'data-card' && <FileText className="h-4 w-4 text-info" />}
           {shape.type === 'mermaid-diagram' && <FileText className="h-4 w-4 text-warning" />}
-          <span className="font-semibold">{shape.type.charAt(0).toUpperCase() + shape.type.slice(1)} Settings</span>
+          {/* Ghép tên loại hình từ từ điển thay vì viết hoa chữ cái tiếng Anh */}
+          <span className="font-semibold">{t('shapeSettings')}: {shapeTypeLabel(shape.type, t)}</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 overflow-y-auto max-h-[calc(100vh-200px)] p-6">
@@ -491,11 +519,11 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
           <TabsList className="grid w-full grid-cols-2 bg-muted/50">
             <TabsTrigger value="properties" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Palette className="h-4 w-4 mr-2" />
-              Properties
+              {t("propertiesTab")}
             </TabsTrigger>
             <TabsTrigger value="style" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Box className="h-4 w-4 mr-2" />
-              Style
+              {t("styleTab")}
             </TabsTrigger>
           </TabsList>
           
@@ -510,10 +538,12 @@ export function ShapeSettingsPanel({ shape, onUpdate }: ShapeSettingsPanelProps)
           
           <TabsContent value="style" className="space-y-4">
             <div className="space-y-2">
-              <Label>Shadow</Label>
+              <Label>{t("shadow")}</Label>
               <Slider
-                value={[shape.shadowBlur || 0]}
-                onValueChange={([value]) => onUpdate({ shadowBlur: value })}
+                value={[shape.shadow?.blur || 0]}
+                onValueChange={([value]) =>
+                  onUpdate({ shadow: { ...(shape.shadow || {}), blur: value } })
+                }
                 min={0}
                 max={50}
                 step={1}

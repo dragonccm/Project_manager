@@ -42,7 +42,7 @@ export default function AdminPage() {
     <div className="max-w-7xl mx-auto p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Admin Dashboard
+          Bảng quản trị
         </h1>
         <p className="text-gray-600">
           Administrative tools and utilities for managing the project manager application.
@@ -74,7 +74,7 @@ export default function AdminPage() {
 
       <div className="mt-12 p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
         <h3 className="text-lg font-semibold text-yellow-800 mb-2">
-          Important Security Notice
+          Lưu ý bảo mật quan trọng
         </h3>
         <p className="text-yellow-700 text-sm">
           This admin panel provides powerful tools that can affect the entire application. 

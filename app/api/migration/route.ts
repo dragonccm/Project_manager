@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { promises as fs } from 'fs'
 import path from 'path'
 import { createUser, getUserByUsername } from '@/lib/auth-database'
-import { createProject, createAccount } from '@/lib/database'
+import { createProject, createAccount } from '@/lib/mongo-database'
+import { withAuth, AuthenticatedRequest } from '@/lib/auth-session'
 
 interface OldProject {
   id: number
@@ -51,7 +52,9 @@ interface MigrationResult {
   }
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse<MigrationResult>> {
+// Trước đây endpoint này không có auth: bất kỳ ai POST cũng chạy được migration,
+// và nó tạo user `admin` với mật khẩu cứng 'admin123'.
+export const POST = withAuth(async (request: AuthenticatedRequest) => {
   try {
     const body = await request.json()
     const { action } = body
@@ -134,7 +137,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<Migration
             domain: oldProject.domain || '',
             figma_link: oldProject.figma_link || '',
             description: oldProject.description || '',
-            status: oldProject.status.toUpperCase() as 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED',
+            // Dữ liệu hiện có dùng status chữ thường ('active'), giữ đồng nhất
+            status: (oldProject.status || 'active').toLowerCase(),
             user_id: adminUserId
           })
           
@@ -203,7 +207,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Migration
       message: `Migration failed: ${error.message}`
     }, { status: 500 })
   }
-}
+})
 
 export async function GET(): Promise<NextResponse> {
   return NextResponse.json({

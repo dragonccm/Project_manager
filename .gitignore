@@ -20,6 +20,9 @@ yarn-error.log*
 .env
 .env*.local
 
+# tài liệu hạ tầng nội bộ — chứa API key của inference stack
+INFERENCE_STACK.md
+
 # vercel
 .vercel
 

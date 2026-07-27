@@ -375,6 +375,15 @@ export interface BaseShape {
   fill?: string
   stroke?: string
   strokeWidth?: number
+  /** Bo góc — Konva hỗ trợ trên Rect và Image */
+  cornerRadius?: number
+  /**
+   * Nhãn vẽ BÊN TRONG hình. Dùng cho node sơ đồ, thay vì tạo một shape text
+   * riêng đè lên: text riêng sẽ chắn click vào hộp và bị bỏ lại khi kéo hộp.
+   */
+  label?: string
+  labelColor?: string
+  labelFontSize?: number
   shadow?: {
     color?: string
     blur?: number
@@ -415,6 +424,7 @@ export interface MermaidDiagram extends BaseShape {
   code: string
   renderedSvg?: string
   diagramType?: string
+  theme?: 'default' | 'forest' | 'dark' | 'neutral'
 }
 
 export interface TextShape extends BaseShape {
@@ -436,14 +446,41 @@ export interface ImageShape extends BaseShape {
   cropHeight?: number
 }
 
-export interface ArrowShape extends BaseShape {
+/**
+ * Điểm neo trên chu vi một hình. `auto` để hệ thống tự chọn cạnh gần nhất và
+ * đổi cạnh khi hình di chuyển (giống "floating connection" của draw.io).
+ */
+export type EdgeAnchor = 'auto' | 'top' | 'right' | 'bottom' | 'left'
+
+export interface EdgeEndpoint {
+  shapeId: string
+  anchor?: EdgeAnchor
+}
+
+/**
+ * Phần dùng chung cho line/arrow khi chúng đóng vai trò CẠNH nối hai hình.
+ *
+ * Khi có `source`/`target`, trường `points` chỉ là kết quả tính toán được lưu
+ * đệm — lúc render luôn tính lại từ vị trí thật của hai hình, nên kéo hình thì
+ * cạnh đi theo. Không có hai trường này thì cạnh là đường tự do như cũ.
+ */
+export interface EdgeBinding {
+  source?: EdgeEndpoint
+  target?: EdgeEndpoint
+  /** 'orthogonal' bẻ góc 90° (mặc định cho sơ đồ luồng), 'straight' nối thẳng */
+  router?: 'orthogonal' | 'straight'
+  /** Nhãn hiển thị giữa cạnh, ví dụ "Có" / "Không" ở nhánh điều kiện */
+  label?: string
+}
+
+export interface ArrowShape extends BaseShape, EdgeBinding {
   type: 'arrow'
   points: number[]
   pointerLength?: number
   pointerWidth?: number
 }
 
-export interface LineShape extends BaseShape {
+export interface LineShape extends BaseShape, EdgeBinding {
   type: 'line'
   points: number[]
   lineCap?: 'butt' | 'round' | 'square'

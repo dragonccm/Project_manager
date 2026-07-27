@@ -1,5 +1,6 @@
 "use client"
 
+import { useLanguage } from "@/hooks/use-language"
 import React, { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import A4Editor from '@/features/a4-editor/a4-editor'
@@ -22,6 +23,7 @@ import { FileText, Plus, Copy, Trash2 } from 'lucide-react'
 import { A4Template } from '@/types/database'
 
 export function A4EditorManager() {
+  const { t } = useLanguage()
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
@@ -183,14 +185,16 @@ export function A4EditorManager() {
 
   if (isEditorMode && currentTemplate) {
     return (
-      <div className="h-full flex flex-col">
-          <div className="mb-4 flex items-center gap-2">
-            <Button variant="ghost" onClick={handleBackToGallery}>
-              ← Back to Gallery
+      <div className="h-full min-h-0 flex flex-col bg-background">
+          {/* Thanh tiêu đề mảnh, sát header — không dùng margin để editor bên
+              dưới còn lại đúng phần chiều cao thừa */}
+          <div className="flex items-center gap-2 border-b px-3 py-2 shrink-0">
+            <Button variant="ghost" size="sm" onClick={handleBackToGallery}>
+              ← {t("backToGallery")}
             </Button>
-            <h2 className="text-xl font-bold">{currentTemplate.name}</h2>
+            <h2 className="text-base font-semibold truncate">{currentTemplate.name}</h2>
           </div>
-          <div className="flex-1 border rounded-lg overflow-hidden bg-background">
+          <div className="flex-1 min-h-0 overflow-hidden">
              <A4Editor
                 templateId={currentTemplate.id}
                 onSave={handleSaveTemplate}
@@ -205,17 +209,19 @@ export function A4EditorManager() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    // Tab này chạy full-bleed nên <main> không còn padding — tự thêm ở đây,
+    // và cho phép cuộn riêng phần thư viện mẫu.
+    <div className="h-full overflow-auto space-y-6 animate-fade-in p-4 md:p-6 lg:p-8">
       <div className="flex items-center justify-between glass p-6 rounded-xl border border-white/20">
         <div>
-          <h1 className="text-3xl font-display font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">A4 Document Designer</h1>
+          <h1 className="text-3xl font-display font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">{t("a4DesignerTitle")}</h1>
           <p className="text-muted-foreground mt-2">
-            Create and manage professional A4 document templates
+            {t("a4DesignerSubtitle")}
           </p>
         </div>
         <Button onClick={() => setShowNewTemplateDialog(true)} className="shadow-glow-primary transition-all hover:scale-105">
           <Plus className="w-4 h-4 mr-2" />
-          New Template
+          {t("newTemplate")}
         </Button>
       </div>
 
@@ -224,16 +230,16 @@ export function A4EditorManager() {
         {loading ? (
           <div className="col-span-full flex flex-col items-center justify-center py-12">
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-            <p className="text-muted-foreground">Loading templates...</p>
+            <p className="text-muted-foreground">{t("loadingTemplates")}</p>
           </div>
         ) : templates.length === 0 ? (
           <div className="col-span-full text-center py-20 glass rounded-xl border-dashed border-2 border-muted-foreground/20">
             <FileText className="w-16 h-16 mx-auto text-muted-foreground mb-4 opacity-50" />
-            <h3 className="text-lg font-semibold mb-2">No templates yet</h3>
-            <p className="text-muted-foreground mb-6">Create your first template to get started</p>
+            <h3 className="text-lg font-semibold mb-2">{t("noTemplatesYet")}</h3>
+            <p className="text-muted-foreground mb-6">{t("createFirstTemplate")}</p>
             <Button onClick={() => setShowNewTemplateDialog(true)} variant="outline">
               <Plus className="w-4 h-4 mr-2" />
-              Create Template
+              {t("createTemplateAction")}
             </Button>
           </div>
         ) : (
@@ -253,12 +259,12 @@ export function A4EditorManager() {
                   </div>
                 </CardTitle>
                 <CardDescription className="line-clamp-2 min-h-[40px]">
-                  {template.description || 'No description provided'}
+                  {template.description || t("noDescriptionProvided")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between text-xs text-muted-foreground mt-4 pt-4 border-t border-border/50">
-                  <span>{template.shapes.length} elements</span>
+                  <span>{template.shapes.length} {t("elementsCount")}</span>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       size="icon"
@@ -268,7 +274,7 @@ export function A4EditorManager() {
                         e.stopPropagation()
                         handleCloneTemplate(template.id)
                       }}
-                      title="Duplicate"
+                      title={t("duplicate")}
                     >
                       <Copy className="w-3 h-3" />
                     </Button>
@@ -280,7 +286,7 @@ export function A4EditorManager() {
                         e.stopPropagation()
                         handleDeleteTemplate(template.id)
                       }}
-                      title="Delete"
+                      title={t("delete")}
                     >
                       <Trash2 className="w-3 h-3" />
                     </Button>
@@ -296,29 +302,29 @@ export function A4EditorManager() {
       <Dialog open={showNewTemplateDialog} onOpenChange={setShowNewTemplateDialog}>
         <DialogContent className="glass-panel">
           <DialogHeader>
-            <DialogTitle>Create New Template</DialogTitle>
+            <DialogTitle>{t("createNewTemplate")}</DialogTitle>
             <DialogDescription>
-              Enter a name and description for your new A4 template
+              {t("newTemplateDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="name">Template Name</Label>
+              <Label htmlFor="name">{t("templateName")}</Label>
               <Input
                 id="name"
                 value={newTemplateName}
                 onChange={(e) => setNewTemplateName(e.target.value)}
-                placeholder="My Awesome Template"
+                placeholder={t("templateNamePlaceholder")}
                 className="bg-background/50"
               />
             </div>
             <div>
-              <Label htmlFor="description">Description (optional)</Label>
+              <Label htmlFor="description">{t("descriptionOptional")}</Label>
               <Textarea
                 id="description"
                 value={newTemplateDescription}
                 onChange={(e) => setNewTemplateDescription(e.target.value)}
-                placeholder="Describe your template..."
+                placeholder={t("describeTemplate")}
                 rows={3}
                 className="bg-background/50"
               />
@@ -326,10 +332,10 @@ export function A4EditorManager() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNewTemplateDialog(false)}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button onClick={handleCreateNewTemplate} className="shadow-glow-primary">
-              Create Template
+              {t("createTemplateAction")}
             </Button>
           </DialogFooter>
         </DialogContent>

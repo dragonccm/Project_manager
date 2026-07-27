@@ -237,13 +237,13 @@ export function AccountManager({
       <Controls>
         <SearchBox>
           <SearchIcon>
-            <Search size={20} />
+            <Search size={18} className="text-muted-foreground" />
           </SearchIcon>
           <Input
             placeholder="TÌM KIẾM TÀI KHOẢN..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ paddingLeft: '3rem' }}
+            style={{ paddingLeft: '2.5rem' }}
           />
         </SearchBox>
 
@@ -306,7 +306,7 @@ export function AccountManager({
                 </FormGroup>
 
                 <FormGroup>
-                  <Label>WEBSITE *</Label>
+                  <Label>{t("website")} *</Label>
                   <Input
                     value={formData.website}
                     onChange={(e) => setFormData({ ...formData, website: e.target.value })}
@@ -321,7 +321,7 @@ export function AccountManager({
                     <Input
                       value={formData.username}
                       onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                      placeholder="USERNAME"
+                      placeholder={t("username")}
                       required
                       style={{ flex: 1 }}
                     />
@@ -338,7 +338,7 @@ export function AccountManager({
                       type="password"
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      placeholder="PASSWORD"
+                      placeholder={t("password")}
                       required
                       style={{ flex: 1 }}
                     />
@@ -352,7 +352,7 @@ export function AccountManager({
                 </FormGroup>
 
                 <FormGroup>
-                  <Label>EMAIL</Label>
+                  <Label>{t("email")}</Label>
                   <Input
                     type="email"
                     value={formData.email}
@@ -412,18 +412,18 @@ export function AccountManager({
                               setSelectedAccountForShare(account)
                               setShareModalOpen(true)
                             }}
-                            title="Share"
+                            title={t("share")}
                           >
                             <Share2 size={16} />
                           </IconButton>
                           {account.email && (
-                            <IconButton onClick={() => sendEmailWithCredentials(account)} title="Send Email">
+                            <IconButton onClick={() => sendEmailWithCredentials(account)} title={t("sendEmail")}>
                               <Mail size={16} />
                             </IconButton>
                           )}
                           <IconButton
                             onClick={() => onDeleteAccount(account.id)}
-                            title="Delete"
+                            title={t("delete")}
                             $danger
                           >
                             <Trash2 size={16} />
@@ -457,7 +457,7 @@ export function AccountManager({
 
                         {account.email && (
                           <DetailRow>
-                            <DetailLabel>EMAIL:</DetailLabel>
+                            <DetailLabel>{t("email")}:</DetailLabel>
                             <code>{account.email}</code>
                           </DetailRow>
                         )}
@@ -502,7 +502,7 @@ export function AccountManager({
 
                       <GridCardBody>
                         <GridDetailRow>
-                          <GridLabel>USERNAME:</GridLabel>
+                          <GridLabel>{t("username")}:</GridLabel>
                           <GridValueRow>
                             <code style={{ fontSize: '0.75rem' }}>{account.username}</code>
                             <IconButton onClick={() => copyToClipboard(account.username)} style={{ padding: '0.125rem' }}>
@@ -512,7 +512,7 @@ export function AccountManager({
                         </GridDetailRow>
 
                         <GridDetailRow>
-                          <GridLabel>PASSWORD:</GridLabel>
+                          <GridLabel>{t("password")}:</GridLabel>
                           <GridValueRow>
                             <code style={{ fontSize: '0.75rem' }}>
                               {showPasswords[account.id] ? account.password : "••••••••"}
@@ -528,7 +528,7 @@ export function AccountManager({
 
                         {account.email && (
                           <GridDetailRow>
-                            <GridLabel>EMAIL:</GridLabel>
+                            <GridLabel>{t("email")}:</GridLabel>
                             <code style={{ fontSize: '0.75rem', textOverflow: 'ellipsis', overflow: 'hidden' }}>
                               {account.email}
                             </code>
@@ -542,7 +542,7 @@ export function AccountManager({
                             style={{ width: '100%', marginTop: '0.5rem', fontSize: '0.75rem', padding: '0.5rem' }}
                           >
                             <ExternalLink size={12} />
-                            WEBSITE
+                            {t("website")}
                           </Button>
                         )}
 
@@ -646,11 +646,12 @@ const SearchBox = styled.div`
 
 const SearchIcon = styled.div`
   position: absolute;
-  left: 1rem;
+  left: 0.875rem;
   top: 50%;
   transform: translateY(-50%);
-  color: hsl(var(--foreground));
+  color: hsl(var(--muted-foreground));
   pointer-events: none;
+  z-index: 10;
 `
 
 const ControlButtons = styled.div`

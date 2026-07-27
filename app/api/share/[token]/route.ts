@@ -6,7 +6,7 @@ import { ObjectId } from 'mongodb'
 // GET /api/share/[token] - Retrieve shared content
 export async function GET(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
     // Connect to database
@@ -14,7 +14,7 @@ export async function GET(
       await mongoose.connect(process.env.MONGODB_URI as string)
     }
 
-    const { token } = params
+    const { token } = await params
 
     // Find share link
     const share = await Share.findOne({ token })
@@ -190,7 +190,7 @@ export async function GET(
 // DELETE /api/share/[token] - Revoke share link
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
     // Connect to database
@@ -198,7 +198,7 @@ export async function DELETE(
       await mongoose.connect(process.env.MONGODB_URI as string)
     }
 
-    const { token } = params
+    const { token } = await params
 
     // Find and delete share link
     const share = await Share.findOneAndDelete({ token })

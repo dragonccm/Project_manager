@@ -192,13 +192,13 @@ export function ProjectForm({
         {/* Search and Filter Controls */}
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
-          <div className="flex-1 relative px-6">
-            <Search className="ml-3 absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div className="flex-1 relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
             <Input
               placeholder={vietnameseText.search}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12"
+              className="pl-10"
             />
           </div>
 
@@ -475,7 +475,7 @@ export function ProjectForm({
                             rel="noopener noreferrer"
                             className="text-xs text-secondary hover:underline truncate flex-1 min-w-0"
                           >
-                            Figma Design
+                            {t("figmaDesign")}
                           </a>
                         </div>
                       )}
@@ -501,7 +501,7 @@ export function ProjectForm({
                             className="text-xs px-2 h-7 text-primary hover:text-primary/80"
                           >
                             <Share2 className="h-3 w-3 mr-1" />
-                            Share
+                            {t("share")}
                           </Button>
                           <Button
                             variant="ghost"
@@ -603,7 +603,7 @@ export function ProjectForm({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium">Domain</Label>
+                  <Label className="text-sm font-medium">{t("domain")}</Label>
                   <p className="text-sm text-muted-foreground mt-1">
                     {viewingProject.domain ? (
                       <a
@@ -621,7 +621,7 @@ export function ProjectForm({
                   </p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Figma Link</Label>
+                  <Label className="text-sm font-medium">{t("figmaLink")}</Label>
                   <p className="text-sm text-muted-foreground mt-1">
                     {viewingProject.figmaLink ? (
                       <a

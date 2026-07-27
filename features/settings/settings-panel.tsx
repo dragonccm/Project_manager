@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Palette, Globe, Bell, Download, Upload, ImageIcon, Grid, Waves, Zap } from "lucide-react"
-import { useLanguage } from "@/hooks/use-language"
+import { useLanguage, type Language } from "@/hooks/use-language"
 import { useTheme } from "next-themes"
 
 interface SettingsPanelProps {
@@ -287,7 +287,7 @@ export function SettingsPanel({
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="language">{t("language")}</Label>
-              <Select value={language} onValueChange={setLanguage}>
+              <Select value={language} onValueChange={(v) => setLanguage(v as Language)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -398,7 +398,7 @@ export function SettingsPanel({
                   className="justify-start"
                 >
                   <div className="w-4 h-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded mr-2"></div>
-                  Gradient
+                  {t("gradient")}
                 </Button>
                 <Button
                   variant={backgroundSettings.type === "pattern" ? "default" : "outline"}

@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
+import Script from 'next/script'
 import { Outfit } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { AuthProvider } from '@/hooks/use-auth'
+import { LanguageProvider } from '@/hooks/use-language'
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 
@@ -65,27 +67,46 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" suppressHydrationWarning>
+      <head>
+        {process.env.NODE_ENV === "development" && (
+          <Script
+            src="//unpkg.com/react-grab/dist/index.global.js"
+            crossOrigin="anonymous"
+            strategy="beforeInteractive"
+          />
+        )}
+      </head>
       <body className={outfit.className}>
-        <!-- Google tag (gtag.js) -->
-      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TV89DPZCW8"></script>
-      <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-      
-        gtag('config', 'G-TV89DPZCW8');
-      </script>
+        {/* Google tag (gtag.js) — chỉ nạp ở production để không bắn event khi dev */}
+        {process.env.NODE_ENV === 'production' && (
+          <>
+            <Script
+              src="https://www.googletagmanager.com/gtag/js?id=G-TV89DPZCW8"
+              strategy="afterInteractive"
+            />
+            <Script id="gtag-init" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-TV89DPZCW8');
+              `}
+            </Script>
+          </>
+        )}
         <AuthProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            storageKey="dragonccm-theme"
-          >
-            {children}
-            <Analytics />
-            <SpeedInsights />
-          </ThemeProvider>
+          <LanguageProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              storageKey="dragonccm-theme"
+            >
+              {children}
+              <Analytics />
+              <SpeedInsights />
+            </ThemeProvider>
+          </LanguageProvider>
         </AuthProvider>
       </body>   
     </html>

@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState, useCallback } from 'react'
 import { DocumentItem, DocumentItemStyle, DocumentItemContent } from '@/types/database'
+import { useLanguage } from '@/hooks/use-language'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Grid, Move, Square, Type, Image as ImageIcon, Maximize2, ZoomIn, ZoomOut, Save } from 'lucide-react'
@@ -36,6 +37,7 @@ export function DocumentCanvas({
   onSave,
   readOnly = false
 }: DocumentCanvasProps) {
+  const { t } = useLanguage()
   const canvasRef = useRef<HTMLDivElement>(null)
   const [zoom, setZoom] = useState(1)
   const [showGrid, setShowGrid] = useState(gridEnabled)
@@ -341,7 +343,7 @@ export function DocumentCanvas({
             onClick={() => setShowGrid(!showGrid)}
           >
             <Grid className="w-4 h-4 mr-1" />
-            Grid
+            {t("grid")}
           </Button>
           
           <div className="flex items-center gap-1 border-l pl-2">
@@ -374,7 +376,7 @@ export function DocumentCanvas({
           {onSave && (
             <Button size="sm" onClick={onSave}>
               <Save className="w-4 h-4 mr-1" />
-              Save
+              {t("save")}
             </Button>
           )}
 
@@ -407,7 +409,7 @@ export function DocumentCanvas({
       {selectedItemId && (
         <Card className="p-3">
           <div className="text-sm space-y-1">
-            <div className="font-medium">Selected Item</div>
+            <div className="font-medium">{t("selectedItem")}</div>
             {(() => {
               const item = items.find(i => i.id === selectedItemId)
               if (!item) return null

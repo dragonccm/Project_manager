@@ -1,10 +1,10 @@
 /*
  * =====================================================================
- * DRAGONCCM PROJECT MANAGER - PREMIUM DESIGN SYSTEM
+ * DRAGONCCM PROJECT MANAGER - GOOGLE DEVELOPER PROGRAM SYSTEM
  * =====================================================================
  * 
- * Theme: Cyberpunk/Glassmorphism Premium
- * 
+ * Theme: Google Developer Program (me.developers.google.com)
+ * Background: #F0F4F9 | Active Chip: #C2E7FF | Text: #001D35
  * =====================================================================
  */
 
@@ -17,11 +17,14 @@
 @tailwind utilities;
 
 body {
-  font-family: 'Outfit', 'Inter', sans-serif;
+  font-family: 'Google Sans', 'Outfit', 'Roboto', 'Inter', -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
   background: hsl(var(--background));
   color: hsl(var(--foreground));
-  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.2s ease, color 0.2s ease;
   overflow-x: hidden;
+  letter-spacing: -0.01em;
 }
 
 @layer utilities {
@@ -29,161 +32,114 @@ body {
     text-wrap: balance;
   }
   
-  /* Modern Shadow Utilities */
-  .shadow-soft {
-    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.1);
-  }
-  
-  .shadow-soft-lg {
-    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.2);
-  }
-
-  /* Neon Glow Effects */
-  .shadow-glow-primary {
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); /* Indigo/Primary glow */
-  }
-  
-  .shadow-glow-accent {
-    box-shadow: 0 0 20px rgba(168, 85, 247, 0.3); /* Purple/Accent glow */
-  }
-  
-  .dark .shadow-glow-primary {
-    box-shadow: 0 0 30px rgba(99, 102, 241, 0.15); 
+  /* Google Developer Active Pill Chip */
+  .google-dev-active-chip {
+    background-color: #C2E7FF;
+    color: #001D35;
+    border-radius: 9999px;
+    font-weight: 600;
   }
 
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
-  }
-  
-  /* Glass morphism effect */
-  .glass {
-    background: rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-  }
-  
-  .dark .glass {
-    background: rgba(10, 10, 15, 0.6);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+  .dark .google-dev-active-chip {
+    background-color: #004A77;
+    color: #C2E7FF;
+    border-radius: 9999px;
+    font-weight: 600;
   }
 
-  .glass-card {
-    @apply glass rounded-xl transition-all duration-300;
-  }
-  
-  .glass-card:hover {
-    @apply shadow-lg transform -translate-y-[2px];
-    border-color: rgba(var(--primary), 0.3);
-    background: rgba(255, 255, 255, 0.75);
+  /* Rainbow Border Gradient for Hero Card */
+  .rainbow-border {
+    position: relative;
+    border-radius: 1.25rem; /* 20px */
+    background: #0f0f11;
   }
 
-  .dark .glass-card:hover {
-    border-color: rgba(99, 102, 241, 0.2);
-    background: rgba(15, 15, 25, 0.7);
+  .rainbow-border::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 1.35rem;
+    padding: 2px;
+    background: linear-gradient(90deg, #4285F4, #EA4335, #FBBC04, #34A853, #4285F4);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
   }
   
-  /* Hover effects */
-  .hover-lift {
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
-  }
-  
-  .hover-lift:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.15);
-  }
-  
-  .dark .hover-lift:hover {
-    box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
+  /* Google Developers Elevation */
+  .shadow-google-sm {
+    box-shadow: 0 1px 3px 0 rgba(60, 64, 67, 0.1), 0 1px 2px 0 rgba(60, 64, 67, 0.06);
   }
 
-  /* Scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/20 rounded-full;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-primary/50;
+  .shadow-google-md {
+    box-shadow: 0 4px 12px 0 rgba(60, 64, 67, 0.1);
   }
 }
 
 @layer base {
   :root {
-    /* LIGHT MODE - using comma separation for compatibility */
-    --background: 210, 40%, 98%;      /* #F8FAFC */
-    --foreground: 222, 47%, 11%;      /* #0F172A */
+    /* GOOGLE DEVELOPER PROGRAM LIGHT MODE */
+    --background: 0, 0%, 100%;        /* #FFFFFF Pure White for Header & Sidebar */
+    --foreground: 215, 28%, 17%;      /* #1F1F1F */
     
-    --card: 0, 0%, 100%;
-    --card-foreground: 222, 47%, 11%;
+    --card: 0, 0%, 100%;             /* #FFFFFF */
+    --card-foreground: 215, 28%, 17%;
     
     --popover: 0, 0%, 100%;
-    --popover-foreground: 222, 47%, 11%;
+    --popover-foreground: 215, 28%, 17%;
     
-    --primary: 246, 80%, 60%;         /* #6366F1 Indigo */
-    --primary-foreground: 210, 40%, 98%;
+    --primary: 217, 89%, 51%;         /* #1B66C9 Google Blue */
+    --primary-foreground: 0, 0%, 100%;
     
-    --secondary: 210, 40%, 96.1%;
-    --secondary-foreground: 222.2, 47.4%, 11.2%;
+    --secondary: 216, 20%, 96%;       /* #F0F4F9 Main Content Surface */
+    --secondary-foreground: 215, 28%, 17%;
     
-    --muted: 210, 40%, 96.1%;
-    --muted-foreground: 215.4, 16.3%, 46.9%;
+    --muted: 216, 20%, 96%;           
+    --muted-foreground: 215, 12%, 40%; /* #5E6267 */
     
-    --accent: 270, 95%, 75%;          /* #C084FC Purple */
-    --accent-foreground: 222.2, 47.4%, 11.2%;
+    --accent: 205, 100%, 88%;         /* #C2E7FF Active Chip */
+    --accent-foreground: 207, 100%, 10%; /* #001D35 */
     
-    --destructive: 0, 84.2%, 60.2%;
-    --destructive-foreground: 210, 40%, 98%;
+    --destructive: 5, 81%, 56%;       /* #EA4335 Google Red */
+    --destructive-foreground: 0, 0%, 100%;
 
-    --border: 214.3, 31.8%, 91.4%;
-    --input: 214.3, 31.8%, 91.4%;
-    --ring: 246, 80%, 60%;
+    --border: 216, 18%, 92%;          /* #E5E8EB */
+    --input: 216, 18%, 92%;
+    --ring: 217, 89%, 51%;
     
-    --radius: 0.75rem;
-
-    /* Custom Gradients - keeping HSL explicit */
-    --gradient-primary: linear-gradient(135deg, hsl(246, 80%, 60%) 0%, hsl(270, 95%, 75%) 100%);
+    --radius: 1.5rem;                 /* 24px Google Dev rounded corner */
   }
   
   .dark {
-    /* DARK MODE - Deep Space */
-    --background: 240, 10%, 4%;       /* #09090B Very Dark */
-    --foreground: 210, 40%, 98%;
+    /* GOOGLE DEVELOPER PROGRAM DARK MODE */
+    --background: 240, 4%, 8%;        /* #131314 Dark for Header & Sidebar */
+    --foreground: 210, 14%, 92%;      /* #E3E3E3 */
     
-    --card: 240, 10%, 5.5%;          /* Slightly lighter than bg */
-    --card-foreground: 210, 40%, 98%;
+    --card: 240, 3%, 14%;            /* #222327 */
+    --card-foreground: 210, 14%, 92%;
     
-    --popover: 240, 10%, 5.5%;
-    --popover-foreground: 210, 40%, 98%;
+    --popover: 240, 3%, 14%;
+    --popover-foreground: 210, 14%, 92%;
     
-    --primary: 246, 90%, 65%;         /* Brighter Indigo for dark mode */
-    --primary-foreground: 0, 0%, 100%;
+    --primary: 215, 92%, 75%;         /* #A8C7FA */
+    --primary-foreground: 240, 4%, 8%;
     
-    --secondary: 240, 5%, 15%;        /* Dark Grey */
-    --secondary-foreground: 210, 40%, 98%;
+    --secondary: 240, 4%, 12%;        /* #1E1F22 Main Content Surface */
+    --secondary-foreground: 210, 14%, 92%;
     
-    --muted: 240, 5%, 15%;
-    --muted-foreground: 240, 5%, 65%;
+    --muted: 240, 4%, 16%;
+    --muted-foreground: 215, 6%, 65%;
     
-    --accent: 270, 90%, 70%;          /* Lilac */
-    --accent-foreground: 210, 40%, 98%;
+    --accent: 202, 100%, 23%;         /* #004A77 */
+    --accent-foreground: 205, 100%, 88%; /* #C2E7FF */
     
-    --destructive: 0, 62.8%, 30.6%;
-    --destructive-foreground: 210, 40%, 98%;
+    --destructive: 4, 90%, 65%;       
+    --destructive-foreground: 240, 4%, 8%;
     
-    --border: 240, 5%, 15%;
-    --input: 240, 5%, 15%;
-    --ring: 246, 90%, 65%;
+    --border: 240, 4%, 18%;           
+    --input: 240, 4%, 18%;
+    --ring: 215, 92%, 75%;
   }
 }
 
@@ -195,23 +151,98 @@ body {
     @apply bg-background text-foreground;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Outfit', sans-serif;
-    letter-spacing: -0.02em;
+    font-family: 'Google Sans', 'Outfit', sans-serif;
+    letter-spacing: -0.01em;
   }
 }
 
-/* Animations */
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
-}
 
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
+/* Google Brand Accent Colors */
+.bg-google-blue { background-color: #1a73e8; }
+.bg-google-red { background-color: #ea4335; }
+.bg-google-yellow { background-color: #fbbc04; }
+.bg-google-green { background-color: #34a853; }
+
+.text-google-red { color: #ea4335; }
+.text-google-yellow { color: #fbbc04; }
+.text-google-green { color: #34a853; }
+
+.dark .text-google-red { color: #f28b82; }
+.dark .text-google-yellow { color: #fdd663; }
+.dark .text-google-green { color: #81c995; }
 
 /* Glass Card Variations */
 .glass-panel {
-  @apply bg-white/50 dark:bg-black/40 backdrop-blur-xl border border-white/20 dark:border-white/10;
+  @apply bg-white/80 dark:bg-[#202124]/90 backdrop-blur-xl border border-[#dadce0] dark:border-[#3c4043];
 }
+
+/* Smooth Animation Keyframes & Transitions */
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes floatBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+.animate-page-enter {
+  animation: fadeInScale 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-float {
+  animation: floatBounce 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2.5s ease-in-out infinite;
+}
+
+.shimmer-skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite;
+}
+
+.smooth-transition {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift {
+  transition: transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1), box-shadow 0.25s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-3px) scale(1.01);
+}
+
+.hover-lift:active {
+  transform: translateY(0) scale(0.99);
+}
+
+/* Button & Chip Micro-Interactions */
+button, .google-dev-active-chip {
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+button:active {
+  transform: scale(0.97);
+}
+

@@ -1,18 +1,10 @@
 "use client"
 
 import { UserMenu } from "@/components/auth/user-menu"
-import { Bell, Menu, Search, Command } from "lucide-react"
+import { Menu, Moon, Sun } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { useLanguage } from "@/hooks/use-language"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
+import { useTheme } from "@/hooks/use-theme"
 
 interface HeaderProps {
   activeTab: string
@@ -23,77 +15,72 @@ interface HeaderProps {
 
 export function Header({ activeTab, onMenuClick, isMobile, onNavigate }: HeaderProps) {
   const { t } = useLanguage()
-
-  // Format active tab to breadcrumb title
-  const getPageTitle = (tab: string) => {
-    const item = [
-      { id: "dashboard", label: t("dashboard") },
-      { id: "projects", label: t("projects") },
-      { id: "accounts", label: t("accounts") },
-      { id: "tasks", label: t("dailyTasks") },
-      { id: "tasksOverview", label: t("taskOverview") },
-      { id: "reports", label: t("reports") },
-      { id: "components", label: "Notes" },
-      { id: "a4designer", label: "A4 Designer" },
-      { id: "email", label: t("emailComposer") },
-      { id: "admin", label: t("adminPanel") },
-      { id: "emailSettings", label: t("emailSettings") },
-      { id: "settings", label: t("settings") },
-    ].find(i => i.id === tab)
-    
-    return item ? item.label : "Dashboard"
-  }
+  const { theme, setTheme } = useTheme()
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/60 backdrop-blur-xl shadow-soft supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-16 items-center px-6">
-        {/* Mobile Menu Button */}
-        {isMobile && (
-          <Button variant="ghost" size="icon" className="mr-4 md:hidden" onClick={onMenuClick}>
+    <header className="sticky top-0 z-40 w-full bg-background transition-colors">
+      <div className="flex h-14 items-center justify-between px-4 md:px-6">
+        {/* Left Side: Hamburger Menu + Google Developer Program Logo */}
+        <div className="flex items-center gap-3 md:gap-4">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="rounded-full text-foreground/80 hover:bg-muted/80 h-9 w-9" 
+            onClick={onMenuClick}
+            aria-label={t("toggleMenu")}
+          >
             <Menu className="h-5 w-5" />
           </Button>
-        )}
 
-        {/* Breadcrumbs / Title */}
-        <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 mr-4">
-          <Breadcrumb className="hidden md:flex">
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/" className="hover:text-primary transition-colors">Dragonccm</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage className="font-semibold text-primary">{getPageTitle(activeTab)}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-          <span className="md:hidden font-display font-semibold text-lg">{getPageTitle(activeTab)}</span>
+          <div 
+            className="flex items-center gap-2.5 cursor-pointer select-none" 
+            onClick={() => onNavigate("dashboard")}
+          >
+            {/* Google Infinity 4-Color Logo */}
+            <svg width="34" height="18" viewBox="0 0 36 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+              <path 
+                d="M10 4C6.68629 4 4 6.68629 4 10C4 13.3137 6.68629 16 10 16C13.3137 16 16 13.3137 18 10C20 6.68629 22.6863 4 26 4C29.3137 4 32 6.68629 32 10C32 13.3137 29.3137 16 26 16C22.6863 16 20 13.3137 18 10" 
+                stroke="url(#google_infinity_grad)" 
+                strokeWidth="4" 
+                strokeLinecap="round"
+              />
+              <defs>
+                <linearGradient id="google_infinity_grad" x1="0" y1="0" x2="36" y2="20" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#4285F4" />
+                  <stop offset="30%" stopColor="#EA4335" />
+                  <stop offset="65%" stopColor="#FBBC04" />
+                  <stop offset="100%" stopColor="#34A853" />
+                </linearGradient>
+              </defs>
+            </svg>
+
+            <span className="font-medium text-base tracking-tight text-foreground font-sans">
+              Google Developer Program
+            </span>
+          </div>
         </div>
 
-        {/* Right Side Accessories */}
-        <div className="ml-auto flex items-center gap-4">
-          <div className="hidden md:flex items-center relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search..."
-              className="w-64 pl-9 rounded-full bg-muted/50 border-transparent focus:bg-background focus:border-primary/50 transition-all"
-            />
-            <div className="absolute right-2 top-2 hidden lg:flex h-5 items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
-              <span className="text-xs">⌘</span>K
+        {/* Right Side: Theme Toggle (◐ Circle) & User Profile Avatar */}
+        <div className="flex items-center gap-2 md:gap-3">
+          {/* Half dark / half light theme toggle icon ◐ */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="rounded-full text-foreground/80 hover:bg-muted h-9 w-9"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            title={t("toggleTheme")}
+          >
+            <div className="relative w-5 h-5 rounded-full border-2 border-current overflow-hidden flex">
+              <div className="w-1/2 h-full bg-current" />
+              <div className="w-1/2 h-full bg-transparent" />
             </div>
-          </div>
-          
-          <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-destructive animate-pulse" />
           </Button>
-          
-          <div className="h-8 w-[1px] bg-border/50 mx-2 hidden md:block" />
-          
+
           <UserMenu onNavigate={onNavigate} />
         </div>
       </div>
     </header>
   )
 }
+
+

@@ -13,8 +13,8 @@ export const GET = withAuth(async (request: AuthenticatedRequest) => {
     const projectId = searchParams.get('project_id')
     const search = searchParams.get('search')
 
-    // Get all notes (code components) 
-    const notes = await getCodeComponents()
+    // Chỉ lấy note của chính user đang đăng nhập
+    const notes = await getCodeComponents(request.user.id)
     
     // Apply client-side filtering based on query parameters
     let filteredNotes = notes

@@ -25,6 +25,7 @@ import { EmailComposer } from "@/features/emails/email-composer"
 import { EmailSettings } from "@/features/emails/email-settings"
 import { ShareManagement } from "@/features/admin/share-management"
 import { A4EditorManager } from "@/features/a4-editor/A4EditorManager"
+import { GoogleLoader, GoogleTopProgressBar } from "@/components/ui/google-loader"
 
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth()
@@ -33,6 +34,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("dashboard")
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isNavigatingTab, setIsNavigatingTab] = useState(false)
 
   // API Hooks
   const {
@@ -52,6 +54,17 @@ export default function Dashboard() {
     toggleTask,
   } = useApi()
 
+  // Tab navigation loader effect
+  const handleTabChange = useCallback((newTab: string) => {
+    if (newTab !== activeTab) {
+      setIsNavigatingTab(true)
+      setActiveTab(newTab)
+      setTimeout(() => {
+        setIsNavigatingTab(false)
+      }, 350)
+    }
+  }, [activeTab])
+
   // Authentication Check
   useEffect(() => {
     if (!authLoading && !user) {
@@ -61,16 +74,13 @@ export default function Dashboard() {
 
   // Loading State
   if (authLoading || (dataLoading && !error)) {
-    return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center bg-background z-50">
-        <div className="relative">
-          <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
-          <LifeLine color="#6366f1" size="medium" text="" textColor="" />
-        </div>
-        <p className="mt-4 text-muted-foreground font-medium animate-pulse">Initializing Dragonccm...</p>
-      </div>
-    )
+    return <GoogleLoader fullScreen text="Initializing Dragonccm Console..." />
   }
+
+  // Các tab cần chiếm trọn khung: bỏ max-width, padding, margin và bo góc của
+  // <main> để nội dung nằm sát sidebar và header.
+  const FULL_BLEED_TABS = ["a4designer"]
+  const isFullBleed = FULL_BLEED_TABS.includes(activeTab)
 
   // Not Authenticated State
   if (!user) {
@@ -79,13 +89,21 @@ export default function Dashboard() {
 
   const renderContent = () => {
     return (
-      <div className="animate-fade-in w-full max-w-7xl mx-auto space-y-6">
+      <div
+        key={activeTab}
+        className={
+          isFullBleed
+            ? "h-full w-full min-h-0"
+            : "animate-page-enter w-full max-w-7xl mx-auto space-y-6"
+        }
+      >
         {activeTab === "dashboard" && (
           <DashboardOverview
             projects={projects}
             tasks={tasks}
             accounts={accounts}
             onToggleTask={toggleTask}
+            onNavigate={handleTabChange}
           />
         )}
         {activeTab === "projects" && (
@@ -141,34 +159,41 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden selection:bg-primary/20">
-      {/* Sidebar */}
-      <div className={`
-        fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0
-        ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
-      `}>
-        <Sidebar 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab}
-          isMobile={false}
-          closeMobileMenu={() => setIsMobileMenuOpen(false)}
-        />
-      </div>
+    <div className="flex flex-col h-screen bg-background overflow-hidden">
+      {/* Google Top Progress Bar Loader */}
+      <GoogleTopProgressBar isNavigating={isNavigatingTab} />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        {/* Background decorative elements */}
-        <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Top Full Width Header */}
+      <Header 
+        activeTab={activeTab} 
+        onMenuClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+        isMobile={isMobileMenuOpen}
+        onNavigate={handleTabChange}
+      />
 
-        <Header 
-          activeTab={activeTab} 
-          onMenuClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
-          isMobile={true}
-          onNavigate={setActiveTab}
-        />
+      {/* Main Content & Sidebar Container */}
+      <div className="flex-1 flex min-w-0 overflow-hidden relative">
+        {/* Sidebar */}
+        <div className={`
+          fixed inset-y-0 left-0 top-14 z-50 transform transition-transform duration-300 ease-in-out md:relative md:top-0 md:translate-x-0 bg-background
+          ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
+        `}>
+          <Sidebar 
+            activeTab={activeTab} 
+            setActiveTab={handleTabChange}
+            isMobile={false}
+            closeMobileMenu={() => setIsMobileMenuOpen(false)}
+          />
+        </div>
 
-        <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 scroll-smooth relative z-10">
+        {/* Main Content Area: Floating rounded panel with soft #F0F4F9 background */}
+        <main
+          className={`flex-1 min-w-0 scroll-smooth relative z-10 bg-[#F0F4F9] dark:bg-[#1E1F22] ${
+            isFullBleed
+              ? "overflow-hidden"
+              : "overflow-auto p-4 md:p-6 lg:p-8 rounded-3xl md:rounded-[28px] mr-2 md:mr-4 mb-2 md:mb-4 mt-1"
+          }`}
+        >
           {renderContent()}
         </main>
       </div>
@@ -183,3 +208,4 @@ export default function Dashboard() {
     </div>
   )
 }
+

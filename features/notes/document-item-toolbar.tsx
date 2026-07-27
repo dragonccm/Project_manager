@@ -1,6 +1,7 @@
 "use client"
 
 import React from 'react'
+import { useLanguage } from '@/hooks/use-language'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { DocumentItem } from '@/types/database'
@@ -12,6 +13,7 @@ interface DocumentItemToolbarProps {
 }
 
 export function DocumentItemToolbar({ onAddItem }: DocumentItemToolbarProps) {
+  const { t } = useLanguage()
   const createItem = (type: DocumentItem['type']) => {
     const baseItem: Partial<DocumentItem> = {
       id: nanoid(),
@@ -126,7 +128,7 @@ export function DocumentItemToolbar({ onAddItem }: DocumentItemToolbarProps) {
   return (
     <Card className="p-3">
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-sm font-medium mr-2">Add Item:</span>
+        <span className="text-sm font-medium mr-2">{t("addItem")}:</span>
         {itemTypes.map(({ type, icon: Icon, label, description }) => (
           <Button
             key={type}

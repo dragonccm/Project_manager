@@ -49,8 +49,10 @@ export async function POST(request: NextRequest) {
       role
     })
 
-    // Don't return sensitive data
-    const { ...userResponse } = newUser
+    // Loại bỏ password_hash trước khi trả về client.
+    // Bản cũ viết `const { ...userResponse } = newUser` — chỉ copy nguyên vẹn
+    // chứ không bỏ field nào, nên hash vẫn lọt ra ngoài.
+    const { password_hash, ...userResponse } = newUser as Record<string, unknown>
 
     return NextResponse.json({
       success: true,
